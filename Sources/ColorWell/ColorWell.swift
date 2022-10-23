@@ -26,6 +26,8 @@ public class ColorWell: NSView {
   fileprivate static let cornerRadius: CGFloat = 11
   fileprivate static let lineWidth: CGFloat = 1
   
+  static let defaultColor = NSColor.black
+  
   /// The default frame for all color wells.
   private static let defaultFrame = NSRect(
     origin: .zero,
@@ -49,7 +51,7 @@ public class ColorWell: NSView {
   
   private var colorPanelColorObservation: NSKeyValueObservation?
   private var colorPanelVisibilityObservation: NSKeyValueObservation?
-  private var changeHandlers = [(NSColor) -> Void]()
+  var changeHandlers = Set<ChangeHandler>()
   
   // MARK: Segments
   
@@ -146,7 +148,7 @@ public class ColorWell: NSView {
   /// the color well and its color panel, and executes all change
   /// handlers stored by the color well.
   @objc dynamic
-  public var color = NSColor.black {
+  public var color = ColorWell.defaultColor {
     didSet {
       synchronizeVisualState()
       for handler in changeHandlers {
@@ -313,7 +315,7 @@ public class ColorWell: NSView {
   /// - Parameter handler: A closure that will be executed when color
   ///   well's color changes.
   public func observeColor(onChange handler: @escaping (NSColor) -> Void) {
-    changeHandlers.append(handler)
+    changeHandlers.insert(ChangeHandler(handler: handler))
   }
   
   public override func draw(_ dirtyRect: NSRect) {
@@ -1163,5 +1165,26 @@ class ColorSwatch: NSImageView {
     // Update the color well's color and close the popover.
     colorWell?.color = color
     colorWell?.popover?.close()
+  }
+}
+
+struct ChangeHandler {
+  let id = UUID()
+  let handler: (NSColor) -> Void
+  
+  func callAsFunction(_ color: NSColor) {
+    handler(color)
+  }
+}
+
+extension ChangeHandler: Equatable {
+  static func == (lhs: Self, rhs: Self) -> Bool {
+    lhs.id == rhs.id
+  }
+}
+
+extension ChangeHandler: Hashable {
+  func hash(into hasher: inout Hasher) {
+    hasher.combine(id)
   }
 }
