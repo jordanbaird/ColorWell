@@ -25,28 +25,45 @@ private struct _ColorWellView: NSViewRepresentable {
     
     if #available(macOS 11.0, *) {
       nsView.swatchColors = context.environment.colorWellSwatchColors
-      nsView.color = context.environment.colorWellColor
     }
   }
 }
 
+/// A SwiftUI view that displays a user-settable color value.
+///
+/// A `ColorWellView` enables custom color selection within your interface.
+/// For example, a drawing app might include a color well to let someone
+/// choose the color to use when drawing. A `ColorWellView` displays the
+/// currently selected color, and interactions with the color well display
+/// interfaces for selecting new colors.
 @available(macOS 10.15, *)
 public struct ColorWellView: View {
-  private let frame: CGRect
+  let color: NSColor?
   
-  public init(frame: CGRect) {
-    self.frame = frame
+  /// Creates a color well with the default color.
+  public init() {
+    color = nil
   }
   
-  public init() {
-    frame = ColorWell.defaultFrame
+  /// Creates a color well view with the given color.
+  @available(macOS 11.0, *)
+  public init(color: Color) {
+    self.color = .init(color)
+  }
+  
+  /// Creates a color well view with the given CoreGraphics color.
+  public init(cgColor: CGColor) {
+    color = .init(cgColor: cgColor)
   }
   
   public var body: some View {
     _ColorWellView {
-      ColorWell(frame: frame)
+      if let color {
+        return ColorWell(color: color)
+      } else {
+        return ColorWell()
+      }
     }
-    .frame(width: frame.width, height: frame.height)
   }
 }
 
@@ -58,11 +75,6 @@ private struct ColorWellTransformedActionsKey: EnvironmentKey {
 @available(macOS 11.0, *)
 private struct ColorWellSwatchColorsKey: EnvironmentKey {
   static let defaultValue = [NSColor]()
-}
-
-@available(macOS 11.0, *)
-private struct ColorWellColorKey: EnvironmentKey {
-  static let defaultValue = ColorWell.defaultColor
 }
 
 @available(macOS 10.15, *)
@@ -78,11 +90,6 @@ private extension EnvironmentValues {
   var colorWellSwatchColors: [NSColor] {
     get { self[ColorWellSwatchColorsKey.self] }
     set { self[ColorWellSwatchColorsKey.self] = newValue }
-  }
-  
-  var colorWellColor: NSColor {
-    get { self[ColorWellColorKey.self] }
-    set { self[ColorWellColorKey.self] = newValue }
   }
 }
 
@@ -117,19 +124,6 @@ private struct ColorWellSwatchColors: ViewModifier {
   }
 }
 
-@available(macOS 11.0, *)
-private struct ColorWellColor: ViewModifier {
-  let color: Color
-  
-  var transformedColor: NSColor {
-    .init(color)
-  }
-  
-  func body(content: Content) -> some View {
-    content.environment(\.colorWellColor, transformedColor)
-  }
-}
-
 @available(macOS 10.15, *)
 extension View {
   /// Adds an action to perform when a color well's color changes.
@@ -153,13 +147,6 @@ extension View {
   /// - Parameter colors: The swatch colors to use.
   public func swatchColors(_ colors: [Color]) -> some View {
     modifier(ColorWellSwatchColors(colors: colors))
-  }
-  
-  /// Sets the color for the color wells in this view.
-  ///
-  /// - Parameter color: The color to use.
-  public func colorWellColor(_ color: Color) -> some View {
-    modifier(ColorWellColor(color: color))
   }
 }
 #endif
