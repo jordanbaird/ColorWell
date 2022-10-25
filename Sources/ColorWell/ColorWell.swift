@@ -8,6 +8,10 @@
 
 import Cocoa
 
+#if canImport(SwiftUI)
+import SwiftUI
+#endif
+
 // MARK: - ColorWell
 
 /// A view that displays a user-settable color value.
@@ -222,6 +226,34 @@ public class ColorWell: NSView {
   public convenience init() {
     self.init(frame: Self.defaultFrame)
   }
+  
+  /// Creates a color well with the given color.
+  public convenience init(color: NSColor) {
+    self.init()
+    self.color = color
+    synchronizeVisualState()
+  }
+  
+  /// Creates a color well with the given CoreGraphics color.
+  public convenience init?(cgColor: CGColor) {
+    guard let color = NSColor(cgColor: cgColor) else {
+      return nil
+    }
+    self.init(color: color)
+  }
+  
+  /// Creates a color well with the given CoreImage color.
+  public convenience init(ciColor: CIColor) {
+    self.init(color: .init(ciColor: ciColor))
+  }
+  
+  #if canImport(SwiftUI)
+  /// Creates a color well with the given SwiftUI color.
+  @available(macOS 11.0, *)
+  public convenience init(_ color: Color) {
+    self.init(color: .init(color))
+  }
+  #endif
   
   public required init?(coder: NSCoder) {
     super.init(coder: coder)
