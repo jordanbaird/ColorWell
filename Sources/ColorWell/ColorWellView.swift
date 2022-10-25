@@ -20,78 +20,67 @@ private struct _ColorWellView: NSViewRepresentable {
   }
   
   func updateNSView(_ nsView: ColorWell, context: Context) {
-    if let transformedAction = context.environment.colorWellTransformedAction {
-      nsView.changeHandlers.insert(transformedAction)
-    }
+    nsView.changeHandlers.formUnion(context.environment.colorWellTransformedActions)
+    nsView.isEnabled = context.environment.isEnabled
+    
     if #available(macOS 11.0, *) {
-      nsView.swatchColors = context.environment.swatchColors.map {
-        .init($0)
-      }
-      
-      let color = NSColor(context.environment.colorWellColor)
-      if nsView.color != color {
-        nsView.color = color
-      }
+      nsView.swatchColors = context.environment.colorWellSwatchColors
+      nsView.color = context.environment.colorWellColor
     }
   }
 }
 
 @available(macOS 10.15, *)
 public struct ColorWellView: View {
-  private let frame: CGRect?
+  private let frame: CGRect
   
   public init(frame: CGRect) {
     self.frame = frame
   }
   
   public init() {
-    frame = nil
+    frame = ColorWell.defaultFrame
   }
   
   public var body: some View {
-    if let frame {
-      return _ColorWellView {
-        ColorWell(frame: frame)
-      }
-    } else {
-      return _ColorWellView {
-        ColorWell()
-      }
+    _ColorWellView {
+      ColorWell(frame: frame)
     }
+    .frame(width: frame.width, height: frame.height)
   }
 }
 
 @available(macOS 10.15, *)
-private struct ColorWellTransformedActionKey: EnvironmentKey {
-  static let defaultValue: ChangeHandler? = nil
+private struct ColorWellTransformedActionsKey: EnvironmentKey {
+  static let defaultValue = Set<ChangeHandler>()
 }
 
 @available(macOS 11.0, *)
-private struct SwatchColorsKey: EnvironmentKey {
-  static let defaultValue = [Color]()
+private struct ColorWellSwatchColorsKey: EnvironmentKey {
+  static let defaultValue = [NSColor]()
 }
 
 @available(macOS 11.0, *)
 private struct ColorWellColorKey: EnvironmentKey {
-  static let defaultValue = Color(ColorWell.defaultColor)
+  static let defaultValue = ColorWell.defaultColor
 }
 
 @available(macOS 10.15, *)
 private extension EnvironmentValues {
-  var colorWellTransformedAction: ChangeHandler? {
-    get { self[ColorWellTransformedActionKey.self] }
-    set { self[ColorWellTransformedActionKey.self] = newValue }
+  var colorWellTransformedActions: Set<ChangeHandler> {
+    get { self[ColorWellTransformedActionsKey.self] }
+    set { self[ColorWellTransformedActionsKey.self] = newValue }
   }
 }
 
 @available(macOS 11.0, *)
 private extension EnvironmentValues {
-  var swatchColors: [Color] {
-    get { self[SwatchColorsKey.self] }
-    set { self[SwatchColorsKey.self] = newValue }
+  var colorWellSwatchColors: [NSColor] {
+    get { self[ColorWellSwatchColorsKey.self] }
+    set { self[ColorWellSwatchColorsKey.self] = newValue }
   }
   
-  var colorWellColor: Color {
+  var colorWellColor: NSColor {
     get { self[ColorWellColorKey.self] }
     set { self[ColorWellColorKey.self] = newValue }
   }
@@ -99,23 +88,32 @@ private extension EnvironmentValues {
 
 @available(macOS 10.15, *)
 private struct ColorWellAction: ViewModifier {
+  let id = OrderedIdentifier()
   let action: (Color) -> Void
   
   var transformedAction: ChangeHandler {
-    ChangeHandler { action(Color($0)) }
+    ChangeHandler(id: id) {
+      action(Color($0))
+    }
   }
   
   func body(content: Content) -> some View {
-    content.environment(\.colorWellTransformedAction, transformedAction)
+    content.transformEnvironment(\.colorWellTransformedActions) {
+      $0.insert(transformedAction)
+    }
   }
 }
 
 @available(macOS 11.0, *)
-private struct SwatchColors: ViewModifier {
+private struct ColorWellSwatchColors: ViewModifier {
   let colors: [Color]
   
+  var transformedColors: [NSColor] {
+    colors.map { .init($0) }
+  }
+  
   func body(content: Content) -> some View {
-    content.environment(\.swatchColors, colors)
+    content.environment(\.colorWellSwatchColors, transformedColors)
   }
 }
 
@@ -123,16 +121,19 @@ private struct SwatchColors: ViewModifier {
 private struct ColorWellColor: ViewModifier {
   let color: Color
   
+  var transformedColor: NSColor {
+    .init(color)
+  }
+  
   func body(content: Content) -> some View {
-    content.environment(\.colorWellColor, color)
+    content.environment(\.colorWellColor, transformedColor)
   }
 }
 
 @available(macOS 10.15, *)
 extension View {
-  /// Sets an action that will be run when the color well's
-  /// color changes.
-  public func colorWellAction(_ action: @escaping (Color) -> Void) -> some View {
+  /// Adds an action to perform when a color well's color changes.
+  public func onColorChange(perform action: @escaping (Color) -> Void) -> some View {
     modifier(ColorWellAction(action: action))
   }
 }
@@ -151,7 +152,7 @@ extension View {
   ///
   /// - Parameter colors: The swatch colors to use.
   public func swatchColors(_ colors: [Color]) -> some View {
-    modifier(SwatchColors(colors: colors))
+    modifier(ColorWellSwatchColors(colors: colors))
   }
   
   /// Sets the color for the color wells in this view.

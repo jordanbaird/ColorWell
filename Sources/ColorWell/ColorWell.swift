@@ -29,7 +29,7 @@ public class ColorWell: NSView {
   static let defaultColor = NSColor.black
   
   /// The default frame for all color wells.
-  private static let defaultFrame = NSRect(
+  static let defaultFrame = NSRect(
     origin: .zero,
     size: .init(width: defaultWidth, height: defaultHeight))
   
@@ -52,6 +52,10 @@ public class ColorWell: NSView {
   private var colorPanelColorObservation: NSKeyValueObservation?
   private var colorPanelVisibilityObservation: NSKeyValueObservation?
   var changeHandlers = Set<ChangeHandler>()
+  
+  var sortedChangeHandlers: [ChangeHandler] {
+    changeHandlers.sorted(by: <)
+  }
   
   // MARK: Segments
   
@@ -151,7 +155,7 @@ public class ColorWell: NSView {
   public var color = ColorWell.defaultColor {
     didSet {
       synchronizeVisualState()
-      for handler in changeHandlers {
+      for handler in sortedChangeHandlers {
         handler(color)
       }
     }
@@ -200,6 +204,10 @@ public class ColorWell: NSView {
   ///   shown instead of a popover.
   public var swatchColors: [NSColor] = defaultHexCodes.compactMap {
     .init(hexString: $0)
+  }
+  
+  public override var intrinsicContentSize: NSSize {
+    Self.defaultFrame.size
   }
   
   // MARK: Initializers
@@ -1168,12 +1176,54 @@ class ColorSwatch: NSImageView {
   }
 }
 
+struct OrderedIdentifier {
+  private static var totalCount = 0
+  
+  let root: UUID
+  let count: Int
+  
+  init(root: UUID) {
+    self.root = root
+    self.count = Self.totalCount
+    Self.totalCount += 1
+  }
+  
+  init() {
+    self.init(root: .init())
+  }
+}
+
+extension OrderedIdentifier: Comparable {
+  static func < (lhs: Self, rhs: Self) -> Bool {
+    lhs.count < rhs.count
+  }
+}
+
+extension OrderedIdentifier: Equatable { }
+
+extension OrderedIdentifier: Hashable { }
+
 struct ChangeHandler {
-  let id = UUID()
+  let id: OrderedIdentifier
   let handler: (NSColor) -> Void
+  
+  init(id: OrderedIdentifier, handler: @escaping (NSColor) -> Void) {
+    self.id = id
+    self.handler = handler
+  }
+  
+  init(handler: @escaping (NSColor) -> Void) {
+    self.init(id: .init(), handler: handler)
+  }
   
   func callAsFunction(_ color: NSColor) {
     handler(color)
+  }
+}
+
+extension ChangeHandler: Comparable {
+  static func < (lhs: Self, rhs: Self) -> Bool {
+    lhs.id < rhs.id
   }
 }
 
