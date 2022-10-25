@@ -1,8 +1,11 @@
 # ColorWell
 
-An attractive alternative to `NSColorWell`.
+An attractive alternative to `NSColorWell` for Cocoa and `ColorPicker` for SwiftUI.
 
-<img width="252" alt="color-well-with-popover" src="https://user-images.githubusercontent.com/90936861/195750190-159aaae6-b613-44c0-836e-abecadb3fb71.png">
+<div align='center'>
+    <img src='Sources/ColorWell/Documentation.docc/Resources/color-well-with-popover~dark.png', style='width:37%'>
+    <img src='Sources/ColorWell/Documentation.docc/Resources/color-well-with-popover.png', style='width:37%'>
+</div>
 
 ColorWell is designed to mimic the appearance and behavior of the new color well design in macOS 13 Ventura, for those who want to use the new design on older operating systems.
 
@@ -15,6 +18,21 @@ Add the following dependency to your `Package.swift` file:
 ```
 
 ## Usage
+
+### SwiftUI
+
+Create a `ColorWellView` and add it to your view hierarchy. Observe color changes using the `onColorChange(perform:)` view modifier.
+
+```swift
+struct ContentView: View {
+    var body: some View {
+        ColorWellView(color: .purple)
+            .onColorChange { print($0) }
+  }
+}
+```
+
+### Cocoa
 
 Create a color well using one of the `init()` or `init(frame:)` initializers.
 
