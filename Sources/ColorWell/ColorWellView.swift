@@ -88,7 +88,7 @@ private extension EnvironmentValues {
 
 @available(macOS 10.15, *)
 private struct ColorWellAction: ViewModifier {
-  let id = OrderedIdentifier()
+  let id = ComparableID()
   let action: (Color) -> Void
   
   var transformedAction: ChangeHandler {

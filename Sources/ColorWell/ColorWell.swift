@@ -1208,38 +1208,42 @@ class ColorSwatch: NSImageView {
   }
 }
 
-struct OrderedIdentifier {
+/// An identifier type that can be compared by order of creation.
+///
+/// For identifiers `id1` and `id2`, `id1 < id2` if `id1` was created first.
+struct ComparableID {
   private static var totalCount = 0
   
-  let root: UUID
+  let root = UUID()
   let count: Int
   
-  init(root: UUID) {
-    self.root = root
-    self.count = Self.totalCount
-    Self.totalCount += 1
-  }
-  
   init() {
-    self.init(root: .init())
+    defer { Self.totalCount += 1 }
+    count = Self.totalCount
   }
 }
 
-extension OrderedIdentifier: Comparable {
+extension ComparableID: Comparable {
   static func < (lhs: Self, rhs: Self) -> Bool {
     lhs.count < rhs.count
   }
 }
 
-extension OrderedIdentifier: Equatable { }
+extension ComparableID: Equatable { }
 
-extension OrderedIdentifier: Hashable { }
+extension ComparableID: Hashable { }
 
+/// An identifiable, hashable wrapper for a change handler
+/// that is executed when a color well's color changes.
+///
+/// This type can be compared by order of creation.
+///
+/// For handlers `h1` and `h2`, `h1 < h2` if `h1` was created first.
 struct ChangeHandler {
-  let id: OrderedIdentifier
+  let id: ComparableID
   let handler: (NSColor) -> Void
   
-  init(id: OrderedIdentifier, handler: @escaping (NSColor) -> Void) {
+  init(id: ComparableID, handler: @escaping (NSColor) -> Void) {
     self.id = id
     self.handler = handler
   }
