@@ -30,7 +30,7 @@ public class ColorWell: NSView {
   fileprivate static let cornerRadius: CGFloat = 15
   fileprivate static let lineWidth: CGFloat = 1
   
-  static let defaultColor = NSColor.black
+  static let defaultColor = NSColor.white
   
   /// The default frame for all color wells.
   static let defaultFrame = NSRect(
@@ -166,7 +166,7 @@ public class ColorWell: NSView {
       for handler in sortedChangeHandlers {
         handler(color)
       }
-      setAccessibilityValue(color)
+      setAccessibilityValue(color.createAccessibilityValue())
     }
   }
   
@@ -281,6 +281,7 @@ public class ColorWell: NSView {
     containerGridView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
     
     setAccessibilityRole(.colorWell)
+    setAccessibilityValue(color.createAccessibilityValue())
   }
   
   // MARK: Methods
@@ -430,7 +431,7 @@ class ColorWellSegment: NSView {
   private var appearanceObservation: NSKeyValueObservation?
   
   private var downArrowView: NSView?
-  private var colorPanelImageView: NSImageView?
+  private var colorPanelImageLayer: CALayer?
   
   var popover: ColorWellPopover?
   var canShowPopover = false
@@ -454,13 +455,16 @@ class ColorWellSegment: NSView {
   var downArrowImage: NSImage {
     // Make the image slightly larger if the color well is taller than 30px.
     let sizeConstant = colorWellHeight >= 30
-    ? 12.5
-    : 11
+    ? 13.5
+    : 12
     return .init(
       size: .init(width: sizeConstant, height: sizeConstant),
       flipped: false
     ) { bounds in
-      let contextCache = NSGraphicsContext.current
+      NSGraphicsContext.saveGraphicsState()
+      defer {
+        NSGraphicsContext.restoreGraphicsState()
+      }
       let circlePath = NSBezierPath(ovalIn: bounds)
       NSColor(
         srgbRed: 0.235,
@@ -473,27 +477,28 @@ class ColorWellSegment: NSView {
       let arrowPathBounds = NSRect(
         x: 0,
         y: 0,
-        width: sizeConstant * 0.55,
-        height: (sizeConstant * 0.55) / 2
+        width: sizeConstant * 0.5,
+        height: (sizeConstant * 0.5) / 2
       ).centered(in: bounds)
       let arrowPath = NSBezierPath()
+      arrowPath.lineWidth = 1.5
+      arrowPath.lineCapStyle = .round
       arrowPath.move(
         to: .init(
           x: arrowPathBounds.minX,
-          y: arrowPathBounds.maxY))
+          y: arrowPathBounds.maxY - (arrowPath.lineWidth / 4)))
       arrowPath.line(
         to: .init(
           x: arrowPathBounds.midX,
-          y: arrowPathBounds.minY))
+          y: arrowPathBounds.minY - (arrowPath.lineWidth / 4)))
       arrowPath.line(
         to: .init(
           x: arrowPathBounds.maxX,
-          y: arrowPathBounds.maxY))
+          y: arrowPathBounds.maxY - (arrowPath.lineWidth / 4)))
       
       NSColor.white.setStroke()
       arrowPath.stroke()
       
-      NSGraphicsContext.current = contextCache
       return true
     }
   }
@@ -522,9 +527,10 @@ class ColorWellSegment: NSView {
       // the other segment to fill the remaining space.
       translatesAutoresizingMaskIntoConstraints = false
       widthAnchor.constraint(equalToConstant: 20).isActive = true
-      addColorPanelImageView(clip: true)
+      setAccessibilityHelp("Opens the system color panel")
     case .showsPopover:
       fillColor = colorWell.color
+      setAccessibilityHelp("Shows a color selection popover")
     }
     
     if #available(macOS 10.14, *) {
@@ -544,6 +550,15 @@ class ColorWellSegment: NSView {
     fatalError("init(coder:) has not been implemented")
   }
   
+  override func accessibilityValue() -> Any? {
+    switch kind {
+    case .opensColorPanel:
+      return nil
+    case .showsPopover:
+      return colorWell?.accessibilityValue()
+    }
+  }
+  
   override func updateTrackingAreas() {
     super.updateTrackingAreas()
     if let mouseEnteredAndExitedTrackingArea {
@@ -560,51 +575,30 @@ class ColorWellSegment: NSView {
     addTrackingArea(mouseEnteredAndExitedTrackingArea!)
   }
   
-  /// Updates the segment's tooltip, based on the segment's `kind`
-  /// property, and whether or not the color well is enabled.
-  func updateTooltip() {
-    guard colorWellIsEnabled else {
-      toolTip = "Color well is disabled."
-      return
-    }
-    switch kind {
-    case .opensColorPanel:
-      toolTip = "Click to show more colors or create your own."
-    case .showsPopover:
-      toolTip = "Click to choose a color."
-    }
-  }
-  
-  /// Adds an image view to the segment that indicates that the
-  /// segment opens the color panel.
-  func addColorPanelImageView(clip: Bool = false) {
+  /// Adds an layer to the segment that contains an image
+  /// indicating that the segment opens the color panel.
+  func setColorPanelImageLayer(clip: Bool = false) {
+    colorPanelImageLayer?.removeFromSuperlayer()
     // Force unwrap is okay here.
     // The image name is baked in as part of Cocoa.
     let image = NSImage(named: NSImage.touchBarColorPickerFillName)!
-    let imageView = NSImageView(image: clip ? image.clippedToCircle() : image)
-    imageView.imageScaling = .scaleProportionallyDown
-    imageView.setAccessibilityRole(.image)
-    imageView.setAccessibilityHelp("Color picker icon.")
-    
-    addSubview(imageView)
-    
-    imageView.translatesAutoresizingMaskIntoConstraints = false
-    imageView.widthAnchor.constraint(
-      equalTo: widthAnchor,
-      constant: clip ? -5 : -2
-    ).isActive = true
-    imageView.heightAnchor.constraint(
-      equalTo: heightAnchor,
-      constant: clip ? -5 : -2
-    ).isActive = true
-    imageView.centerXAnchor.constraint(
-      equalTo: centerXAnchor
-    ).isActive = true
-    imageView.centerYAnchor.constraint(
-      equalTo: centerYAnchor
-    ).isActive = true
-    
-    colorPanelImageView = imageView
+    wantsLayer = true
+    guard let layer else {
+      return
+    }
+    colorPanelImageLayer = .init()
+    guard let colorPanelImageLayer else {
+      return
+    }
+    let imageDimension = min(layer.bounds.width, layer.bounds.height) - 5
+    colorPanelImageLayer.frame = .init(
+      x: 0,
+      y: 0,
+      width: imageDimension,
+      height: imageDimension
+    ).centered(in: layer.bounds)
+    colorPanelImageLayer.contents = clip ? image.clippedToCircle() : image
+    layer.addSublayer(colorPanelImageLayer)
   }
   
   /// Creates an image view that contains a downward-facing arrow.
@@ -829,16 +823,22 @@ class ColorWellSegment: NSView {
   }
   
   override func draw(_ dirtyRect: NSRect) {
+    NSGraphicsContext.saveGraphicsState()
+    defer {
+      NSGraphicsContext.restoreGraphicsState()
+    }
+    if kind == .opensColorPanel {
+      setColorPanelImageLayer(clip: true)
+    }
     if colorWellIsEnabled {
       fillColor.setFill()
-      colorPanelImageView?.alphaValue = 1
+      colorPanelImageLayer?.opacity = 1
     } else {
       let disabledAlpha = max(fillColor.alphaComponent - 0.5, 0)
       fillColor.withAlphaComponent(disabledAlpha).setFill()
-      colorPanelImageView?.alphaValue = 0.5
+      colorPanelImageLayer?.opacity = 0.5
     }
     defaultPath(for: dirtyRect).fill()
-    updateTooltip()
   }
   
   override func mouseEntered(with event: NSEvent) {
@@ -1016,7 +1016,6 @@ class ColorWellPopover: NSPopover, NSPopoverDelegate {
     self.colorWell = colorWell
     contentViewController = popoverViewController
     behavior = .transient
-    animates = false
     delegate = self
   }
   
@@ -1160,6 +1159,10 @@ class ColorSwatch: NSImageView {
   let color: NSColor
   
   private var borderLayer: CAShapeLayer?
+  
+  private let borderWidth: CGFloat = 2
+  private let borderCornerRadius: CGFloat = 1
+  
   private var _isSelected = false
   
   /// A Boolean value that indicates whether the swatch is selected.
@@ -1183,14 +1186,9 @@ class ColorSwatch: NSImageView {
   }
   
   /// The computed border color of the swatch, created based on
-  /// its current color and the application's effective appearance.
+  /// its current color.
   var borderColor: CGColor {
-    var borderColor = NSColor.white
-    if color.isWhite || !NSApp.effectiveAppearanceIsDarkAppearance {
-      borderColor = .black
-    }
-    return color.blended(withFraction: 0.15, of: borderColor)?.cgColor
-    ?? borderColor.withAlphaComponent(0.15).cgColor
+    .init(gray: (1 - color.averageBrightness) / 4, alpha: 0.15)
   }
   
   /// The computed bezel color of the swatch.
@@ -1248,21 +1246,43 @@ class ColorSwatch: NSImageView {
     }
     borderLayer?.removeFromSuperlayer()
     if isSelected {
-      if color.isWhite {
-        layer.borderWidth = 0
-        borderLayer = .init()
-        borderLayer?.path = .init(rect: layer.bounds.insetBy(dx: 3, dy: 3), transform: nil)
-        borderLayer?.fillColor = .clear
-        borderLayer?.strokeColor = borderColor
-        borderLayer?.lineWidth = 2
-        // Force unwrap here is fine, as we've just created the border layer.
-        layer.addSublayer(borderLayer!)
-      } else {
-        layer.borderWidth = 3
+      borderLayer = .init()
+      guard let borderLayer else {
+        return
       }
+      borderLayer.masksToBounds = false
+      borderLayer.frame = layer.bounds
+      borderLayer.path = .init(
+        roundedRect: layer.bounds,
+        cornerWidth: borderCornerRadius,
+        cornerHeight: borderCornerRadius,
+        transform: nil)
+      borderLayer.fillColor = .clear
+      borderLayer.strokeColor = bezelColor
+      borderLayer.lineWidth = borderWidth
+      
+      borderLayer.shadowColor = NSColor.shadowColor.cgColor
+      borderLayer.shadowRadius = 0.5
+      borderLayer.shadowOpacity = 0.25
+      borderLayer.shadowOffset = .zero
+      borderLayer.shadowPath = .init(
+        roundedRect: layer.bounds.insetBy(dx: borderWidth, dy: borderWidth),
+        cornerWidth: borderCornerRadius,
+        cornerHeight: borderCornerRadius,
+        transform: nil
+      ).copy(
+        strokingWithWidth: borderWidth,
+        lineCap: .round,
+        lineJoin: .round,
+        miterLimit: 0)
+      
+      layer.addSublayer(borderLayer)
+      layer.masksToBounds = false
+      layer.borderWidth = borderWidth
       layer.borderColor = bezelColor
     } else {
-      layer.borderWidth = 1.5
+      layer.masksToBounds = true
+      layer.borderWidth = borderWidth
       layer.borderColor = borderColor
     }
   }

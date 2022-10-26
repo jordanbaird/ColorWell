@@ -29,17 +29,11 @@ extension NSColor {
     return (r, g, b, a)
   }
   
-  /// A Boolean value that indicates whether the current color
-  /// object is pure white, ignoring the color's alpha component.
-  var isWhite: Bool {
-    let color = sRGB
-    return [
-      color.redComponent,
-      color.greenComponent,
-      color.blueComponent
-    ].allSatisfy {
-      $0 == 1
-    }
+  /// Returns the average of this color's red, green, and blue
+  /// components, approximating the brightness of the color.
+  var averageBrightness: CGFloat {
+    let c = sRGBComponents
+    return (c.red + c.green + c.blue) / 3
   }
   
   /// Creates a color from a hexadecimal string.
@@ -74,5 +68,81 @@ extension NSColor {
     let aFloat = CGFloat(aInt) / 255
     
     self.init(srgbRed: rFloat, green: gFloat, blue: bFloat, alpha: aFloat)
+  }
+  
+  /// Returns a basic description of the color, alongside
+  /// the components for the color's current color space.
+  private func extractSimpleDescriptionAndComponents() -> (description: String, components: [Double]) {
+    switch colorSpace.colorSpaceModel {
+    case .rgb: return (
+      "rgb",
+      [
+        redComponent,
+        greenComponent,
+        blueComponent,
+        alphaComponent,
+      ])
+    case .cmyk: return (
+      "cmyk",
+      [
+        cyanComponent,
+        magentaComponent,
+        yellowComponent,
+        blackComponent,
+        alphaComponent,
+      ])
+    case .deviceN: return ("deviceN", [])
+    case .gray: return (
+      "grayscale",
+      [
+        whiteComponent,
+        alphaComponent,
+      ])
+    case .indexed: return ("indexed", [])
+    case .lab: return ("L*a*b*", [])
+    case .patterned: return ("pattern", [])
+    case .unknown: break
+    @unknown default: break
+    }
+    return ("\(self)", [])
+  }
+  
+  /// Creates a value containing a description of the color, for
+  /// use with accessibility features.
+  func createAccessibilityValue() -> String {
+    switch type {
+    case .componentBased:
+      let extracted = extractSimpleDescriptionAndComponents()
+      
+      guard
+        !extracted.components.isEmpty,
+        extracted.components.count == numberOfComponents
+      else {
+        // Returning a generic description is the best we can do.
+        // Example: "rgb color"
+        return "\(extracted.description) color"
+      }
+      
+      let results = [extracted.description] + extracted.components.map {
+        var string = String($0)
+        while
+          string.count > 1,
+          string.count > 8 || string.last == "0" || string.last == "."
+        {
+          string.removeLast()
+        }
+        assert(!string.isEmpty, "String should not be empty.")
+        return string
+      }
+      
+      return results.joined(separator: " ")
+    case .catalog:
+      return "catalog color \(localizedColorNameComponent)"
+    case .pattern:
+      return "pattern"
+    @unknown default:
+      break
+    }
+    return "\(self)"
   }
 }
