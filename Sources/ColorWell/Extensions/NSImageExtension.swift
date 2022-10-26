@@ -17,15 +17,14 @@ extension NSImage {
     unlockFocus()
   }
   
-  /// Returns a new image by clipping the current image to the shape of
-  /// an oval, insetting the current image's size by the given amount.
-  func clippedToOval(insetBy amount: CGFloat = 0) -> NSImage {
+  /// Returns a new image by clipping the current image to a
+  /// circular shape and insetting its size by the given amount.
+  func clippedToCircle(insetBy amount: CGFloat = 0) -> NSImage {
     let originalFrame = NSRect(origin: .zero, size: size)
+    let insetDimension = min(size.width, size.height) - amount
     let insetFrame = NSRect(
       origin: .zero,
-      size: .init(
-        width: size.width - amount,
-        height: size.height - amount)
+      size: .init(width: insetDimension, height: insetDimension)
     ).centered(in: originalFrame)
     
     let image = NSImage(size: insetFrame.size)

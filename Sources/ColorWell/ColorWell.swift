@@ -25,9 +25,9 @@ public class ColorWell: NSView {
   
   // MARK: Default values
   
-  fileprivate static let defaultWidth: CGFloat = 60
-  fileprivate static let defaultHeight: CGFloat = 20
-  fileprivate static let cornerRadius: CGFloat = 11
+  fileprivate static let defaultWidth: CGFloat = 64
+  fileprivate static let defaultHeight: CGFloat = 28
+  fileprivate static let cornerRadius: CGFloat = 15
   fileprivate static let lineWidth: CGFloat = 1
   
   static let defaultColor = NSColor.black
@@ -49,7 +49,6 @@ public class ColorWell: NSView {
   // MARK: Subviews
   
   private var containerGridView: ColorWellSegmentContainerGridView!
-  private let bezelView = ColorWellBezelView()
   
   // MARK: Observations and handlers
   
@@ -84,8 +83,13 @@ public class ColorWell: NSView {
   /// The computed default shadow for the color well.
   private var defaultShadow: NSShadow {
     let shadow = NSShadow()
-    shadow.shadowBlurRadius = Self.lineWidth
-    shadow.shadowColor = .shadowColor.withAlphaComponent(0.5)
+    if NSApp.effectiveAppearanceIsDarkAppearance {
+      shadow.shadowBlurRadius = Self.lineWidth / 2
+      shadow.shadowColor = .shadowColor.withAlphaComponent(0.66)
+    } else {
+      shadow.shadowBlurRadius = Self.lineWidth
+      shadow.shadowColor = .shadowColor.withAlphaComponent(0.5)
+    }
     return shadow
   }
   
@@ -162,6 +166,7 @@ public class ColorWell: NSView {
       for handler in sortedChangeHandlers {
         handler(color)
       }
+      setAccessibilityValue(color)
     }
   }
   
@@ -212,6 +217,10 @@ public class ColorWell: NSView {
   
   public override var intrinsicContentSize: NSSize {
     Self.defaultFrame.size
+  }
+  
+  public override var alignmentRectInsets: NSEdgeInsets {
+    .init(top: 2, left: 3, bottom: 2, right: 3)
   }
   
   // MARK: Initializers
@@ -270,14 +279,6 @@ public class ColorWell: NSView {
     containerGridView.heightAnchor.constraint(equalTo: heightAnchor).isActive = true
     containerGridView.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
     containerGridView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-    
-    addSubview(bezelView)
-    
-    bezelView.translatesAutoresizingMaskIntoConstraints = false
-    bezelView.widthAnchor.constraint(equalTo: widthAnchor).isActive = true
-    bezelView.heightAnchor.constraint(equalTo: heightAnchor).isActive = true
-    bezelView.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
-    bezelView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
     
     setAccessibilityRole(.colorWell)
   }
@@ -360,9 +361,7 @@ public class ColorWell: NSView {
   
   public override func draw(_ dirtyRect: NSRect) {
     super.draw(dirtyRect)
-    shadow = NSApp.effectiveAppearanceIsDarkAppearance
-    ? nil
-    : defaultShadow
+    shadow = defaultShadow
   }
 }
 
@@ -376,11 +375,14 @@ class ColorWellSegmentContainerGridView: NSGridView {
   /// The segment that, when pressed, opens the color well's color panel.
   let colorPanelSegment: ColorWellSegment
   
+  var bezelLayer: ColorWellBezelLayer?
+  
   /// Creates a grid view with the given color well.
   init(colorWell: ColorWell) {
     popoverSegment = .init(colorWell: colorWell, kind: .showsPopover)
     colorPanelSegment = .init(colorWell: colorWell, kind: .opensColorPanel)
     super.init(frame: .zero)
+    wantsLayer = true
     columnSpacing = 0
     xPlacement = .fill
     yPlacement = .fill
@@ -390,6 +392,19 @@ class ColorWellSegmentContainerGridView: NSGridView {
   @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
+  }
+  
+  override func draw(_ dirtyRect: NSRect) {
+    super.draw(dirtyRect)
+    bezelLayer?.removeFromSuperlayer()
+    guard let layer else {
+      return
+    }
+    bezelLayer = .init(frame: layer.bounds)
+    guard let bezelLayer else {
+      return
+    }
+    layer.addSublayer(bezelLayer)
   }
 }
 
@@ -520,6 +535,8 @@ class ColorWellSegment: NSView {
         self?.needsDisplay = true
       }
     }
+    
+    setAccessibilityRole(.button)
   }
   
   @available(*, unavailable)
@@ -536,8 +553,7 @@ class ColorWellSegment: NSView {
       rect: bounds,
       options: [
         .activeInKeyWindow,
-        .assumeInside,
-        .mouseEnteredAndExited
+        .mouseEnteredAndExited,
       ],
       owner: self)
     // Force unwrap is fine, as we just set this value.
@@ -563,10 +579,12 @@ class ColorWellSegment: NSView {
   /// segment opens the color panel.
   func addColorPanelImageView(clip: Bool = false) {
     // Force unwrap is okay here.
-    // NSImage.colorPanelName is baked in with AppKit.
-    let image = NSImage(named: NSImage.colorPanelName)!
-    let imageView = NSImageView(image: clip ? image.clippedToOval(insetBy: 7) : image)
+    // The image name is baked in as part of Cocoa.
+    let image = NSImage(named: NSImage.touchBarColorPickerFillName)!
+    let imageView = NSImageView(image: clip ? image.clippedToCircle() : image)
     imageView.imageScaling = .scaleProportionallyDown
+    imageView.setAccessibilityRole(.image)
+    imageView.setAccessibilityHelp("Color picker icon.")
     
     addSubview(imageView)
     
@@ -608,6 +626,9 @@ class ColorWellSegment: NSView {
   /// segment, created based on the segment's `kind` property.
   func defaultPath(for dirtyRect: NSRect) -> NSBezierPath {
     let path = NSBezierPath()
+    let insetRect = dirtyRect.insetBy(
+      dx: -ColorWell.lineWidth / 2,
+      dy: -ColorWell.lineWidth / 2)
     
     switch kind {
     case .opensColorPanel:
@@ -623,8 +644,8 @@ class ColorWellSegment: NSView {
           .init(
             translationX: 0,
             y: -ColorWell.cornerRadius)),
-        controlPoint1: dirtyRect.topRight,
-        controlPoint2: dirtyRect.topRight)
+        controlPoint1: insetRect.topRight,
+        controlPoint2: insetRect.topRight)
       path.line(
         to: dirtyRect.bottomRight.applying(
           .init(
@@ -635,8 +656,8 @@ class ColorWellSegment: NSView {
           .init(
             translationX: -ColorWell.cornerRadius,
             y: 0)),
-        controlPoint1: dirtyRect.bottomRight,
-        controlPoint2: dirtyRect.bottomRight)
+        controlPoint1: insetRect.bottomRight,
+        controlPoint2: insetRect.bottomRight)
       path.close()
     case .showsPopover:
       path.move(to: dirtyRect.bottomRight)
@@ -651,8 +672,8 @@ class ColorWellSegment: NSView {
           .init(
             translationX: 0,
             y: -ColorWell.cornerRadius)),
-        controlPoint1: dirtyRect.topLeft,
-        controlPoint2: dirtyRect.topLeft)
+        controlPoint1: insetRect.topLeft,
+        controlPoint2: insetRect.topLeft)
       path.line(
         to: dirtyRect.bottomLeft.applying(
           .init(
@@ -663,8 +684,8 @@ class ColorWellSegment: NSView {
           .init(
             translationX: ColorWell.cornerRadius,
             y: 0)),
-        controlPoint1: dirtyRect.bottomLeft,
-        controlPoint2: dirtyRect.bottomLeft)
+        controlPoint1: insetRect.bottomLeft,
+        controlPoint2: insetRect.bottomLeft)
       path.close()
     }
     
@@ -896,22 +917,82 @@ class ColorWellSegment: NSView {
 }
 
 /// A view that mimics the appearance of an `NSButton`'s bezel.
-class ColorWellBezelView: NSView {
-  override func draw(_ dirtyRect: NSRect) {
-    // Clip to the top sliver of the button.
-    NSBezierPath.clip(
-      .init(
-        x: dirtyRect.origin.x + ColorWell.lineWidth,
-        y: dirtyRect.maxY - (ColorWell.cornerRadius / 2),
-        width: dirtyRect.width - (ColorWell.lineWidth * 2),
-        height: ColorWell.cornerRadius / 2))
-    let path = NSBezierPath(
-      roundedRect: dirtyRect,
-      xRadius: ColorWell.cornerRadius / 2,
-      yRadius: ColorWell.cornerRadius / 2)
-    path.addClip()
-    NSColor.white.withAlphaComponent(0.2).setStroke()
-    path.stroke()
+class ColorWellBezelLayer: CAShapeLayer {
+  var insetFrame: NSRect {
+    frame.insetBy(
+      dx: ColorWell.lineWidth / 2,
+      dy: ColorWell.lineWidth / 2)
+  }
+  
+  func defaultPath(for dirtyRect: NSRect) -> CGMutablePath {
+    let path = CGMutablePath()
+    let insetRect = dirtyRect.insetBy(
+      dx: -ColorWell.lineWidth,
+      dy: -ColorWell.lineWidth)
+    
+    path.move(to: dirtyRect.bottomLeft)
+    path.addLine(
+      to: dirtyRect.topLeft.applying(
+        .init(
+          translationX: 0,
+          y: -ColorWell.cornerRadius)))
+    path.addCurve(
+      to: dirtyRect.topLeft.applying(
+        .init(
+          translationX: ColorWell.cornerRadius,
+          y: 0)),
+      control1: insetRect.topLeft,
+      control2: insetRect.topLeft)
+    path.addLine(
+      to: dirtyRect.topRight.applying(
+        .init(
+          translationX: -ColorWell.cornerRadius,
+          y: 0)))
+    path.addCurve(
+      to: dirtyRect.topRight.applying(
+        .init(
+          translationX: 0,
+          y: -ColorWell.cornerRadius)),
+      control1: insetRect.topRight,
+      control2: insetRect.topRight)
+    path.addLine(to: dirtyRect.bottomRight)
+    path.closeSubpath()
+    
+    return path
+  }
+  
+  func maskLayer(for dirtyRect: NSRect) -> CAShapeLayer {
+    let layer = CAShapeLayer()
+    layer.frame = dirtyRect
+    let rect = NSRect(
+      x: dirtyRect.origin.x,
+      y: dirtyRect.maxY - (ColorWell.cornerRadius / 3),
+      width: dirtyRect.width,
+      height: ColorWell.cornerRadius / 2)
+    layer.path = .init(rect: rect, transform: nil)
+    layer.fillColor = .black
+    return layer
+  }
+  
+  init(frame frameRect: NSRect) {
+    super.init()
+    fillColor = .clear
+    strokeColor = .init(gray: 1, alpha: 0.2)
+    lineWidth = ColorWell.lineWidth
+    masksToBounds = true
+    needsDisplayOnBoundsChange = true
+    frame = frameRect
+  }
+  
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
+  override func display() {
+    super.display()
+    path = defaultPath(for: insetFrame)
+    mask = maskLayer(for: frame)
   }
 }
 
