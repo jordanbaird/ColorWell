@@ -453,10 +453,7 @@ class ColorWellSegment: NSView {
   
   /// An image of a downward-facing chevron inside a translucent circle.
   var downArrowImage: NSImage {
-    // Make the image slightly larger if the color well is taller than 30px.
-    let sizeConstant = colorWellHeight >= 30
-    ? 13.5
-    : 12
+    let sizeConstant: CGFloat = 12
     return .init(
       size: .init(width: sizeConstant, height: sizeConstant),
       flipped: false
@@ -575,8 +572,8 @@ class ColorWellSegment: NSView {
     addTrackingArea(mouseEnteredAndExitedTrackingArea!)
   }
   
-  /// Adds an layer to the segment that contains an image
-  /// indicating that the segment opens the color panel.
+  /// Adds a layer that contains an image indicating that the
+  /// segment opens the color panel.
   func setColorPanelImageLayer(clip: Bool = false) {
     colorPanelImageLayer?.removeFromSuperlayer()
     // Force unwrap is okay here.
@@ -979,6 +976,7 @@ class ColorWellBezelLayer: CAShapeLayer {
     fillColor = .clear
     strokeColor = .init(gray: 1, alpha: 0.2)
     lineWidth = ColorWell.lineWidth
+    lineCap = .round
     masksToBounds = true
     needsDisplayOnBoundsChange = true
     frame = frameRect
