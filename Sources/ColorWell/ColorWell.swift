@@ -27,8 +27,9 @@ public class ColorWell: NSView {
   
   fileprivate static let defaultWidth: CGFloat = 64
   fileprivate static let defaultHeight: CGFloat = 28
-  fileprivate static let cornerRadius: CGFloat = 15
-  fileprivate static let lineWidth: CGFloat = 1
+  
+  static let cornerRadius: CGFloat = 15
+  static let lineWidth: CGFloat = 1
   
   static let defaultColor = NSColor.white
   
@@ -376,7 +377,7 @@ class ColorWellSegmentContainerGridView: NSGridView {
   /// The segment that, when pressed, opens the color well's color panel.
   let colorPanelSegment: ColorWellSegment
   
-  var bezelLayer: ColorWellBezelLayer?
+  var bezelLayer: CAGradientLayer?
   
   /// Creates a grid view with the given color well.
   init(colorWell: ColorWell) {
@@ -397,14 +398,42 @@ class ColorWellSegmentContainerGridView: NSGridView {
   
   override func draw(_ dirtyRect: NSRect) {
     super.draw(dirtyRect)
+    
     bezelLayer?.removeFromSuperlayer()
+    
     guard let layer else {
       return
     }
-    bezelLayer = .init(frame: layer.bounds)
+    
+    bezelLayer = .init()
+    
     guard let bezelLayer else {
       return
     }
+    
+    bezelLayer.colors = [
+      CGColor.clear,
+      CGColor.clear,
+      CGColor.clear,
+      CGColor(gray: 1, alpha: 0.25)
+    ]
+    bezelLayer.needsDisplayOnBoundsChange = true
+    bezelLayer.frame = layer.bounds
+    
+    let maskLayer = CAShapeLayer()
+    maskLayer.fillColor = .clear
+    maskLayer.strokeColor = .black
+    maskLayer.lineWidth = ColorWell.lineWidth
+    maskLayer.needsDisplayOnBoundsChange = true
+    maskLayer.frame = bezelLayer.frame
+    maskLayer.path = Path.colorWellPath(
+      for: bezelLayer.frame.insetBy(
+        dx: ColorWell.lineWidth / 2,
+        dy: ColorWell.lineWidth / 2)
+    ).cgMutablePath
+    
+    bezelLayer.mask = maskLayer
+    
     layer.addSublayer(bezelLayer)
   }
 }
@@ -616,71 +645,18 @@ class ColorWellSegment: NSView {
   /// Returns the default path that will be used to draw the
   /// segment, created based on the segment's `kind` property.
   func defaultPath(for dirtyRect: NSRect) -> NSBezierPath {
-    let path = NSBezierPath()
-    let insetRect = dirtyRect.insetBy(
-      dx: -ColorWell.lineWidth / 2,
-      dy: -ColorWell.lineWidth / 2)
-    
     switch kind {
     case .opensColorPanel:
-      path.move(to: dirtyRect.bottomLeft)
-      path.line(to: dirtyRect.topLeft)
-      path.line(
-        to: dirtyRect.topRight.applying(
-          .init(
-            translationX: -ColorWell.cornerRadius,
-            y: 0)))
-      path.curve(
-        to: dirtyRect.topRight.applying(
-          .init(
-            translationX: 0,
-            y: -ColorWell.cornerRadius)),
-        controlPoint1: insetRect.topRight,
-        controlPoint2: insetRect.topRight)
-      path.line(
-        to: dirtyRect.bottomRight.applying(
-          .init(
-            translationX: 0,
-            y: ColorWell.cornerRadius)))
-      path.curve(
-        to: dirtyRect.bottomRight.applying(
-          .init(
-            translationX: -ColorWell.cornerRadius,
-            y: 0)),
-        controlPoint1: insetRect.bottomRight,
-        controlPoint2: insetRect.bottomRight)
-      path.close()
+      return Path.colorWellPath(
+        for: dirtyRect,
+        flatteningCorners: [\.topLeft, \.bottomLeft]
+      ).nsBezierPath
     case .showsPopover:
-      path.move(to: dirtyRect.bottomRight)
-      path.line(to: dirtyRect.topRight)
-      path.line(
-        to: dirtyRect.topLeft.applying(
-          .init(
-            translationX: ColorWell.cornerRadius,
-            y: 0)))
-      path.curve(
-        to: dirtyRect.topLeft.applying(
-          .init(
-            translationX: 0,
-            y: -ColorWell.cornerRadius)),
-        controlPoint1: insetRect.topLeft,
-        controlPoint2: insetRect.topLeft)
-      path.line(
-        to: dirtyRect.bottomLeft.applying(
-          .init(
-            translationX: 0,
-            y: ColorWell.cornerRadius)))
-      path.curve(
-        to: dirtyRect.bottomLeft.applying(
-          .init(
-            translationX: ColorWell.cornerRadius,
-            y: 0)),
-        controlPoint1: insetRect.bottomLeft,
-        controlPoint2: insetRect.bottomLeft)
-      path.close()
+      return Path.colorWellPath(
+        for: dirtyRect,
+        flatteningCorners: [\.topRight, \.bottomRight]
+      ).nsBezierPath
     }
-    
-    return path
   }
   
   /// Activates the app and runs the color well's `activate(_:)`
@@ -910,87 +886,6 @@ class ColorWellSegment: NSView {
         makeAndShowPopover()
       }
     }
-  }
-}
-
-/// A view that mimics the appearance of an `NSButton`'s bezel.
-class ColorWellBezelLayer: CAShapeLayer {
-  var insetFrame: NSRect {
-    frame.insetBy(
-      dx: ColorWell.lineWidth / 2,
-      dy: ColorWell.lineWidth / 2)
-  }
-  
-  func defaultPath(for dirtyRect: NSRect) -> CGMutablePath {
-    let path = CGMutablePath()
-    let insetRect = dirtyRect.insetBy(
-      dx: -ColorWell.lineWidth,
-      dy: -ColorWell.lineWidth)
-    
-    path.move(to: dirtyRect.bottomLeft)
-    path.addLine(
-      to: dirtyRect.topLeft.applying(
-        .init(
-          translationX: 0,
-          y: -ColorWell.cornerRadius)))
-    path.addCurve(
-      to: dirtyRect.topLeft.applying(
-        .init(
-          translationX: ColorWell.cornerRadius,
-          y: 0)),
-      control1: insetRect.topLeft,
-      control2: insetRect.topLeft)
-    path.addLine(
-      to: dirtyRect.topRight.applying(
-        .init(
-          translationX: -ColorWell.cornerRadius,
-          y: 0)))
-    path.addCurve(
-      to: dirtyRect.topRight.applying(
-        .init(
-          translationX: 0,
-          y: -ColorWell.cornerRadius)),
-      control1: insetRect.topRight,
-      control2: insetRect.topRight)
-    path.addLine(to: dirtyRect.bottomRight)
-    path.closeSubpath()
-    
-    return path
-  }
-  
-  func maskLayer(for dirtyRect: NSRect) -> CAShapeLayer {
-    let layer = CAShapeLayer()
-    layer.frame = dirtyRect
-    let rect = NSRect(
-      x: dirtyRect.origin.x,
-      y: dirtyRect.maxY - (ColorWell.cornerRadius / 3),
-      width: dirtyRect.width,
-      height: ColorWell.cornerRadius / 2)
-    layer.path = .init(rect: rect, transform: nil)
-    layer.fillColor = .black
-    return layer
-  }
-  
-  init(frame frameRect: NSRect) {
-    super.init()
-    fillColor = .clear
-    strokeColor = .init(gray: 1, alpha: 0.2)
-    lineWidth = ColorWell.lineWidth
-    lineCap = .round
-    masksToBounds = true
-    needsDisplayOnBoundsChange = true
-    frame = frameRect
-  }
-  
-  @available(*, unavailable)
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
-  
-  override func display() {
-    super.display()
-    path = defaultPath(for: insetFrame)
-    mask = maskLayer(for: frame)
   }
 }
 
