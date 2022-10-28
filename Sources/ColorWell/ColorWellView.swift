@@ -29,13 +29,6 @@ private struct _ColorWellView: NSViewRepresentable {
   }
 }
 
-/// A SwiftUI view that displays a user-settable color value.
-///
-/// A `ColorWellView` enables custom color selection within your interface.
-/// For example, a drawing app might include a color well to let someone
-/// choose the color to use when drawing. A `ColorWellView` displays the
-/// currently selected color, and interactions with the color well display
-/// interfaces for selecting new colors.
 @available(macOS 10.15, *)
 public struct ColorWellView: View {
   let color: NSColor?

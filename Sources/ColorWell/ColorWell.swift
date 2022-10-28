@@ -12,31 +12,58 @@ import Cocoa
 import SwiftUI
 #endif
 
+public class _ColorWell: NSView {
+  static let defaultWidth: CGFloat = 64
+  static let defaultHeight: CGFloat = 28
+  
+  static let lineWidth: CGFloat = 1
+  
+  static let defaultFrame = NSRect(
+    origin: .zero,
+    size: .init(width: defaultWidth, height: defaultHeight))
+  
+  public override var intrinsicContentSize: NSSize {
+    Self.defaultFrame.size
+  }
+  
+  public override var alignmentRectInsets: NSEdgeInsets {
+    .init(top: 2, left: 3, bottom: 2, right: 3)
+  }
+  
+  var defaultShadow: NSShadow {
+    let shadow = NSShadow()
+    if NSApp.effectiveAppearanceIsDarkAppearance {
+      shadow.shadowBlurRadius = Self.lineWidth / 2
+      shadow.shadowColor = .shadowColor.withAlphaComponent(0.66)
+    } else {
+      shadow.shadowBlurRadius = Self.lineWidth
+      shadow.shadowColor = .shadowColor.withAlphaComponent(0.5)
+    }
+    return shadow
+  }
+  
+  public override func draw(_ dirtyRect: NSRect) {
+    super.draw(dirtyRect)
+    shadow = defaultShadow
+  }
+}
+
 // MARK: - ColorWell
 
 /// A view that displays a user-settable color value.
 ///
-/// A `ColorWell` enables custom color selection within your interface.
-/// For example, a drawing app might include a color well to let someone
-/// choose the color to use when drawing. A `ColorWell` displays the
-/// currently selected color, and interactions with the color well display
-/// interfaces for selecting new colors.
-public class ColorWell: NSView {
+/// Color wells enable custom color selection within an interface. For
+/// example, a drawing app might include a color well to let someone choose
+/// the color to use when drawing. Color wells display the currently selected
+/// color, and interactions with the color well display interfaces for
+/// selecting new colors.
+public class ColorWell: _ColorWell {
   
   // MARK: Default values
   
-  fileprivate static let defaultWidth: CGFloat = 64
-  fileprivate static let defaultHeight: CGFloat = 28
-  
   static let cornerRadius: CGFloat = 15
-  static let lineWidth: CGFloat = 1
   
   static let defaultColor = NSColor.white
-  
-  /// The default frame for all color wells.
-  static let defaultFrame = NSRect(
-    origin: .zero,
-    size: .init(width: defaultWidth, height: defaultHeight))
   
   /// Hexadecimal codes for the default colors shown in the popover.
   private static let defaultHexCodes = [
@@ -79,19 +106,6 @@ public class ColorWell: NSView {
   fileprivate var popover: ColorWellPopover? {
     get { popoverSegment.popover }
     set { popoverSegment.popover = newValue }
-  }
-  
-  /// The computed default shadow for the color well.
-  private var defaultShadow: NSShadow {
-    let shadow = NSShadow()
-    if NSApp.effectiveAppearanceIsDarkAppearance {
-      shadow.shadowBlurRadius = Self.lineWidth / 2
-      shadow.shadowColor = .shadowColor.withAlphaComponent(0.66)
-    } else {
-      shadow.shadowBlurRadius = Self.lineWidth
-      shadow.shadowColor = .shadowColor.withAlphaComponent(0.5)
-    }
-    return shadow
   }
   
   private var _isActive = false {
@@ -214,14 +228,6 @@ public class ColorWell: NSView {
   ///   shown instead of a popover.
   public var swatchColors: [NSColor] = defaultHexCodes.compactMap {
     .init(hexString: $0)
-  }
-  
-  public override var intrinsicContentSize: NSSize {
-    Self.defaultFrame.size
-  }
-  
-  public override var alignmentRectInsets: NSEdgeInsets {
-    .init(top: 2, left: 3, bottom: 2, right: 3)
   }
   
   // MARK: Initializers
@@ -359,11 +365,6 @@ public class ColorWell: NSView {
   ///   well's color changes.
   public func observeColor(onChange handler: @escaping (NSColor) -> Void) {
     changeHandlers.insert(ChangeHandler(handler: handler))
-  }
-  
-  public override func draw(_ dirtyRect: NSRect) {
-    super.draw(dirtyRect)
-    shadow = defaultShadow
   }
 }
 
