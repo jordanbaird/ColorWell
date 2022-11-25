@@ -27,7 +27,9 @@ Create a `ColorWellView` and add it to your view hierarchy. Observe color change
 struct ContentView: View {
     var body: some View {
         ColorWellView(color: .purple)
-            .onColorChange { print($0) }
+            .onColorChange { color in
+                print(color)
+            }
   }
 }
 ```
