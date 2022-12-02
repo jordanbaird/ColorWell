@@ -348,23 +348,27 @@ public class ColorWell: _ColorWell {
   public func deactivate() {
     _isActive = false
   }
-  
-  /// Adds a change handler to the color well that will be executed
-  /// when its color changes.
+
+  /// Adds an action to perform when the color well's color changes.
   ///
   /// ```swift
   /// let colorWell = ColorWell()
   /// let textField = NSTextField()
   ///
-  /// colorWell.observeColor { newColor in
+  /// colorWell.onColorChange { newColor in
   ///     textField.textColor = newColor
   /// }
   /// ```
   ///
-  /// - Parameter handler: A closure that will be executed when color
-  ///   well's color changes.
+  /// - Parameter action: A block of code that will be executed when
+  ///   the color well's color changes.
+  public func onColorChange(perform action: @escaping (NSColor) -> Void) {
+    changeHandlers.insert(ChangeHandler(handler: action))
+  }
+
+  @available(*, deprecated, renamed: "onColorChange(perform:)")
   public func observeColor(onChange handler: @escaping (NSColor) -> Void) {
-    changeHandlers.insert(ChangeHandler(handler: handler))
+    onColorChange(perform: handler)
   }
 }
 
