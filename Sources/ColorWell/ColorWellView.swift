@@ -36,26 +36,105 @@ private struct ColorWellWrapper: NSViewRepresentable {
 // MARK: ColorWellView
 
 @available(macOS 10.15, *)
-public struct ColorWellView: View {
+public struct ColorWellView<Label: View>: View {
   private let constructor: AnyViewConstructor
 
   public var body: some View {
     constructor
   }
 
-  private init(
+  private init<C: NSColorConvertible<C>>(
     color: NSColor?,
-    modifier: @escaping (ColorWellWrapper) -> some View = \.self
+    label: (() -> Label)?,
+    action: ((C) -> Void)?
   ) {
-    constructor = ViewConstructor { ColorWellWrapper(color: color) }
-      .with { modifier($0) }
-      .with { $0.fixedSize() }
-      .erased()
+    constructor = ViewConstructor {
+      ColorWellWrapper(color: color)
+    }
+    .with { view in
+      if let action {
+        view.modifier(OnColorChange(action: action))
+      } else {
+        view
+      }
+    }
+    .with { view in
+      view.fixedSize()
+    }
+    .with { view in
+      if let label {
+        HStack {
+          label()
+          view
+        }
+      } else {
+        view
+      }
+    }
+    .erased()
   }
 
+  private init<C: NSColorConvertible<C>>(
+    color: NSColor?,
+    label: @autoclosure () -> Label,
+    action: ((C) -> Void)?
+  ) {
+    let label = label()
+    self.init(color: color, label: { label }, action: action)
+  }
+
+  private init(color: NSColor?, label: (() -> Label)?) {
+    self.init(color: color, label: label, action: Optional<(Color) -> Void>.none)
+  }
+
+  private init(color: NSColor?, label: @autoclosure () -> Label) {
+    let label = label()
+    self.init(color: color, label: { label })
+  }
+
+  public init(@ViewBuilder label: () -> Label) {
+    self.init(color: nil, label: label())
+  }
+
+  public init(@ViewBuilder label: () -> Label, action: @escaping (Color) -> Void) {
+    self.init(color: nil, label: label(), action: action)
+  }
+
+  @available(macOS 11.0, *)
+  public init(color: Color, @ViewBuilder label: () -> Label) {
+    self.init(color: .init(color), label: label())
+  }
+
+  @available(macOS 11.0, *)
+  public init(color: Color, @ViewBuilder label: () -> Label, action: @escaping (Color) -> Void) {
+    self.init(color: .init(color), label: label(), action: action)
+  }
+
+  /// Creates a color well view with the given CoreGraphics color.
+  ///
+  /// - Parameter cgColor: The starting value of the color well's color.
+  public init(cgColor: CGColor, @ViewBuilder label: () -> Label) {
+    self.init(color: .init(cgColor: cgColor), label: label())
+  }
+
+  public init(cgColor: CGColor, @ViewBuilder label: () -> Label, action: @escaping (CGColor) -> Void) {
+    self.init(color: .init(cgColor: cgColor), label: label(), action: action)
+  }
+}
+
+@available(macOS 10.15, *)
+extension ColorWellView<Never> {
   /// Creates a color well with the default color.
   public init() {
-    self.init(color: nil)
+    self.init(color: nil, label: nil)
+  }
+
+  /// Creates a color well view with the given color.
+  ///
+  /// - Parameter color: The starting value of the color well's color.
+  @available(macOS 11.0, *)
+  public init(color: Color) {
+    self.init(color: .init(color), label: nil)
   }
 
   /// Creates a color well that executes the given action when its color changes.
@@ -64,17 +143,7 @@ public struct ColorWellView: View {
   ///
   /// - Parameter action: An action to perform when the color well's color changes.
   public init(action: @escaping (Color) -> Void) {
-    self.init(color: nil) {
-      $0.onColorChange(perform: action)
-    }
-  }
-
-  /// Creates a color well view with the given color.
-  ///
-  /// - Parameter color: The starting value of the color well's color.
-  @available(macOS 11.0, *)
-  public init(color: Color) {
-    self.init(color: .init(color))
+    self.init(color: nil, label: nil, action: action)
   }
 
   /// Creates a color well view with the given color and action.
@@ -86,16 +155,14 @@ public struct ColorWellView: View {
   ///   - action: An action to perform when the color well's color changes.
   @available(macOS 11.0, *)
   public init(color: Color, action: @escaping (Color) -> Void) {
-    self.init(color: .init(color)) {
-      $0.onColorChange(perform: action)
-    }
+    self.init(color: .init(color), label: nil, action: action)
   }
 
   /// Creates a color well view with the given CoreGraphics color.
   ///
   /// - Parameter cgColor: The starting value of the color well's color.
   public init(cgColor: CGColor) {
-    self.init(color: .init(cgColor: cgColor))
+    self.init(color: .init(cgColor: cgColor), label: nil)
   }
 
   /// Creates a color well view with the given CoreGraphics color.
@@ -112,9 +179,62 @@ public struct ColorWellView: View {
   ///   - cgColor: The starting value of the color well's color.
   ///   - action: An action to perform when the color well's color changes.
   public init(cgColor: CGColor, action: @escaping (CGColor) -> Void) {
-    self.init(color: .init(cgColor: cgColor)) {
-      $0.modifier(OnColorChange(action: action))
-    }
+    self.init(color: .init(cgColor: cgColor), label: nil, action: action)
+  }
+}
+
+@available(macOS 10.15, *)
+extension ColorWellView<Text> {
+  public init<S: StringProtocol>(_ title: S) {
+    self.init(label: title.label)
+  }
+
+  @available(macOS 11.0, *)
+  public init<S: StringProtocol>(_ title: S, color: Color) {
+    self.init(color: color, label: title.label)
+  }
+
+  public init<S: StringProtocol>(_ title: S, cgColor: CGColor) {
+    self.init(cgColor: cgColor, label: title.label)
+  }
+
+  public init<S: StringProtocol>(_ title: S, action: @escaping (Color) -> Void) {
+    self.init(label: title.label, action: action)
+  }
+
+  @available(macOS 11.0, *)
+  public init<S: StringProtocol>(_ title: S, color: Color, action: @escaping (Color) -> Void) {
+    self.init(color: color, label: title.label, action: action)
+  }
+
+  public init<S: StringProtocol>(_ title: S, cgColor: CGColor, action: @escaping (CGColor) -> Void) {
+    self.init(cgColor: cgColor, label: title.label, action: action)
+  }
+
+  public init(_ titleKey: LocalizedStringKey) {
+    self.init(label: titleKey.label)
+  }
+
+  @available(macOS 11.0, *)
+  public init(_ titleKey: LocalizedStringKey, color: Color) {
+    self.init(color: color, label: titleKey.label)
+  }
+
+  public init(_ titleKey: LocalizedStringKey, cgColor: CGColor) {
+    self.init(cgColor: cgColor, label: titleKey.label)
+  }
+
+  public init(_ titleKey: LocalizedStringKey, action: @escaping (Color) -> Void) {
+    self.init(label: titleKey.label, action: action)
+  }
+
+  @available(macOS 11.0, *)
+  public init(_ titleKey: LocalizedStringKey, color: Color, action: @escaping (Color) -> Void) {
+    self.init(color: color, label: titleKey.label, action: action)
+  }
+
+  public init(_ titleKey: LocalizedStringKey, cgColor: CGColor, action: @escaping (CGColor) -> Void) {
+    self.init(cgColor: cgColor, label: titleKey.label, action: action)
   }
 }
 
@@ -241,6 +361,26 @@ extension Color: NSColorConvertible {
 extension CGColor: NSColorConvertible {
   fileprivate static func converted(from nsColor: NSColor) -> CGColor {
     nsColor.cgColor
+  }
+}
+
+@available(macOS 10.15, *)
+extension StringProtocol {
+  fileprivate func label() -> Text {
+    .init(self)
+  }
+}
+
+@available(macOS 10.15, *)
+extension LocalizedStringKey {
+  fileprivate func label() -> Text {
+    .init(self)
+  }
+}
+
+extension Never {
+  fileprivate static var neverView: Self {
+    fatalError("Attempted to access a view with the \(Self.self) type")
   }
 }
 #endif

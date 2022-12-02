@@ -180,9 +180,10 @@ struct ViewConstructor<Content: View>: View {
     self.content = content
   }
 
-  func with<Modified: View>(_ block: @escaping (Content) -> Modified) -> ViewConstructor<Modified> {
-    ViewConstructor<Modified> {
-      block(content())
+  func with<Modified: View>(@ViewBuilder _ block: (Content) -> Modified) -> ViewConstructor<Modified> {
+    let newContent = block(content())
+    return ViewConstructor<Modified> {
+      newContent
     }
   }
 
