@@ -1,12 +1,18 @@
 //===----------------------------------------------------------------------===//
 //
-// Path.swift
+// Utilities.swift
 //
 // Created: 2022. Author: Jordan Baird.
 //
 //===----------------------------------------------------------------------===//
 
 import Cocoa
+
+#if canImport(SwiftUI)
+import SwiftUI
+#endif
+
+// MARK: - Path
 
 struct Path {
   let components: [Component]
@@ -157,3 +163,46 @@ extension Path {
     return .init(components: components)
   }
 }
+
+#if canImport(SwiftUI)
+
+// MARK: - ViewConstructor
+
+@available(macOS 10.15, *)
+struct ViewConstructor<Content: View>: View {
+  private let content: () -> Content
+
+  var body: some View {
+    content()
+  }
+
+  init(@ViewBuilder content: @escaping () -> Content) {
+    self.content = content
+  }
+
+  func with<Modified: View>(_ block: @escaping (Content) -> Modified) -> ViewConstructor<Modified> {
+    ViewConstructor<Modified> {
+      block(content())
+    }
+  }
+
+  func erased() -> AnyViewConstructor {
+    .init(base: self)
+  }
+}
+
+// MARK: - AnyViewConstructor
+
+@available(macOS 10.15, *)
+struct AnyViewConstructor: View {
+  let base: any View
+
+  var body: some View {
+    AnyView(base)
+  }
+
+  init<V: View>(base: ViewConstructor<V>) {
+    self.base = base
+  }
+}
+#endif

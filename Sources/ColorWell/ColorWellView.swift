@@ -33,21 +33,24 @@ private struct ColorWellWrapper: NSViewRepresentable {
   }
 }
 
+// MARK: ColorWellView
+
 @available(macOS 10.15, *)
 public struct ColorWellView: View {
-  private let bodyConstructor: () -> any View
+  private let constructor: AnyViewConstructor
 
   public var body: some View {
-    AnyView(bodyConstructor())
+    constructor
   }
 
   private init(
     color: NSColor?,
     modifier: @escaping (ColorWellWrapper) -> some View = \.self
   ) {
-    bodyConstructor = {
-      modifier(ColorWellWrapper(color: color))
-    }
+    constructor = ViewConstructor { ColorWellWrapper(color: color) }
+      .with { modifier($0) }
+      .with { $0.fixedSize() }
+      .erased()
   }
 
   /// Creates a color well with the default color.
