@@ -26,7 +26,7 @@ Create a `ColorWellView` and add it to your view hierarchy. Observe color change
 ```swift
 struct ContentView: View {
     var body: some View {
-        ColorWellView(color: .purple)
+        ColorWellView()
             .onColorChange { color in
                 print(color)
             }
@@ -36,18 +36,18 @@ struct ContentView: View {
 
 ### Cocoa
 
-Create a color well using one of the `init()` or `init(frame:)` initializers.
+Create a `ColorWell` using one of the `init()` or `init(frame:)` initializers.
 
 ```swift
 let colorWellDefaultFrame = ColorWell()
 let colorWellCustomFrame = ColorWell(frame: NSRect(x: 0, y: 0, width: 400, height: 200))
 ```
 
-Observe changes to the `color` value.
+Observe color changes using the `onColorChange(perform:)` method.
 
 ```swift
 let colorWell = ColorWell()
-colorWell.observeColor { color in
+colorWell.onColorChange { color in
     print(color)
 }
 ```
