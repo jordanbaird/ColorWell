@@ -74,6 +74,13 @@ public class ColorWell: _ColorWell {
     "FFFFFF", "D5D5D5", "929292", "5E5E5E", "000000",
   ]
 
+  /// The default colors shown in the popover.
+  static var defaultSwatchColors: [NSColor] {
+    defaultHexCodes.compactMap {
+      .init(hexString: $0)
+    }
+  }
+
   // MARK: Subviews
 
   private var containerGridView: ColorWellSegmentContainerGridView!
@@ -226,9 +233,7 @@ public class ColorWell: _ColorWell {
   ///
   /// - Note: If the array is empty, the color well's ``colorPanel`` will be
   ///   shown instead of a popover.
-  public var swatchColors: [NSColor] = defaultHexCodes.compactMap {
-    .init(hexString: $0)
-  }
+  public var swatchColors = defaultSwatchColors
 
   // MARK: Initializers
 
