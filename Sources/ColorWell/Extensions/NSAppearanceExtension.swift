@@ -19,12 +19,12 @@ extension NSAppearance {
     }
     return names
   }()
-  
+
   /// Whether the current appearance's name indicates a dark appearance.
   private var nameIndicatesDarkAppearance: Bool {
     name.rawValue.lowercased().contains("dark")
   }
-  
+
   /// Whether the current appearance is a dark appearance.
   var isDarkAppearance: Bool {
     Self.builtinDarkNames.contains(name) || nameIndicatesDarkAppearance

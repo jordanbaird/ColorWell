@@ -16,7 +16,7 @@ extension NSImage {
     color.drawSwatch(in: .init(origin: .zero, size: size))
     unlockFocus()
   }
-  
+
   /// Returns a new image by clipping the current image to a
   /// circular shape and insetting its size by the given amount.
   func clippedToCircle(insetBy amount: CGFloat = 0) -> NSImage {
@@ -26,14 +26,14 @@ extension NSImage {
       origin: .zero,
       size: .init(width: insetDimension, height: insetDimension)
     ).centered(in: originalFrame)
-    
+
     let image = NSImage(size: insetFrame.size)
     image.lockFocus()
-    
+
     let destFrame = NSRect(origin: .zero, size: image.size)
     NSBezierPath(ovalIn: destFrame).addClip()
     draw(in: destFrame, from: insetFrame, operation: .copy, fraction: 1)
-    
+
     image.unlockFocus()
     return image
   }

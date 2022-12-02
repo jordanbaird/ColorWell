@@ -10,7 +10,7 @@ import Cocoa
 
 struct Path {
   let components: [Component]
-  
+
   var nsBezierPath: NSBezierPath {
     let path = NSBezierPath()
     for component in components {
@@ -18,7 +18,7 @@ struct Path {
     }
     return path
   }
-  
+
   var cgMutablePath: CGMutablePath {
     let path = CGMutablePath()
     for component in components {
@@ -34,7 +34,7 @@ extension Path {
     case move(to: CGPoint)
     case line(to: CGPoint)
     case curve(to: CGPoint, c1: CGPoint, c2: CGPoint)
-    
+
     fileprivate func add(to path: NSBezierPath) {
       switch self {
       case .close:
@@ -47,7 +47,7 @@ extension Path {
         path.curve(to: point, controlPoint1: c1, controlPoint2: c2)
       }
     }
-    
+
     fileprivate func add(to path: CGMutablePath) {
       switch self {
       case .close:
@@ -69,13 +69,13 @@ extension Path {
     flatteningCorners corners: [KeyPath<CGRect, CGPoint>] = []
   ) -> Self {
     let radius = ColorWell.cornerRadius
-    
+
     let insetRect = dirtyRect.insetBy(
       dx: -ColorWell.lineWidth / 2,
       dy: -ColorWell.lineWidth / 2)
-    
+
     var components = [Component]()
-    
+
     if corners.contains(\.topLeft) {
       components.append(.move(to: dirtyRect.topLeft))
     } else {
@@ -94,7 +94,7 @@ extension Path {
           c2: insetRect.topLeft),
       ]
     }
-    
+
     if corners.contains(\.topRight) {
       components.append(.line(to: dirtyRect.topRight))
     } else {
@@ -113,7 +113,7 @@ extension Path {
           c2: insetRect.topRight),
       ]
     }
-    
+
     if corners.contains(\.bottomRight) {
       components.append(.line(to: dirtyRect.bottomRight))
     } else {
@@ -132,7 +132,7 @@ extension Path {
           c2: insetRect.bottomRight),
       ]
     }
-    
+
     if corners.contains(\.bottomLeft) {
       components.append(.line(to: dirtyRect.bottomLeft))
     } else {
@@ -151,9 +151,9 @@ extension Path {
           c2: insetRect.bottomLeft),
       ]
     }
-    
+
     components.append(.close)
-    
+
     return .init(components: components)
   }
 }

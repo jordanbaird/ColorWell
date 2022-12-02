@@ -12,17 +12,17 @@ import SwiftUI
 @available(macOS 10.15, *)
 private struct _ColorWellView: NSViewRepresentable {
   typealias NSViewType = ColorWell
-  
+
   let constructor: () -> ColorWell
-  
+
   func makeNSView(context: Context) -> ColorWell {
     constructor()
   }
-  
+
   func updateNSView(_ nsView: ColorWell, context: Context) {
     nsView.changeHandlers.formUnion(context.environment.colorWellTransformedActions)
     nsView.isEnabled = context.environment.isEnabled
-    
+
     if #available(macOS 11.0, *) {
       nsView.swatchColors = context.environment.colorWellSwatchColors
     }
@@ -32,23 +32,23 @@ private struct _ColorWellView: NSViewRepresentable {
 @available(macOS 10.15, *)
 public struct ColorWellView: View {
   let color: NSColor?
-  
+
   /// Creates a color well with the default color.
   public init() {
     color = nil
   }
-  
+
   /// Creates a color well view with the given color.
   @available(macOS 11.0, *)
   public init(color: Color) {
     self.color = .init(color)
   }
-  
+
   /// Creates a color well view with the given CoreGraphics color.
   public init(cgColor: CGColor) {
     color = .init(cgColor: cgColor)
   }
-  
+
   public var body: some View {
     _ColorWellView {
       if let color {
@@ -90,13 +90,13 @@ private extension EnvironmentValues {
 private struct ColorWellAction: ViewModifier {
   let id = ComparableID()
   let action: (Color) -> Void
-  
+
   var transformedAction: ChangeHandler {
     ChangeHandler(id: id) {
       action(Color($0))
     }
   }
-  
+
   func body(content: Content) -> some View {
     content.transformEnvironment(\.colorWellTransformedActions) {
       $0.insert(transformedAction)
@@ -107,11 +107,11 @@ private struct ColorWellAction: ViewModifier {
 @available(macOS 11.0, *)
 private struct ColorWellSwatchColors: ViewModifier {
   let colors: [Color]
-  
+
   var transformedColors: [NSColor] {
     colors.map { .init($0) }
   }
-  
+
   func body(content: Content) -> some View {
     content.environment(\.colorWellSwatchColors, transformedColors)
   }
