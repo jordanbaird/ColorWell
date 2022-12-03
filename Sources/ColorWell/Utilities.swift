@@ -170,21 +170,22 @@ extension Path {
 
 @available(macOS 10.15, *)
 struct ViewConstructor<Content: View>: View {
-  private let content: () -> Content
+  private let content: Content
 
   var body: some View {
-    content()
+    content
   }
 
-  init(@ViewBuilder content: @escaping () -> Content) {
-    self.content = content
+  init(@ViewBuilder content: () -> Content) {
+    self.content = content()
+  }
+
+  init(content: @autoclosure () -> Content) {
+    self.init(content: content)
   }
 
   func with<Modified: View>(@ViewBuilder _ block: (Content) -> Modified) -> ViewConstructor<Modified> {
-    let newContent = block(content())
-    return ViewConstructor<Modified> {
-      newContent
-    }
+    .init(content: block(content))
   }
 
   func erased() -> AnyViewConstructor {
@@ -202,8 +203,16 @@ struct AnyViewConstructor: View {
     AnyView(base)
   }
 
-  init<V: View>(base: ViewConstructor<V>) {
+  init<Content: View>(base: ViewConstructor<Content>) {
     self.base = base
+  }
+
+  init<Content: View>(@ViewBuilder content: () -> Content) {
+    self.init(base: .init(content: content))
+  }
+
+  init<Content: View>(content: @autoclosure () -> Content) {
+    self.init(content: content)
   }
 }
 

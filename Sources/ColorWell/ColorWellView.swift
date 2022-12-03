@@ -65,20 +65,13 @@ public struct ColorWellView<Label: View>: View {
       view.fixedSize()
     }
     .with { view in
-      if L.self is Label.Type {
-        HStack {
-          _label()
-          view
-        }
-      } else {
-        view
-      }
+      LayoutView(Label.self, label: _label(), content: view)
     }
     .erased()
   }
 
-  /// This initializer is the same as the one above, but
-  /// its `_label` parameter is an `@autoclosure`.
+  /// A base level initializer for other initializers to
+  /// delegate to, whose `_label` parameter is an `@autoclosure`.
   /// ** For internal use only **
   private init<L: View, C: CustomCocoaConvertible<NSColor, C>>(
     _color: NSColor? = nil,
@@ -371,13 +364,48 @@ extension ColorWellView<Text> {
 
 // MARK: - NoLabel
 
+/// A special view type whose presence indicates that a `ColorWellView`'s
+/// constructor should not modify the constructed view to include a label.
+/// ** For internal use only **
 @available(macOS 10.15, *)
-extension ColorWellView {
-  /// A special view type whose presence indicates that a `ColorWellView`'s
-  /// constructor should not modify the constructed view to include a label.
-  /// ** For internal use only **
-  private struct NoLabel: View {
-    var body: Never { fatalError() }
+private struct NoLabel: View {
+  var body: Never { fatalError() }
+}
+
+// MARK: - LayoutView
+
+/// A view that manages the layout of a `ColorWellView` and its label.
+///
+/// Its initializer takes a label candidate and content view. It validates
+/// the label candidate's type to ensure that it meets the criteria to be
+/// included as part of the constructed view. If the candidate fails
+/// validation, only the content view will be included.
+/// ** For internal use only **
+@available(macOS 10.15, *)
+private struct LayoutView<Label: View, LabelCandidate: View, Content: View>: View {
+  private let constructor: AnyViewConstructor
+
+  var body: some View {
+    constructor
+  }
+
+  init(
+    _ labelType: Label.Type,
+    label: @autoclosure () -> LabelCandidate,
+    content: @autoclosure () -> Content
+  ) {
+    guard
+      LabelCandidate.self == Label.self,
+      Label.self != NoLabel.self
+    else {
+      constructor = AnyViewConstructor(content: content)
+      return
+    }
+    let content = HStack(alignment: .center) {
+      label()
+      content()
+    }
+    constructor = AnyViewConstructor(content: content)
   }
 }
 
