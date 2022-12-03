@@ -16,11 +16,11 @@ import SwiftUI
 
 /// A view that displays a user-settable color value.
 ///
-/// Color wells enable custom color selection within an interface. For
-/// example, a drawing app might include a color well to let someone choose
-/// the color to use when drawing. Color wells display the currently selected
-/// color, and interactions with the color well display interfaces for
-/// selecting new colors.
+/// Color wells enable the user to select custom colors from within an app's
+/// interface. A graphics app might, for example, include a color well to let
+/// someone choose the fill color for a shape. Color wells display the currently
+/// selected color, and interactions with the color well display interfaces
+/// for selecting new colors.
 public class ColorWell: NSView {
 
   // MARK: Static Properties
@@ -57,6 +57,9 @@ public class ColorWell: NSView {
 
   private var colorPanelColorObservation: NSKeyValueObservation?
   private var colorPanelVisibilityObservation: NSKeyValueObservation?
+
+  private var canSynchronizeColorPanel = true
+  private var canExecuteChangeHandlers = true
 
   var changeHandlers = Set<ChangeHandler>()
 
@@ -122,64 +125,12 @@ public class ColorWell: NSView {
   ///   shown instead of a popover.
   public var swatchColors = defaultSwatchColors
 
-  public override var intrinsicContentSize: NSSize {
-    Self.defaultFrame.size
-  }
-
-  public override var alignmentRectInsets: NSEdgeInsets {
-    .init(top: 2, left: 3, bottom: 2, right: 3)
-  }
-
   /// A Boolean value that indicates whether the color well is currently active.
   ///
   /// You can change this value using the ``activate(_:)`` and ``deactivate()``
   /// methods.
-  public var isActive: Bool { _isActive }
-
-  private var _isActive = false {
-    didSet {
-      guard isEnabled else {
-        _isActive = false
-        return
-      }
-
-      if _isActive {
-        colorPanel.activeColorWells.insert(self)
-
-        colorPanelColorObservation = colorPanel.observe(
-          \.color,
-           options: .new
-        ) { colorPanel, change in
-          guard let newValue = change.newValue else {
-            return
-          }
-          for colorWell in colorPanel.activeColorWells {
-            colorWell.color = newValue
-          }
-        }
-
-        colorPanelVisibilityObservation = colorPanel.observe(
-          \.isVisible,
-           options: .new
-        ) { [weak self] _, change in
-          guard
-            let self,
-            let newValue = change.newValue
-          else {
-            return
-          }
-          if !newValue {
-            self.deactivate()
-          }
-        }
-      } else {
-        colorPanel.activeColorWells.remove(self)
-        colorPanelSegment.setDefaultFillColorIfColorPanelSegment()
-
-        colorPanelColorObservation = nil
-        colorPanelVisibilityObservation = nil
-      }
-    }
+  public var isActive: Bool {
+    isEnabled && colorPanel.activeColorWells.contains(self)
   }
 
   /// A Boolean value that indicates whether the color well is enabled.
@@ -201,34 +152,41 @@ public class ColorWell: NSView {
   public var color = ColorWell.defaultColor {
     didSet {
       synchronizeVisualState()
-      for handler in sortedChangeHandlers {
-        handler(color)
-      }
-      setAccessibilityValue(color.createAccessibilityValue())
+      executeChangeHandlers()
     }
   }
 
   // MARK: Initializers
 
-  /// Creates a color well with the given frame rectangle.
-  public override init(frame frameRect: NSRect) {
+  /// Creates a color well with the given frame rectangle and color.
+  ///
+  /// - Parameters:
+  ///   - frameRect: The frame rectangle for the created color panel.
+  ///   - color: The initial value of the color well's color.
+  public init(frame frameRect: NSRect, color: NSColor) {
     super.init(frame: frameRect)
-    sharedInit()
+    sharedInit(color: color)
   }
 
-  /// Creates a color well with the default frame.
+  /// Creates a color well with the given frame rectangle.
+  /// - Parameter frameRect: The frame rectangle for the created color panel.
+  public override convenience init(frame frameRect: NSRect) {
+    self.init(frame: frameRect, color: Self.defaultColor)
+  }
+
+  /// Creates a color well initialized to its default values.
   public convenience init() {
     self.init(frame: Self.defaultFrame)
   }
 
   /// Creates a color well with the given color.
+  /// - Parameter color: The initial value of the color well's color.
   public convenience init(color: NSColor) {
-    self.init()
-    self.color = color
-    synchronizeVisualState()
+    self.init(frame: Self.defaultFrame, color: color)
   }
 
-  /// Creates a color well with the given CoreGraphics color.
+  /// Creates a color well with the given `CoreGraphics` color.
+  /// - Parameter cgColor: The initial value of the color well's color.
   public convenience init?(cgColor: CGColor) {
     guard let color = NSColor(cgColor: cgColor) else {
       return nil
@@ -236,13 +194,15 @@ public class ColorWell: NSView {
     self.init(color: color)
   }
 
-  /// Creates a color well with the given CoreImage color.
+  /// Creates a color well with the given `CoreImage` color.
+  /// - Parameter ciColor: The initial value of the color well's color.
   public convenience init(ciColor: CIColor) {
     self.init(color: .init(ciColor: ciColor))
   }
 
   #if canImport(SwiftUI)
-  /// Creates a color well with the given SwiftUI color.
+  /// Creates a color well with the given `SwiftUI` color.
+  /// - Parameter color: The initial value of the color well's color.
   @available(macOS 11.0, *)
   public convenience init(_ color: Color) {
     self.init(color: .init(color))
@@ -251,14 +211,24 @@ public class ColorWell: NSView {
 
   public required init?(coder: NSCoder) {
     super.init(coder: coder)
-    sharedInit()
+    sharedInit(color: Self.defaultColor)
   }
 }
 
-// MARK: ColorWell: Private/Internal Methods
-
+// MARK: ColorWell Private/Internal Methods
 extension ColorWell {
-  private func sharedInit() {
+  /// Iterates through the color well's sorted change handlers, executing them in sequence.
+  private func executeChangeHandlers() {
+    guard canExecuteChangeHandlers else {
+      return
+    }
+    for handler in sortedChangeHandlers {
+      handler(color)
+    }
+  }
+
+  /// Shared code to execute on a color well's initialization.
+  private func sharedInit(color: NSColor) {
     containerGridView = .init(colorWell: self)
 
     addSubview(containerGridView)
@@ -269,10 +239,42 @@ extension ColorWell {
     containerGridView.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
     containerGridView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
 
-    setAccessibilityRole(.colorWell)
-    setAccessibilityValue(color.createAccessibilityValue())
+    withoutExecutingChangeHandlers {
+      withoutSynchronizingColorPanel {
+        self.color = color
+      }
+    }
   }
 
+  /// Sets the color panel's color to be equal to the color well's color, if it
+  /// isn't already.
+  private func synchronizeColorPanel() {
+    guard
+      canSynchronizeColorPanel,
+      colorPanel.color != color
+    else {
+      return
+    }
+    colorPanel.showsAlpha = true
+    colorPanel.color = color
+  }
+
+  /// Sets the popover segment's fill color to be equal to the color well's
+  /// color, if it isn't already.
+  private func synchronizePopoverSegment() {
+    if popoverSegment.fillColor != color {
+      popoverSegment.fillColor = color
+    }
+  }
+
+  /// Sets the popover segment's fill color, and the color panel's color
+  /// to be equal to the color well's color, if they aren't already.
+  private func synchronizeVisualState() {
+    synchronizeColorPanel()
+    synchronizePopoverSegment()
+  }
+
+  /// Updates the color well's shadow based on the current appearance.
   private func updateShadow() {
     let shadow = NSShadow()
     if NSApp.effectiveAppearanceIsDarkAppearance {
@@ -285,47 +287,36 @@ extension ColorWell {
     self.shadow = shadow
   }
 
-  /// Sets the popover segment's fill color to be equal to the
-  /// color well's color, if it isn't already.
-  private func synchronizePopoverSegment() {
-    if popoverSegment.fillColor != color {
-      popoverSegment.fillColor = color
+  /// Performs a block of code, ensuring that the color well's change handlers are not executed.
+  private func withoutExecutingChangeHandlers<T>(execute block: () throws -> T) rethrows -> T {
+    canExecuteChangeHandlers = false
+    defer {
+      canExecuteChangeHandlers = true
     }
+    return try block()
   }
 
-  /// Sets the color panel's color to be equal to the color well's
-  /// color, if it isn't already.
-  private func synchronizeColorPanel() {
-    if colorPanel.color != color {
-      colorPanel.color = color
+  /// Performs a block of code, ensuring that the color panel is not synchronized.
+  private func withoutSynchronizingColorPanel<T>(execute block: () throws -> T) rethrows -> T {
+    canSynchronizeColorPanel = false
+    defer {
+      canSynchronizeColorPanel = true
     }
-  }
-
-  /// Sets the popover segment's fill color, and the color panel's
-  /// color to be equal to the color well's color, if they aren't
-  /// already.
-  private func synchronizeVisualState() {
-    synchronizeColorPanel()
-    synchronizePopoverSegment()
+    return try block()
   }
 }
 
-// MARK: ColorWell: Public Methods
-
+// MARK: ColorWell Public Methods
 extension ColorWell {
-  public override func updateLayer() {
-    updateShadow()
-  }
-
   /// Activates the color well and displays its color panel.
   ///
-  /// Both elements will remain synchronized until either the color
-  /// panel is closed, or the color well is deactivated.
+  /// Both elements will remain synchronized until either the color panel is
+  /// closed, or the color well is deactivated.
   ///
-  /// - Parameter exclusive: If this value is `true`, all other active
-  ///   color wells attached to this well's color panel will be
-  ///   deactivated. If this value is `false`, this color well will
-  ///   become active alongside the wells that are currently active.
+  /// - Parameter exclusive: If this value is `true`, all other active color
+  ///   wells attached to this color well's color panel will be deactivated.
+  ///   If this value is `false`, this color well will become active alongside
+  ///   the color wells that are currently active.
   public func activate(_ exclusive: Bool) {
     guard isEnabled else {
       return
@@ -337,24 +328,59 @@ extension ColorWell {
         colorWell.deactivate()
       }
     }
-    _isActive = true
+
+    colorPanel.activeColorWells.insert(self)
+
+    colorPanelColorObservation = colorPanel.observe(
+      \.color,
+       options: .new
+    ) { colorPanel, change in
+      guard let newValue = change.newValue else {
+        return
+      }
+      for colorWell in colorPanel.activeColorWells {
+        colorWell.color = newValue
+      }
+    }
+
+    colorPanelVisibilityObservation = colorPanel.observe(
+      \.isVisible,
+       options: .new
+    ) { [weak self] _, change in
+      guard
+        let self,
+        let newValue = change.newValue
+      else {
+        return
+      }
+      if !newValue {
+        self.deactivate()
+      }
+    }
   }
 
   /// Deactivates the color well, detaching it from its color panel.
   ///
   /// Until the color well is activated again, changes to its color
-  /// panel will not affect it.
+  /// panel will not affect its state.
   public func deactivate() {
-    _isActive = false
+    colorPanel.activeColorWells.remove(self)
+    colorPanelSegment.setDefaultFillColorIfColorPanelSegment()
+
+    colorPanelColorObservation = nil
+    colorPanelVisibilityObservation = nil
   }
 
   /// Adds an action to perform when the color well's color changes.
   ///
   /// ```swift
   /// let colorWell = ColorWell()
-  ///
+  /// let textView = NSTextView()
+  /// // ...
+  /// // ...
+  /// // ...
   /// colorWell.onColorChange { color in
-  ///     print(color)
+  ///     textView.textColor = color
   /// }
   /// ```
   ///
@@ -365,8 +391,30 @@ extension ColorWell {
   }
 }
 
-// MARK: ColorWell: Deprecated Methods
+// MARK: ColorWell Overrides
+extension ColorWell {
+  public override var alignmentRectInsets: NSEdgeInsets {
+    .init(top: 2, left: 3, bottom: 2, right: 3)
+  }
 
+  public override var intrinsicContentSize: NSSize {
+    Self.defaultFrame.size
+  }
+
+  public override func accessibilityRole() -> NSAccessibility.Role? {
+    .colorWell
+  }
+
+  public override func accessibilityValue() -> Any? {
+    color.createAccessibilityValue()
+  }
+
+  public override func updateLayer() {
+    updateShadow()
+  }
+}
+
+// MARK: Deprecated
 extension ColorWell {
   @available(*, deprecated, renamed: "onColorChange(perform:)")
   public func observeColor(onChange handler: @escaping (NSColor) -> Void) {
@@ -378,13 +426,20 @@ extension ColorWell {
 
 /// A grid view that displays color well segments side by side.
 class ColorWellSegmentContainerGridView: NSGridView {
+
+  // MARK: Properties
+
   /// The segment that, when pressed, shows the color well's popover.
   let popoverSegment: ColorWellSegment
 
   /// The segment that, when pressed, opens the color well's color panel.
   let colorPanelSegment: ColorWellSegment
 
+  /// This layer helps the color well mimic the appearance of a native
+  /// macOS UI element by drawing a small bezel around the edge of the view.
   var bezelLayer: CAGradientLayer?
+
+  // MARK: Initializers
 
   /// Creates a grid view with the given color well.
   init(colorWell: ColorWell) {
@@ -402,6 +457,8 @@ class ColorWellSegmentContainerGridView: NSGridView {
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
+
+  // MARK: Methods
 
   override func draw(_ dirtyRect: NSRect) {
     super.draw(dirtyRect)
@@ -455,9 +512,12 @@ enum ColorWellSegmentKind: CaseIterable {
 
 // MARK: - ColorWellSegment
 
-/// A view that somewhat mimics the appearance of a segment
+/// A view that mimics the appearance and behavior of a segment
 /// in a segmented control.
 class ColorWellSegment: NSView {
+
+  // MARK: Properties
+
   weak var colorWell: ColorWell?
 
   let kind: ColorWellSegmentKind
@@ -469,26 +529,26 @@ class ColorWellSegment: NSView {
   private var downArrowView: NSView?
   private var colorPanelImageLayer: CALayer?
 
-  var popover: ColorWellPopover?
-  var canShowPopover = false
+  fileprivate var popover: ColorWellPopover?
+  private var canShowPopover = false
 
   /// Whether or not showing the popover should be overridden.
-  var overrideShowPopover: Bool {
+  private var overrideShowPopover: Bool {
     kind == .showsPopover && (colorWell?.swatchColors ?? []).isEmpty
   }
 
   /// The color well's current height.
-  var colorWellHeight: CGFloat {
+  private var colorWellHeight: CGFloat {
     colorWell?.frame.height ?? ColorWell.defaultHeight
   }
 
   /// A Boolean value that indicates whether the color well is enabled.
-  var colorWellIsEnabled: Bool {
+  private var colorWellIsEnabled: Bool {
     colorWell?.isEnabled ?? false
   }
 
   /// An image of a downward-facing chevron inside a translucent circle.
-  var downArrowImage: NSImage {
+  private var downArrowImage: NSImage {
     let sizeConstant: CGFloat = 12
     return .init(
       size: .init(width: sizeConstant, height: sizeConstant),
@@ -536,16 +596,18 @@ class ColorWellSegment: NSView {
     }
   }
 
-  /// The default fill color for a segment.
-  var defaultFillColor: NSColor { .buttonColor }
+  /// The default fill color of the segment.
+  private var defaultFillColor: NSColor { .buttonColor }
 
   /// The fill color of the segment. Setting this value automatically
   /// redraws the segment.
-  lazy var fillColor = defaultFillColor {
+  fileprivate lazy var fillColor = defaultFillColor {
     didSet {
       needsDisplay = true
     }
   }
+
+  // MARK: Initializers
 
   /// Creates a color well segment for the given color well, with
   /// the given `ColorWellSegmentKind`.
@@ -553,17 +615,15 @@ class ColorWellSegment: NSView {
     self.kind = kind
     super.init(frame: .zero)
     self.colorWell = colorWell
-
     switch kind {
     case .opensColorPanel:
       // Constraining this segment's width will force
       // the other segment to fill the remaining space.
       translatesAutoresizingMaskIntoConstraints = false
       widthAnchor.constraint(equalToConstant: 20).isActive = true
-      setAccessibilityHelp("Opens the system color panel")
     case .showsPopover:
       fillColor = colorWell.color
-      setAccessibilityHelp("Shows the color selection popover")
+
     }
 
     if #available(macOS 10.14, *) {
@@ -574,43 +634,19 @@ class ColorWellSegment: NSView {
         self?.needsDisplay = true
       }
     }
-
-    setAccessibilityRole(.button)
   }
 
   @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
+}
 
-  override func accessibilityValue() -> Any? {
-    switch kind {
-    case .opensColorPanel:
-      return nil
-    case .showsPopover:
-      return colorWell?.accessibilityValue()
-    }
-  }
-
-  override func updateTrackingAreas() {
-    super.updateTrackingAreas()
-    if let mouseEnteredAndExitedTrackingArea {
-      removeTrackingArea(mouseEnteredAndExitedTrackingArea)
-    }
-    mouseEnteredAndExitedTrackingArea = .init(
-      rect: bounds,
-      options: [
-        .activeInKeyWindow,
-        .mouseEnteredAndExited,
-      ],
-      owner: self)
-    // Force unwrap is fine, as we just set this value.
-    addTrackingArea(mouseEnteredAndExitedTrackingArea!)
-  }
-
+// MARK: ColorWellSegment Private/Internal
+extension ColorWellSegment {
   /// Adds a layer that contains an image indicating that the
   /// segment opens the color panel.
-  func setColorPanelImageLayer(clip: Bool = false) {
+  private func setColorPanelImageLayer(clip: Bool = false) {
     colorPanelImageLayer?.removeFromSuperlayer()
     // Force unwrap is okay here.
     // The image name is baked in as part of Cocoa.
@@ -635,14 +671,14 @@ class ColorWellSegment: NSView {
   }
 
   /// Creates an image view that contains a downward-facing arrow.
-  func makeDownArrowView() -> NSView {
+  private func makeDownArrowView() -> NSView {
     let view = NSImageView(image: downArrowImage)
     view.translatesAutoresizingMaskIntoConstraints = false
     return view
   }
 
   /// Creates a `ColorWellPopover`.
-  func makePopover() -> ColorWellPopover? {
+  private func makePopover() -> ColorWellPopover? {
     if let colorWell {
       return .init(colorWell: colorWell)
     }
@@ -651,7 +687,7 @@ class ColorWellSegment: NSView {
 
   /// Returns the default path that will be used to draw the
   /// segment, created based on the segment's `kind` property.
-  func defaultPath(for dirtyRect: NSRect) -> NSBezierPath {
+  private func defaultPath(for dirtyRect: NSRect) -> NSBezierPath {
     switch kind {
     case .opensColorPanel:
       return Path.colorWellPath(
@@ -669,7 +705,7 @@ class ColorWellSegment: NSView {
   /// Activates the app and runs the color well's `activate(_:)`
   /// method, which opens the color panel and runs some observations
   /// on it.
-  func openAndObserveColorPanel() {
+  private func openAndObserveColorPanel() {
     // Make sure we still hold a reference to the color well.
     // We don't want to show the color panel if it won't be
     // linked to the color well.
@@ -683,7 +719,7 @@ class ColorWellSegment: NSView {
 
   /// Ensures that the `canShowPopover` property is `true`,
   /// then runs `makePopover()` and displays the result.
-  func makeAndShowPopover() {
+  private func makeAndShowPopover() {
     // This property will have been set on mouseDown.
     guard canShowPopover else {
       return
@@ -709,7 +745,7 @@ class ColorWellSegment: NSView {
   /// - Note: The color well's `isActive` property is checked before
   ///   proceeding with this function. If its value is `false`, this
   ///   function will return early.
-  func rollOverIfColorPanelSegment() {
+  private func rollOverIfColorPanelSegment() {
     guard
       kind == .opensColorPanel,
       let colorWell,
@@ -732,7 +768,7 @@ class ColorWellSegment: NSView {
   /// - Note: The color well's `isActive` property is checked before
   ///   proceeding with this function. If its value is `false`, this
   ///   function will return early.
-  func highlightIfColorPanelSegment() {
+  private func highlightIfColorPanelSegment() {
     guard
       kind == .opensColorPanel,
       let colorWell,
@@ -763,7 +799,7 @@ class ColorWellSegment: NSView {
   /// - Note: The color well's `isActive` property is checked before
   ///   proceeding with this function. If its value is `false`, this
   ///   function will return early.
-  func setDefaultFillColorIfColorPanelSegment() {
+  fileprivate func setDefaultFillColorIfColorPanelSegment() {
     guard
       let colorWell,
       !colorWell.isActive
@@ -781,7 +817,7 @@ class ColorWellSegment: NSView {
   /// Adds the "down arrow" image view to this segment, if it is the
   /// segment that shows the popover. Otherwise, ensures that the segment
   /// does not contain the "down arrow" image view, and returns early.
-  func addDownArrowViewIfPopoverSegment() {
+  private func addDownArrowViewIfPopoverSegment() {
     guard kind == .showsPopover else {
       downArrowView?.removeFromSuperview()
       return
@@ -800,6 +836,31 @@ class ColorWellSegment: NSView {
     downArrowView.centerYAnchor.constraint(
       equalTo: centerYAnchor
     ).isActive = true
+  }
+}
+
+// MARK: ColorWellSegment Overrides
+extension ColorWellSegment {
+  override func accessibilityHelp() -> String? {
+    switch kind {
+    case .opensColorPanel:
+      return "Opens the system color panel"
+    case .showsPopover:
+      return "Shows the color selection popover"
+    }
+  }
+
+  override func accessibilityRole() -> NSAccessibility.Role? {
+    .button
+  }
+
+  override func accessibilityValue() -> Any? {
+    switch kind {
+    case .opensColorPanel:
+      return nil
+    case .showsPopover:
+      return colorWell?.accessibilityValue()
+    }
   }
 
   override func draw(_ dirtyRect: NSRect) {
@@ -894,12 +955,28 @@ class ColorWellSegment: NSView {
       }
     }
   }
+
+  override func updateTrackingAreas() {
+    super.updateTrackingAreas()
+    if let mouseEnteredAndExitedTrackingArea {
+      removeTrackingArea(mouseEnteredAndExitedTrackingArea)
+    }
+    mouseEnteredAndExitedTrackingArea = .init(
+      rect: bounds,
+      options: [
+        .activeInKeyWindow,
+        .mouseEnteredAndExited,
+      ],
+      owner: self)
+    // Force unwrap is fine, as we just set this value.
+    addTrackingArea(mouseEnteredAndExitedTrackingArea!)
+  }
 }
 
 // MARK: - ColorWellPopover
 
 /// A popover that contains a grid of selectable color swatches.
-class ColorWellPopover: NSPopover, NSPopoverDelegate {
+class ColorWellPopover: NSPopover {
   weak var colorWell: ColorWell?
 
   /// The popover's content view controller.
@@ -939,7 +1016,10 @@ class ColorWellPopover: NSPopover, NSPopoverDelegate {
       swatch.isSelected = swatch.color.sRGB == colorWell?.color.sRGB
     }
   }
+}
 
+// MARK: ColorWellPopover: NSPopoverDelegate
+extension ColorWellPopover: NSPopoverDelegate {
   func popoverDidClose(_ notification: Notification) {
     // Async so that ColorWellSegment's mouseDown method
     // has a chance to run before the popover becomes nil.
@@ -1063,6 +1143,9 @@ class ColorWellPopoverGridView: NSGridView {
 /// When a swatch is clicked, the color well's color value is set
 /// to the color value of the swatch.
 class ColorSwatch: NSImageView {
+
+  // MARK: Properties
+
   weak var colorWell: ColorWell?
 
   /// The color associated with the swatch.
@@ -1105,6 +1188,8 @@ class ColorSwatch: NSImageView {
   /// - Note: Currently, this color is always white.
   var bezelColor: CGColor { .white }
 
+  // MARK: Initializers
+
   /// Creates a swatch with the given color, for the given color well.
   init(color: NSColor, colorWell: ColorWell) {
     self.color = color
@@ -1122,6 +1207,8 @@ class ColorSwatch: NSImageView {
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
+
+  // MARK: Methods
 
   /// Returns all swatches in the popover that match the given
   /// conditions.
@@ -1196,7 +1283,10 @@ class ColorSwatch: NSImageView {
       layer.borderColor = borderColor
     }
   }
+}
 
+// MARK: ColorSwatch Overrides
+extension ColorSwatch {
   override func draw(_ dirtyRect: NSRect) {
     super.draw(dirtyRect)
     // Make sure the border's state stays synchronized whenever the
