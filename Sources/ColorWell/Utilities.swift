@@ -206,4 +206,43 @@ struct AnyViewConstructor: View {
     self.base = base
   }
 }
+
+// MARK: - CustomCocoaConvertible
+
+protocol CustomCocoaConvertible<CocoaType, Converted> {
+  associatedtype CocoaType: NSObject
+  associatedtype Converted: CustomCocoaConvertible = Self
+  static func converted(from source: CocoaType) -> Converted
+}
+
+@available(macOS 10.15, *)
+extension Color: CustomCocoaConvertible {
+  static func converted(from source: NSColor) -> Self {
+    .init(source)
+  }
+}
+
+extension CGColor: CustomCocoaConvertible {
+  static func converted(from source: NSColor) -> CGColor {
+    source.cgColor
+  }
+}
+
+// MARK: - StringProtocol - label
+
+@available(macOS 10.15, *)
+extension StringProtocol {
+  var label: Text {
+    .init(self)
+  }
+}
+
+// MARK: - LocalizedStringKey - label
+
+@available(macOS 10.15, *)
+extension LocalizedStringKey {
+  var label: Text {
+    .init(self)
+  }
+}
 #endif
