@@ -12,42 +12,6 @@ import Cocoa
 import SwiftUI
 #endif
 
-public class _ColorWell: NSView {
-  static let defaultWidth: CGFloat = 64
-  static let defaultHeight: CGFloat = 28
-
-  static let lineWidth: CGFloat = 1
-
-  static let defaultFrame = NSRect(
-    origin: .zero,
-    size: .init(width: defaultWidth, height: defaultHeight))
-
-  public override var intrinsicContentSize: NSSize {
-    Self.defaultFrame.size
-  }
-
-  public override var alignmentRectInsets: NSEdgeInsets {
-    .init(top: 2, left: 3, bottom: 2, right: 3)
-  }
-
-  var defaultShadow: NSShadow {
-    let shadow = NSShadow()
-    if NSApp.effectiveAppearanceIsDarkAppearance {
-      shadow.shadowBlurRadius = Self.lineWidth / 2
-      shadow.shadowColor = .shadowColor.withAlphaComponent(0.66)
-    } else {
-      shadow.shadowBlurRadius = Self.lineWidth
-      shadow.shadowColor = .shadowColor.withAlphaComponent(0.5)
-    }
-    return shadow
-  }
-
-  public override func draw(_ dirtyRect: NSRect) {
-    super.draw(dirtyRect)
-    shadow = defaultShadow
-  }
-}
-
 // MARK: - ColorWell
 
 /// A view that displays a user-settable color value.
@@ -57,16 +21,22 @@ public class _ColorWell: NSView {
 /// the color to use when drawing. Color wells display the currently selected
 /// color, and interactions with the color well display interfaces for
 /// selecting new colors.
-public class ColorWell: _ColorWell {
+public class ColorWell: NSView {
 
-  // MARK: Default values
+  // MARK: Static Properties
 
+  static let defaultWidth: CGFloat = 64
+  static let defaultHeight: CGFloat = 28
+  static let defaultFrame = NSRect(x: 0, y: 0, width: defaultWidth, height: defaultHeight)
+
+  static let lineWidth: CGFloat = 1
   static let cornerRadius: CGFloat = 15
 
   static let defaultColor = NSColor.white
 
-  /// Hexadecimal codes for the default colors shown in the popover.
-  private static let defaultHexCodes = [
+  /// Hexadecimal codes used to construct the default colors shown in
+  /// the color well's popover.
+  static let defaultHexCodes = [
     "56C1FF", "72FDEA", "88FA4F", "FFF056", "FF968D", "FF95CA",
     "00A1FF", "15E6CF", "60D937", "FFDA31", "FF644E", "FF42A1",
     "0076BA", "00AC8E", "1FB100", "FEAE00", "ED220D", "D31876",
@@ -74,31 +44,28 @@ public class ColorWell: _ColorWell {
     "FFFFFF", "D5D5D5", "929292", "5E5E5E", "000000",
   ]
 
-  /// The default colors shown in the popover.
+  /// The default colors shown in the color well's popover.
   static var defaultSwatchColors: [NSColor] {
     defaultHexCodes.compactMap {
       .init(hexString: $0)
     }
   }
 
-  // MARK: Subviews
+  // MARK: Private/Internal Properties
 
   private var containerGridView: ColorWellSegmentContainerGridView!
 
-  // MARK: Observations and handlers
-
   private var colorPanelColorObservation: NSKeyValueObservation?
   private var colorPanelVisibilityObservation: NSKeyValueObservation?
+
   var changeHandlers = Set<ChangeHandler>()
 
-  var sortedChangeHandlers: [ChangeHandler] {
+  private var sortedChangeHandlers: [ChangeHandler] {
     changeHandlers.sorted(by: <)
   }
 
-  // MARK: Segments
-
   /// The segment that shows the color well's popover.
-  fileprivate var popoverSegment: ColorWellSegment {
+  private var popoverSegment: ColorWellSegment {
     containerGridView.popoverSegment
   }
 
@@ -107,13 +74,67 @@ public class ColorWell: _ColorWell {
     containerGridView.colorPanelSegment
   }
 
-  // MARK: Misc
-
   /// The popover associated with the color well.
   fileprivate var popover: ColorWellPopover? {
     get { popoverSegment.popover }
     set { popoverSegment.popover = newValue }
   }
+
+  // MARK: Public Properties
+
+  /// The color panel controlled by the color well.
+  public var colorPanel = NSColorPanel.shared
+
+  /// The colors that will be shown as swatches in the color well's popover.
+  ///
+  /// The default values are defined according to the following hexadecimal
+  /// codes:
+  /// ```swift
+  /// [
+  ///     "56C1FF", "72FDEA", "88FA4F", "FFF056", "FF968D", "FF95CA",
+  ///     "00A1FF", "15E6CF", "60D937", "FFDA31", "FF644E", "FF42A1",
+  ///     "0076BA", "00AC8E", "1FB100", "FEAE00", "ED220D", "D31876",
+  ///     "004D80", "006C65", "017101", "F27200", "B51800", "970E53",
+  ///     "FFFFFF", "D5D5D5", "929292", "5E5E5E", "000000"
+  /// ]
+  /// ```
+  /// ![Default swatches](grid-view)
+  ///
+  /// You can add and remove values to change the swatches that are displayed.
+  ///
+  /// ```swift
+  /// let colorWell = ColorWell()
+  /// colorWell.swatchColors += [
+  ///     .systemPurple,
+  ///     .controlColor,
+  ///     .windowBackgroundColor
+  /// ]
+  /// colorWell.swatchColors.removeFirst()
+  /// ```
+  ///
+  /// Whatever value this property holds at the time the user opens the color
+  /// well's popover is the value that will be used to construct its swatches.
+  /// Each popover is constructed lazily, so if this value changes between
+  /// popover sessions, the next popover that is displayed will reflect the
+  /// changes.
+  ///
+  /// - Note: If the array is empty, the color well's ``colorPanel`` will be
+  ///   shown instead of a popover.
+  public var swatchColors = defaultSwatchColors
+
+  public override var intrinsicContentSize: NSSize {
+    Self.defaultFrame.size
+  }
+
+  public override var alignmentRectInsets: NSEdgeInsets {
+    .init(top: 2, left: 3, bottom: 2, right: 3)
+  }
+
+  /// A Boolean value that indicates whether the color well is currently active.
+  ///
+  /// You can change this value using the ``activate(_:)`` and ``deactivate()``
+  /// methods.
+  public var isActive: Bool { _isActive }
 
   private var _isActive = false {
     didSet {
@@ -161,11 +182,6 @@ public class ColorWell: _ColorWell {
     }
   }
 
-  // MARK: Public properties
-
-  /// The color panel controlled by the color well.
-  public var colorPanel = NSColorPanel.shared
-
   /// A Boolean value that indicates whether the color well is enabled.
   ///
   /// If `false`, the color well will not react to mouse events, open
@@ -191,49 +207,6 @@ public class ColorWell: _ColorWell {
       setAccessibilityValue(color.createAccessibilityValue())
     }
   }
-
-  /// A Boolean value that indicates whether the color well is currently active.
-  ///
-  /// - Note: This property is read-only. To activate the color well,
-  ///   use ``activate(_:)``. To deactivate it, use ``deactivate()``.
-  public var isActive: Bool { _isActive }
-
-  /// The colors that will be shown as swatches in the color well's popover.
-  ///
-  /// The default values are defined according to the following hexadecimal
-  /// codes:
-  /// ```swift
-  /// [
-  ///     "56C1FF", "72FDEA", "88FA4F", "FFF056", "FF968D", "FF95CA",
-  ///     "00A1FF", "15E6CF", "60D937", "FFDA31", "FF644E", "FF42A1",
-  ///     "0076BA", "00AC8E", "1FB100", "FEAE00", "ED220D", "D31876",
-  ///     "004D80", "006C65", "017101", "F27200", "B51800", "970E53",
-  ///     "FFFFFF", "D5D5D5", "929292", "5E5E5E", "000000"
-  /// ]
-  /// ```
-  /// ![Default swatches](grid-view)
-  ///
-  /// You can add and remove values to change the swatches that are displayed.
-  ///
-  /// ```swift
-  /// let colorWell = ColorWell()
-  /// colorWell.swatchColors += [
-  ///     .systemPurple,
-  ///     .controlColor,
-  ///     .windowBackgroundColor
-  /// ]
-  /// colorWell.swatchColors.removeFirst()
-  /// ```
-  ///
-  /// Whatever value this property holds at the time the user opens the color
-  /// well's popover is the value that will be used to construct its swatches.
-  /// Each popover is constructed lazily, so if this value changes between
-  /// popover sessions, the next popover that is displayed will reflect the
-  /// changes.
-  ///
-  /// - Note: If the array is empty, the color well's ``colorPanel`` will be
-  ///   shown instead of a popover.
-  public var swatchColors = defaultSwatchColors
 
   // MARK: Initializers
 
@@ -280,8 +253,12 @@ public class ColorWell: _ColorWell {
     super.init(coder: coder)
     sharedInit()
   }
+}
 
-  func sharedInit() {
+// MARK: ColorWell: Private/Internal Methods
+
+extension ColorWell {
+  private func sharedInit() {
     containerGridView = .init(colorWell: self)
 
     addSubview(containerGridView)
@@ -296,11 +273,21 @@ public class ColorWell: _ColorWell {
     setAccessibilityValue(color.createAccessibilityValue())
   }
 
-  // MARK: Methods
+  private func updateShadow() {
+    let shadow = NSShadow()
+    if NSApp.effectiveAppearanceIsDarkAppearance {
+      shadow.shadowBlurRadius = Self.lineWidth / 2
+      shadow.shadowColor = .shadowColor.withAlphaComponent(0.66)
+    } else {
+      shadow.shadowBlurRadius = Self.lineWidth
+      shadow.shadowColor = .shadowColor.withAlphaComponent(0.5)
+    }
+    self.shadow = shadow
+  }
 
   /// Sets the popover segment's fill color to be equal to the
   /// color well's color, if it isn't already.
-  func synchronizePopoverSegment() {
+  private func synchronizePopoverSegment() {
     if popoverSegment.fillColor != color {
       popoverSegment.fillColor = color
     }
@@ -308,7 +295,7 @@ public class ColorWell: _ColorWell {
 
   /// Sets the color panel's color to be equal to the color well's
   /// color, if it isn't already.
-  func synchronizeColorPanel() {
+  private func synchronizeColorPanel() {
     if colorPanel.color != color {
       colorPanel.color = color
     }
@@ -317,9 +304,17 @@ public class ColorWell: _ColorWell {
   /// Sets the popover segment's fill color, and the color panel's
   /// color to be equal to the color well's color, if they aren't
   /// already.
-  func synchronizeVisualState() {
+  private func synchronizeVisualState() {
     synchronizeColorPanel()
     synchronizePopoverSegment()
+  }
+}
+
+// MARK: ColorWell: Public Methods
+
+extension ColorWell {
+  public override func updateLayer() {
+    updateShadow()
   }
 
   /// Activates the color well and displays its color panel.
@@ -335,7 +330,6 @@ public class ColorWell: _ColorWell {
     guard isEnabled else {
       return
     }
-
     synchronizeVisualState()
     colorPanel.orderFrontRegardless()
     if exclusive {
@@ -358,10 +352,9 @@ public class ColorWell: _ColorWell {
   ///
   /// ```swift
   /// let colorWell = ColorWell()
-  /// let textField = NSTextField()
   ///
-  /// colorWell.onColorChange { newColor in
-  ///     textField.textColor = newColor
+  /// colorWell.onColorChange { color in
+  ///     print(color)
   /// }
   /// ```
   ///
@@ -370,7 +363,11 @@ public class ColorWell: _ColorWell {
   public func onColorChange(perform action: @escaping (NSColor) -> Void) {
     changeHandlers.insert(ChangeHandler(handler: action))
   }
+}
 
+// MARK: ColorWell: Deprecated Methods
+
+extension ColorWell {
   @available(*, deprecated, renamed: "onColorChange(perform:)")
   public func observeColor(onChange handler: @escaping (NSColor) -> Void) {
     onColorChange(perform: handler)
@@ -425,7 +422,7 @@ class ColorWellSegmentContainerGridView: NSGridView {
       CGColor.clear,
       CGColor.clear,
       CGColor.clear,
-      CGColor(gray: 1, alpha: 0.25)
+      CGColor(gray: 1, alpha: 0.25),
     ]
     bezelLayer.needsDisplayOnBoundsChange = true
     bezelLayer.frame = layer.bounds
@@ -566,7 +563,7 @@ class ColorWellSegment: NSView {
       setAccessibilityHelp("Opens the system color panel")
     case .showsPopover:
       fillColor = colorWell.color
-      setAccessibilityHelp("Shows a color selection popover")
+      setAccessibilityHelp("Shows the color selection popover")
     }
 
     if #available(macOS 10.14, *) {
@@ -692,7 +689,7 @@ class ColorWellSegment: NSView {
       return
     }
     // The popover should be nil no matter what here.
-    assert(popover == nil, "Popover should not exist yet.")
+    assert(popover == nil, "Popover should not exist yet")
     popover = makePopover()
     guard let popover else {
       return
@@ -709,8 +706,8 @@ class ColorWellSegment: NSView {
   /// if this segment is the segment that opens the color panel.
   /// Otherwise, this function returns early.
   ///
-  /// - Note: The color well's `isActive` property will be checked
-  ///   before running this function. If its value is `false`, this
+  /// - Note: The color well's `isActive` property is checked before
+  ///   proceeding with this function. If its value is `false`, this
   ///   function will return early.
   func rollOverIfColorPanelSegment() {
     guard
@@ -732,8 +729,8 @@ class ColorWellSegment: NSView {
   /// segment is the segment that opens the color panel. Otherwise,
   /// this function returns early.
   ///
-  /// - Note: The color well's `isActive` property will be checked
-  ///   before running this function. If its value is `false`, this
+  /// - Note: The color well's `isActive` property is checked before
+  ///   proceeding with this function. If its value is `false`, this
   ///   function will return early.
   func highlightIfColorPanelSegment() {
     guard
@@ -763,8 +760,8 @@ class ColorWellSegment: NSView {
   /// is the segment that opens the color panel. Otherwise, sets the
   /// fill color to the color well's color.
   ///
-  /// - Note: The color well's `isActive` property will be checked
-  ///   before running this function. If its value is `false`, this
+  /// - Note: The color well's `isActive` property is checked before
+  ///   proceeding with this function. If its value is `false`, this
   ///   function will return early.
   func setDefaultFillColorIfColorPanelSegment() {
     guard
@@ -899,6 +896,8 @@ class ColorWellSegment: NSView {
   }
 }
 
+// MARK: - ColorWellPopover
+
 /// A popover that contains a grid of selectable color swatches.
 class ColorWellPopover: NSPopover, NSPopoverDelegate {
   weak var colorWell: ColorWell?
@@ -906,7 +905,7 @@ class ColorWellPopover: NSPopover, NSPopoverDelegate {
   /// The popover's content view controller.
   let popoverViewController: ColorWellPopoverViewController
 
-  /// The swatches that will be shown in the popover.
+  /// The swatches that are shown in the popover.
   var swatches: [ColorSwatch] {
     get { popoverViewController.swatches }
     set { popoverViewController.swatches = newValue }
@@ -950,6 +949,8 @@ class ColorWellPopover: NSPopover, NSPopoverDelegate {
   }
 }
 
+// MARK: - ColorWellPopoverViewController
+
 /// A view controller that controls a view that contains a grid
 /// of selectable color swatches.
 class ColorWellPopoverViewController: NSViewController {
@@ -972,6 +973,8 @@ class ColorWellPopoverViewController: NSViewController {
     fatalError("init(coder:) has not been implemented")
   }
 }
+
+// MARK: - ColorWellPopoverContainerView
 
 /// A view that contains a grid of selectable color swatches.
 class ColorWellPopoverContainerView: NSView {
@@ -1008,6 +1011,8 @@ class ColorWellPopoverContainerView: NSView {
     fatalError("init(coder:) has not been implemented")
   }
 }
+
+// MARK: - ColorWellPopoverGridView
 
 /// A grid view that contains selectable color swatches.
 class ColorWellPopoverGridView: NSGridView {
@@ -1049,6 +1054,8 @@ class ColorWellPopoverGridView: NSGridView {
     return rows
   }
 }
+
+// MARK: - ColorSwatch
 
 /// A rectangular, clickable color swatch that is displayed inside
 /// of a color well's popover.
@@ -1212,6 +1219,8 @@ class ColorSwatch: NSImageView {
   }
 }
 
+// MARK: - ComparableID
+
 /// An identifier type that can be compared by order of creation.
 ///
 /// For identifiers `id1` and `id2`, `id1 < id2` if `id1` was created first.
@@ -1236,6 +1245,8 @@ extension ComparableID: Comparable {
 extension ComparableID: Equatable { }
 
 extension ComparableID: Hashable { }
+
+// MARK: - ChangeHandler
 
 /// An identifiable, hashable wrapper for a change handler
 /// that is executed when a color well's color changes.
