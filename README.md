@@ -1,10 +1,10 @@
 # ColorWell
 
-An attractive alternative to `NSColorWell` for Cocoa and `ColorPicker` for SwiftUI.
+A versatile alternative to `NSColorWell` for Cocoa and `ColorPicker` for SwiftUI.
 
 <div align='center'>
-    <img src='Sources/ColorWell/Documentation.docc/Resources/color-well-with-popover~dark.png', style='width:37%'>
-    <img src='Sources/ColorWell/Documentation.docc/Resources/color-well-with-popover.png', style='width:37%'>
+    <img src='Sources/ColorWell/Documentation.docc/Resources/color-well-with-popover-dark.png', style='width:37%'>
+    <img src='Sources/ColorWell/Documentation.docc/Resources/color-well-with-popover-light.png', style='width:37%'>
 </div>
 
 ColorWell is designed to mimic the appearance and behavior of the new color well design in macOS 13 Ventura, for those who want to use the new design on older operating systems.
@@ -21,26 +21,27 @@ Add the following dependency to your `Package.swift` file:
 
 ### SwiftUI
 
-Create a `ColorWellView` and add it to your view hierarchy. Observe color changes using the `onColorChange(perform:)` view modifier.
+Create a `ColorWellView` and add it to your view hierarchy. There are a wide range of initializers to choose from, allowing you to set the color well's color, label, and action.
 
 ```swift
 struct ContentView: View {
     var body: some View {
-        ColorWellView()
-            .onColorChange { color in
-                print(color)
-            }
-  }
+        ColorWellView { color in
+            print(color)
+        }
+    }
 }
 ```
 
 ### Cocoa
 
-Create a `ColorWell` using one of the `init()` or `init(frame:)` initializers.
+Create a `ColorWell` using one of the available initializers.
 
 ```swift
-let colorWellDefaultFrame = ColorWell()
-let colorWellCustomFrame = ColorWell(frame: NSRect(x: 0, y: 0, width: 400, height: 200))
+let colorWell1 = ColorWell()
+let colorWell2 = ColorWell(color: .green)
+let colorWell3 = ColorWell(frame: NSRect(x: 0, y: 0, width: 400, height: 200))
+// And more...
 ```
 
 Observe color changes using the `onColorChange(perform:)` method.

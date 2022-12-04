@@ -496,7 +496,7 @@ extension View {
   /// Swatches are user-selectable colors that are shown when
   /// a ``ColorWellView`` displays its popover.
   ///
-  /// ![Default swatches](color-well-with-popover)
+  /// ![Default swatches](grid-view)
   ///
   /// Any color well that is part of the current view's hierarchy
   /// will update its swatches to the colors provided here.
@@ -511,7 +511,7 @@ extension View {
   /// Swatches are user-selectable colors that are shown when
   /// a ``ColorWellView`` displays its popover.
   ///
-  /// ![Default swatches](color-well-with-popover)
+  /// ![Default swatches](grid-view)
   ///
   /// Any color well that is part of the current view's hierarchy
   /// will update its swatches to the colors provided here.
