@@ -16,7 +16,10 @@ let package = Package(
     targets: [
         .target(
             name: "ColorWell",
-            dependencies: []
+            dependencies: [],
+            resources: [
+                .copy("Resources/Colors.xcassets"),
+            ]
         ),
         .testTarget(
             name: "ColorWellTests",
