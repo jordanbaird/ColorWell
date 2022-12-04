@@ -35,6 +35,13 @@ private struct ColorWellWrapper: NSViewRepresentable {
 
 // MARK: ColorWellView
 
+/// A SwiftUI view that displays a user-settable color value.
+///
+/// Color wells enable the user to select custom colors from within an app's
+/// interface. A graphics app might, for example, include a color well to let
+/// someone choose the fill color for a shape. Color wells display the currently
+/// selected color, and interactions with the color well display interfaces
+/// for selecting new colors.
 @available(macOS 10.15, *)
 public struct ColorWellView<Label: View>: View {
   private let constructor: AnyViewConstructor
@@ -276,7 +283,7 @@ extension ColorWellView<Text> {
   ///   an underlying representation. In some cases, the translation process
   ///   may be forced to return an approximation, rather than the original
   ///   color. To receive a color that is guaranteed to be equivalent to the
-  ///   color well's underlying representation, use ``init(_:color:action:)``.
+  ///   color well's underlying representation, use ``init(_:color:action:)-8ghst``.
   ///
   /// - Parameters:
   ///   - title: A string that describes the purpose of the color well.
@@ -350,7 +357,7 @@ extension ColorWellView<Text> {
   ///   an underlying representation. In some cases, the translation process
   ///   may be forced to return an approximation, rather than the original
   ///   color. To receive a color that is guaranteed to be equivalent to the
-  ///   color well's underlying representation, use ``init(_:color:action:)``.
+  ///   color well's underlying representation, use ``init(_:color:action:)-3s0o1``.
   ///
   /// - Parameters:
   ///   - titleKey: A key for the color well's localized title, that describes the
