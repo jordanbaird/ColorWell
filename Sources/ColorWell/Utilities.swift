@@ -7,73 +7,113 @@
 //===----------------------------------------------------------------------===//
 
 import Cocoa
-
 #if canImport(SwiftUI)
 import SwiftUI
 #endif
 
-// MARK: - Path
+// MARK: - ConstructablePath
 
-struct Path {
-  let components: [Component]
+protocol ConstructablePath: ConstructablePathConvertible {
+  associatedtype Convertible: ConstructablePathConvertible
+  init()
+  var convertiblePath: Convertible { get }
+  mutating func apply(_ component: PathConstructor.Component)
+}
 
-  var nsBezierPath: NSBezierPath {
-    let path = NSBezierPath()
+extension ConstructablePath where Convertible == Self {
+  var convertiblePath: Self { self }
+}
+
+extension ConstructablePath {
+  static func fromComponents(_ components: [PathConstructor.Component]) -> Self {
+    var path = Self()
     for component in components {
-      component.add(to: path)
-    }
-    return path
-  }
-
-  var cgMutablePath: CGMutablePath {
-    let path = CGMutablePath()
-    for component in components {
-      component.add(to: path)
+      path.apply(component)
     }
     return path
   }
 }
 
-extension Path {
+extension NSBezierPath: ConstructablePath {
+  func apply(_ component: PathConstructor.Component) {
+    switch component {
+    case .close:
+      close()
+    case .move(let point):
+      move(to: point)
+    case .line(let point):
+      line(to: point)
+    case .curve(let point, let c1, let c2):
+      curve(to: point, controlPoint1: c1, controlPoint2: c2)
+    }
+  }
+}
+
+extension CGMutablePath: ConstructablePath {
+  var convertiblePath: CGPath { self }
+
+  func apply(_ component: PathConstructor.Component) {
+    switch component {
+    case .close:
+      closeSubpath()
+    case .move(let point):
+      move(to: point)
+    case .line(let point):
+      addLine(to: point)
+    case .curve(let point, let c1, let c2):
+      addCurve(to: point, control1: c1, control2: c2)
+    }
+  }
+}
+
+// MARK: - ConstructablePathConvertible
+
+protocol ConstructablePathConvertible {
+  associatedtype Constructable: ConstructablePath
+  typealias Constructed = Constructable.Convertible
+  var constructablePath: Constructable { get }
+  static func fromComponents(_ components: [PathConstructor.Component]) -> Constructed
+}
+
+extension ConstructablePathConvertible where Self: ConstructablePath {
+  var constructablePath: Self { self }
+}
+
+extension ConstructablePathConvertible {
+  static func fromComponents(_ components: [PathConstructor.Component]) -> Constructed {
+    Constructable.fromComponents(components).convertiblePath
+  }
+}
+
+extension CGPath: ConstructablePathConvertible {
+  var constructablePath: CGMutablePath {
+    let path = CGMutablePath()
+    path.addPath(self)
+    return path
+  }
+}
+
+// MARK: - PathConstructor
+
+enum PathConstructor { }
+
+// MARK: PathConstructor Component
+extension PathConstructor {
   enum Component {
     case close
     case move(to: CGPoint)
     case line(to: CGPoint)
     case curve(to: CGPoint, c1: CGPoint, c2: CGPoint)
-
-    fileprivate func add(to path: NSBezierPath) {
-      switch self {
-      case .close:
-        path.close()
-      case .move(to: let point):
-        path.move(to: point)
-      case .line(to: let point):
-        path.line(to: point)
-      case .curve(to: let point, c1: let c1, c2: let c2):
-        path.curve(to: point, controlPoint1: c1, controlPoint2: c2)
-      }
-    }
-
-    fileprivate func add(to path: CGMutablePath) {
-      switch self {
-      case .close:
-        path.closeSubpath()
-      case .move(to: let point):
-        path.move(to: point)
-      case .line(to: let point):
-        path.addLine(to: point)
-      case .curve(to: let point, c1: let c1, c2: let c2):
-        path.addCurve(to: point, control1: c1, control2: c2)
-      }
-    }
   }
 }
 
-extension Path {
-  static func colorWellPath(
+// MARK: Default Constructors
+extension PathConstructor {
+  static func colorWellPath<P: ConstructablePathConvertible>(
+    ofType type: P.Type = P.self,
     for dirtyRect: CGRect,
     flatteningCorners corners: [KeyPath<CGRect, CGPoint>] = []
-  ) -> Self {
+  ) -> P where P.Constructable.Convertible == P {
     let radius = ColorWell.cornerRadius
 
     let insetRect = dirtyRect.insetBy(
@@ -160,7 +200,7 @@ extension Path {
 
     components.append(.close)
 
-    return .init(components: components)
+    return .fromComponents(components)
   }
 }
 
@@ -237,7 +277,7 @@ extension CGColor: CustomCocoaConvertible {
   }
 }
 
-// MARK: - StringProtocol - label
+// MARK: - StringProtocol Label
 
 @available(macOS 10.15, *)
 extension StringProtocol {
@@ -246,7 +286,7 @@ extension StringProtocol {
   }
 }
 
-// MARK: - LocalizedStringKey - label
+// MARK: - LocalizedStringKey Label
 
 @available(macOS 10.15, *)
 extension LocalizedStringKey {

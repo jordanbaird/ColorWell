@@ -7,7 +7,6 @@
 //===----------------------------------------------------------------------===//
 
 import Cocoa
-
 #if canImport(SwiftUI)
 import SwiftUI
 #endif
@@ -490,11 +489,10 @@ class ColorWellSegmentContainerGridView: NSGridView {
     maskLayer.lineWidth = ColorWell.lineWidth
     maskLayer.needsDisplayOnBoundsChange = true
     maskLayer.frame = bezelLayer.frame
-    maskLayer.path = Path.colorWellPath(
+    maskLayer.path = PathConstructor.colorWellPath(
       for: bezelLayer.frame.insetBy(
         dx: ColorWell.lineWidth / 2,
-        dy: ColorWell.lineWidth / 2)
-    ).cgMutablePath
+        dy: ColorWell.lineWidth / 2))
 
     bezelLayer.mask = maskLayer
 
@@ -690,15 +688,13 @@ extension ColorWellSegment {
   private func defaultPath(for dirtyRect: NSRect) -> NSBezierPath {
     switch kind {
     case .opensColorPanel:
-      return Path.colorWellPath(
+      return PathConstructor.colorWellPath(
         for: dirtyRect,
-        flatteningCorners: [\.topLeft, \.bottomLeft]
-      ).nsBezierPath
+        flatteningCorners: [\.topLeft, \.bottomLeft])
     case .showsPopover:
-      return Path.colorWellPath(
+      return PathConstructor.colorWellPath(
         for: dirtyRect,
-        flatteningCorners: [\.topRight, \.bottomRight]
-      ).nsBezierPath
+        flatteningCorners: [\.topRight, \.bottomRight])
     }
   }
 
