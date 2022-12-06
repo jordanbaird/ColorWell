@@ -26,7 +26,7 @@ extension NSAppearance {
   }
 
   /// Whether the current appearance is a dark appearance.
-  var isDarkAppearance: Bool {
+  internal var isDarkAppearance: Bool {
     Self.builtinDarkNames.contains(name) || nameIndicatesDarkAppearance
   }
 }

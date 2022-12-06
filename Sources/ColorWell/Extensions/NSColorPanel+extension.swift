@@ -9,14 +9,14 @@
 import Cocoa
 
 extension NSColorPanel {
-  private static var storage = [NSColorPanel: Set<ColorWell>]()
+  private static let storage = Storage(Set<ColorWell>.self)
 
   /// The color wells that are currently active and share this color panel.
-  var activeColorWells: Set<ColorWell> {
+  internal var activeColorWells: Set<ColorWell> {
     get { Self.storage[self] ?? [] }
     set {
       if newValue.isEmpty {
-        Self.storage.removeValue(forKey: self)
+        Self.storage[self] = nil
       } else {
         Self.storage[self] = newValue
       }

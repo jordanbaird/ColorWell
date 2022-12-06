@@ -1,41 +1,45 @@
 //===----------------------------------------------------------------------===//
 //
-// NSRectExtension.swift
+// CGRectExtension.swift
 //
 // Created: 2022. Author: Jordan Baird.
 //
 //===----------------------------------------------------------------------===//
 
-import Cocoa
+import CoreGraphics
 
-extension NSRect {
+extension CGRect {
+  /// A point that represents an invalid location in the rectangle.
+  internal var invalidPoint: CGPoint {
+    .init(x: CGFloat.nan, y: CGFloat.nan)
+  }
+
   /// The bottom left point of the rectangle.
-  var bottomLeft: NSPoint {
+  internal var bottomLeft: CGPoint {
     .init(x: minX, y: minY)
   }
 
   /// The top left point of the rectangle.
-  var topLeft: NSPoint {
+  internal var topLeft: CGPoint {
     .init(x: minX, y: maxY)
   }
 
   /// The top right point of the rectangle.
-  var topRight: NSPoint {
+  internal var topRight: CGPoint {
     .init(x: maxX, y: maxY)
   }
 
   /// The bottom right point of the rectangle.
-  var bottomRight: NSPoint {
+  internal var bottomRight: CGPoint {
     .init(x: maxX, y: minY)
   }
 
   /// Centers the current rectangle within the bounds of another rectangle.
   /// - Parameters otherRect: The rectangle to center the current rectangle in.
-  func centered(in otherRect: Self) -> Self {
-    var copy = self
-    copy.origin = .init(
-      x: otherRect.midX - width / 2,
-      y: otherRect.midY - height / 2)
-    return copy
+  internal func centered(in otherRect: Self) -> Self {
+    var new = self
+    new.origin.x = otherRect.midX - (new.width / 2)
+    new.origin.y = otherRect.midY - (new.height / 2)
+    return new
   }
 }

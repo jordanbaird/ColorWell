@@ -6,205 +6,141 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Cocoa
+import Foundation
+
+// MARK: - ComparableID
+
+/// An identifier type that can be compared by order of creation.
+///
+/// For identifiers `id1` and `id2`, `id1 < id2` if `id1` was created first.
+struct ComparableID {
+  private static var totalCount = 0
+
+  let root = UUID()
+  let count: Int
+
+  init() {
+    defer { Self.totalCount += 1 }
+    count = Self.totalCount
+  }
+}
+
+extension ComparableID: Comparable {
+  static func < (lhs: Self, rhs: Self) -> Bool {
+    lhs.count < rhs.count
+  }
+}
+
+extension ComparableID: Equatable { }
+
+extension ComparableID: Hashable { }
+
+// MARK: - ChangeHandler
+
+/// An identifiable, hashable wrapper for a change handler
+/// that is executed when a color well's color changes.
+///
+/// This type can be compared by order of creation.
+///
+/// For handlers `h1` and `h2`, `h1 < h2` if `h1` was created first.
+struct ChangeHandler {
+  let id: ComparableID
+  let handler: (NSColor) -> Void
+
+  init(id: ComparableID, handler: @escaping (NSColor) -> Void) {
+    self.id = id
+    self.handler = handler
+  }
+
+  init(handler: @escaping (NSColor) -> Void) {
+    self.init(id: .init(), handler: handler)
+  }
+
+  func callAsFunction(_ color: NSColor) {
+    handler(color)
+  }
+}
+
+extension ChangeHandler: Comparable {
+  static func < (lhs: Self, rhs: Self) -> Bool {
+    lhs.id < rhs.id
+  }
+}
+
+extension ChangeHandler: Equatable {
+  static func == (lhs: Self, rhs: Self) -> Bool {
+    lhs.id == rhs.id
+  }
+}
+
+extension ChangeHandler: Hashable {
+  func hash(into hasher: inout Hasher) {
+    hasher.combine(id)
+  }
+}
+
+// MARK: - Storage
+
+/// A type that uses object association to store external values.
+class Storage<Value> {
+  private let policy: AssociationPolicy
+
+  private var key: UnsafeMutableRawPointer {
+    Unmanaged.passUnretained(self).toOpaque()
+  }
+
+  /// Creates a storage object that stores values of the
+  /// given type, using the provided association policy.
+  init(
+    _ type: Value.Type = Value.self,
+    policy: @autoclosure () -> AssociationPolicy = .retain(false)
+  ) {
+    self.policy = policy()
+  }
+
+  /// Accesses the value for the given object.
+  subscript<Object: AnyObject>(_ object: Object) -> Value? {
+    get { objc_getAssociatedObject(object, key) as? Value }
+    set { objc_setAssociatedObject(object, key, newValue, policy.objcValue) }
+  }
+}
+
+// MARK: - AssociationPolicy
+
+/// A type that specifies the behavior of an object association.
+struct AssociationPolicy {
+  fileprivate let objcValue: objc_AssociationPolicy
+
+  private init(_ objcValue: objc_AssociationPolicy) {
+    self.objcValue = objcValue
+  }
+}
+
+extension AssociationPolicy {
+  /// A weak reference to the associated object.
+  static var assign: Self {
+    .init(.OBJC_ASSOCIATION_ASSIGN)
+  }
+
+  /// The associated object is copied.
+  static func copy(_ isAtomic: Bool) -> Self {
+    guard isAtomic else {
+      return .init(.OBJC_ASSOCIATION_COPY_NONATOMIC)
+    }
+    return .init(.OBJC_ASSOCIATION_COPY)
+  }
+
+  /// A strong reference to the associated object.
+  static func retain(_ isAtomic: Bool) -> Self {
+    guard isAtomic else {
+      return .init(.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+    }
+    return .init(.OBJC_ASSOCIATION_RETAIN)
+  }
+}
+
 #if canImport(SwiftUI)
 import SwiftUI
-#endif
-
-// MARK: - ConstructablePath
-
-protocol ConstructablePath: ConstructablePathConvertible {
-  associatedtype Convertible: ConstructablePathConvertible
-  init()
-  var convertiblePath: Convertible { get }
-  mutating func apply(_ component: PathConstructor.Component)
-}
-
-extension ConstructablePath where Convertible == Self {
-  var convertiblePath: Self { self }
-}
-
-extension ConstructablePath {
-  static func fromComponents(_ components: [PathConstructor.Component]) -> Self {
-    var path = Self()
-    for component in components {
-      path.apply(component)
-    }
-    return path
-  }
-}
-
-extension NSBezierPath: ConstructablePath {
-  func apply(_ component: PathConstructor.Component) {
-    switch component {
-    case .close:
-      close()
-    case .move(let point):
-      move(to: point)
-    case .line(let point):
-      line(to: point)
-    case .curve(let point, let c1, let c2):
-      curve(to: point, controlPoint1: c1, controlPoint2: c2)
-    }
-  }
-}
-
-extension CGMutablePath: ConstructablePath {
-  var convertiblePath: CGPath { self }
-
-  func apply(_ component: PathConstructor.Component) {
-    switch component {
-    case .close:
-      closeSubpath()
-    case .move(let point):
-      move(to: point)
-    case .line(let point):
-      addLine(to: point)
-    case .curve(let point, let c1, let c2):
-      addCurve(to: point, control1: c1, control2: c2)
-    }
-  }
-}
-
-// MARK: - ConstructablePathConvertible
-
-protocol ConstructablePathConvertible {
-  associatedtype Constructable: ConstructablePath
-  typealias Constructed = Constructable.Convertible
-  var constructablePath: Constructable { get }
-  static func fromComponents(_ components: [PathConstructor.Component]) -> Constructed
-}
-
-extension ConstructablePathConvertible where Self: ConstructablePath {
-  var constructablePath: Self { self }
-}
-
-extension ConstructablePathConvertible {
-  static func fromComponents(_ components: [PathConstructor.Component]) -> Constructed {
-    Constructable.fromComponents(components).convertiblePath
-  }
-}
-
-extension CGPath: ConstructablePathConvertible {
-  var constructablePath: CGMutablePath {
-    let path = CGMutablePath()
-    path.addPath(self)
-    return path
-  }
-}
-
-// MARK: - PathConstructor
-
-enum PathConstructor { }
-
-// MARK: PathConstructor Component
-extension PathConstructor {
-  enum Component {
-    case close
-    case move(to: CGPoint)
-    case line(to: CGPoint)
-    case curve(to: CGPoint, c1: CGPoint, c2: CGPoint)
-  }
-}
-
-// MARK: Default Constructors
-extension PathConstructor {
-  static func colorWellPath<P: ConstructablePathConvertible>(
-    ofType type: P.Type = P.self,
-    for dirtyRect: CGRect,
-    flatteningCorners corners: [KeyPath<CGRect, CGPoint>] = []
-  ) -> P where P.Constructable.Convertible == P {
-    let radius = ColorWell.cornerRadius
-
-    let insetRect = dirtyRect.insetBy(
-      dx: -ColorWell.lineWidth / 2,
-      dy: -ColorWell.lineWidth / 2)
-
-    var components = [Component]()
-
-    if corners.contains(\.topLeft) {
-      components.append(.move(to: dirtyRect.topLeft))
-    } else {
-      components += [
-        .move(
-          to: dirtyRect.topLeft.applying(
-            .init(
-              translationX: 0,
-              y: -radius))),
-        .curve(
-          to: dirtyRect.topLeft.applying(
-            .init(
-              translationX: radius,
-              y: 0)),
-          c1: insetRect.topLeft,
-          c2: insetRect.topLeft),
-      ]
-    }
-
-    if corners.contains(\.topRight) {
-      components.append(.line(to: dirtyRect.topRight))
-    } else {
-      components += [
-        .line(
-          to: dirtyRect.topRight.applying(
-            .init(
-              translationX: -radius,
-              y: 0))),
-        .curve(
-          to: dirtyRect.topRight.applying(
-            .init(
-              translationX: 0,
-              y: -radius)),
-          c1: insetRect.topRight,
-          c2: insetRect.topRight),
-      ]
-    }
-
-    if corners.contains(\.bottomRight) {
-      components.append(.line(to: dirtyRect.bottomRight))
-    } else {
-      components += [
-        .line(
-          to: dirtyRect.bottomRight.applying(
-            .init(
-              translationX: 0,
-              y: radius))),
-        .curve(
-          to: dirtyRect.bottomRight.applying(
-            .init(
-              translationX: -radius,
-              y: 0)),
-          c1: insetRect.bottomRight,
-          c2: insetRect.bottomRight),
-      ]
-    }
-
-    if corners.contains(\.bottomLeft) {
-      components.append(.line(to: dirtyRect.bottomLeft))
-    } else {
-      components += [
-        .line(
-          to: dirtyRect.bottomLeft.applying(
-            .init(
-              translationX: radius,
-              y: 0))),
-        .curve(
-          to: dirtyRect.bottomLeft.applying(
-            .init(
-              translationX: 0,
-              y: radius)),
-          c1: insetRect.bottomLeft,
-          c2: insetRect.bottomLeft),
-      ]
-    }
-
-    components.append(.close)
-
-    return .fromComponents(components)
-  }
-}
-
-#if canImport(SwiftUI)
 
 // MARK: - ViewConstructor
 
@@ -258,7 +194,7 @@ struct AnyViewConstructor: View {
 
 // MARK: - CustomCocoaConvertible
 
-protocol CustomCocoaConvertible<CocoaType, Converted> {
+internal protocol CustomCocoaConvertible<CocoaType, Converted> {
   associatedtype CocoaType: NSObject
   associatedtype Converted: CustomCocoaConvertible = Self
   static func converted(from source: CocoaType) -> Converted
@@ -266,13 +202,13 @@ protocol CustomCocoaConvertible<CocoaType, Converted> {
 
 @available(macOS 10.15, *)
 extension Color: CustomCocoaConvertible {
-  static func converted(from source: NSColor) -> Self {
+  internal static func converted(from source: NSColor) -> Self {
     .init(source)
   }
 }
 
 extension CGColor: CustomCocoaConvertible {
-  static func converted(from source: NSColor) -> CGColor {
+  internal static func converted(from source: NSColor) -> CGColor {
     source.cgColor
   }
 }
@@ -281,7 +217,7 @@ extension CGColor: CustomCocoaConvertible {
 
 @available(macOS 10.15, *)
 extension StringProtocol {
-  var label: Text {
+  internal var label: Text {
     .init(self)
   }
 }
@@ -290,7 +226,7 @@ extension StringProtocol {
 
 @available(macOS 10.15, *)
 extension LocalizedStringKey {
-  var label: Text {
+  internal var label: Text {
     .init(self)
   }
 }

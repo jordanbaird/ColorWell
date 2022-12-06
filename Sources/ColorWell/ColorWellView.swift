@@ -9,10 +9,10 @@
 #if canImport(SwiftUI)
 import SwiftUI
 
-// MARK: ColorWellWrapper
+// MARK: - RootView
 
 @available(macOS 10.15, *)
-private struct ColorWellWrapper: NSViewRepresentable {
+private struct RootView: NSViewRepresentable {
   let color: NSColor?
 
   func makeNSView(context: Context) -> ColorWell {
@@ -24,7 +24,7 @@ private struct ColorWellWrapper: NSViewRepresentable {
   }
 
   func updateNSView(_ nsView: ColorWell, context: Context) {
-    nsView.changeHandlers.formUnion(context.environment.changeHandlers)
+    nsView.insertChangeHandlers(context.environment.changeHandlers)
     nsView.isEnabled = context.environment.isEnabled
 
     if #available(macOS 11.0, *) {
@@ -33,7 +33,7 @@ private struct ColorWellWrapper: NSViewRepresentable {
   }
 }
 
-// MARK: ColorWellView
+// MARK: - ColorWellView
 
 /// A SwiftUI view that displays a user-settable color value.
 ///
@@ -46,6 +46,7 @@ private struct ColorWellWrapper: NSViewRepresentable {
 public struct ColorWellView<Label: View>: View {
   private let constructor: AnyViewConstructor
 
+  /// The content of the color well.
   public var body: some View {
     constructor
   }
@@ -59,7 +60,7 @@ public struct ColorWellView<Label: View>: View {
     _action: ((C) -> Void)? = Optional<(Color) -> Void>.none
   ) {
     constructor = ViewConstructor {
-      ColorWellWrapper(color: _color)
+      RootView(color: _color)
     }
     .with { view in
       if let _action {
@@ -89,8 +90,7 @@ public struct ColorWellView<Label: View>: View {
   }
 }
 
-// MARK: ColorWellView<some View> Initializers
-
+// MARK: ColorWellView Initializers (Label: View)
 @available(macOS 10.15, *)
 extension ColorWellView {
   /// Creates a color well that uses the provided view as its label.
@@ -162,8 +162,7 @@ extension ColorWellView {
   }
 }
 
-// MARK: - ColorWellView<Never> Initializers
-
+// MARK: ColorWellView Initializers (Label == Never)
 @available(macOS 10.15, *)
 extension ColorWellView<Never> {
   /// Creates a color well initialized to its default values.
@@ -218,8 +217,7 @@ extension ColorWellView<Never> {
   }
 }
 
-// MARK: - ColorWellView<Text> Initializers
-
+// MARK: ColorWellView Initializers (Label == Text)
 @available(macOS 10.15, *)
 extension ColorWellView<Text> {
 
@@ -431,16 +429,16 @@ private struct SwatchColorsKey: EnvironmentKey {
 // MARK: - Environment Values
 
 @available(macOS 10.15, *)
-private extension EnvironmentValues {
-  var changeHandlers: Set<ChangeHandler> {
+extension EnvironmentValues {
+  internal var changeHandlers: Set<ChangeHandler> {
     get { self[ChangeHandlersKey.self] }
     set { self[ChangeHandlersKey.self] = newValue }
   }
 }
 
 @available(macOS 11.0, *)
-private extension EnvironmentValues {
-  var swatchColors: [NSColor] {
+extension EnvironmentValues {
+  internal var swatchColors: [NSColor] {
     get { self[SwatchColorsKey.self] }
     set { self[SwatchColorsKey.self] = newValue }
   }
@@ -504,21 +502,6 @@ extension View {
   /// - Parameter colors: The swatch colors to use.
   public func swatchColors(_ colors: [Color]) -> some View {
     modifier(SwatchColors(colors: colors))
-  }
-
-  /// Applies the given swatch colors to the view's color wells.
-  ///
-  /// Swatches are user-selectable colors that are shown when
-  /// a ``ColorWellView`` displays its popover.
-  ///
-  /// ![Default swatches](grid-view)
-  ///
-  /// Any color well that is part of the current view's hierarchy
-  /// will update its swatches to the colors provided here.
-  ///
-  /// - Parameter colors: The swatch colors to use.
-  public func swatchColors(_ colors: Color...) -> some View {
-    swatchColors(colors)
   }
 }
 #endif

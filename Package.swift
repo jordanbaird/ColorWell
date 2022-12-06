@@ -21,9 +21,5 @@ let package = Package(
                 .copy("Resources/Colors.xcassets"),
             ]
         ),
-        .testTarget(
-            name: "ColorWellTests",
-            dependencies: ["ColorWell"]
-        ),
     ]
 )
