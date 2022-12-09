@@ -19,6 +19,8 @@ Add the following dependency to your `Package.swift` file:
 
 ## Usage
 
+[Read the full documentation here](https://swiftpackageindex.com/jordanbaird/ColorWell/documentation)
+
 ### SwiftUI
 
 Create a `ColorWellView` and add it to your view hierarchy. There are a wide range of initializers to choose from, allowing you to set the color well's color, label, and action.
