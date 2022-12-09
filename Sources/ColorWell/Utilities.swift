@@ -221,13 +221,4 @@ extension StringProtocol {
     .init(self)
   }
 }
-
-// MARK: - LocalizedStringKey Label
-
-@available(macOS 10.15, *)
-extension LocalizedStringKey {
-  internal var label: Text {
-    .init(self)
-  }
-}
 #endif

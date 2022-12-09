@@ -51,16 +51,24 @@ public class _ColorWellBaseView: NSView {
 
 // MARK: _ColorWellBaseView Methods
 extension _ColorWellBaseView {
+  /// Returns a value for the given accessibility attribute,
+  /// performing dynamic casting to the given type.
   private func provideAttributeValue<T>(
     ofType type: T.Type = T.self,
     for attribute: NSAccessibility.Attribute
   ) -> T? {
     provideValue(forAttribute: attribute) as? T
   }
-
+  
+  /// Returns a value for the given accessibility attribute.
+  ///
+  /// To be overridden by the main ``ColorWell`` class.
   @objc dynamic
   internal func provideValue(forAttribute attribute: NSAccessibility.Attribute) -> Any? { nil }
 
+  /// Performs code for the given accessibility action.
+  ///
+  /// To be overridden by the main ``ColorWell`` class.
   @objc dynamic
   internal func performAction(forType type: NSAccessibility.Action) -> Bool { false }
 }
@@ -298,6 +306,9 @@ public class ColorWell: _ColorWellBaseView {
   }
   #endif
 
+  /// Creates a color well from data in the given coder object.
+  /// - Parameter coder: The coder object that contains the color
+  ///   well's configuration details.
   public required init?(coder: NSCoder) {
     super.init(coder: coder)
     sharedInit(color: Self.defaultColor)
@@ -530,12 +541,35 @@ extension ColorWell {
 
 // MARK: ColorWell Deprecated
 extension ColorWell {
-  @available(*, deprecated, renamed: "activate(exclusive:)")
+  /// Activates the color well and displays its color panel.
+  ///
+  /// Both elements will remain synchronized until either the color panel
+  /// is closed, or the color well is deactivated.
+  ///
+  /// - Parameter exclusive: If this value is `true`, all other active
+  ///   color wells attached to this color well's color panel will be
+  ///   deactivated.
+  @available(*, deprecated, message: "Renamed to `activate(exclusive:)`")
   public func activate(_ exclusive: Bool) {
     activate(exclusive: exclusive)
   }
 
-  @available(*, deprecated, renamed: "onColorChange(perform:)")
+  /// Adds an action to perform when the color well's color changes.
+  ///
+  /// ```swift
+  /// let colorWell = ColorWell()
+  /// let textView = NSTextView()
+  /// // ...
+  /// // ...
+  /// // ...
+  /// colorWell.observeColor { color in
+  ///     textView.textColor = color
+  /// }
+  /// ```
+  ///
+  /// - Parameter handler: A block of code that will be executed when
+  ///   the color well's color changes.
+  @available(*, deprecated, message: "Renamed to `onColorChange(perform:)`")
   public func observeColor(onChange handler: @escaping (NSColor) -> Void) {
     onColorChange(perform: handler)
   }
