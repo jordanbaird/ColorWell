@@ -28,7 +28,7 @@ Create a `ColorWellView` and add it to your view hierarchy. There are a wide ran
 ```swift
 struct ContentView: View {
     var body: some View {
-        ColorWellView { color in
+        ColorWellView(color: .green) { color in
             print(color)
         }
     }
