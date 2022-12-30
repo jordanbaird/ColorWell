@@ -17,9 +17,9 @@ private struct RootView: NSViewRepresentable {
 
   func makeNSView(context: Context) -> ColorWell {
     if let color {
-      return .init(color: color)
+      return ColorWell(color: color)
     } else {
-      return .init()
+      return ColorWell()
     }
   }
 

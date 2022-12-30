@@ -2,16 +2,19 @@
 
 ## Topics
 
-### Initializers
+### Required Initializers
 
 - ``init(frame:color:)``
+- ``init(coder:)``
+
+### Convenience Initializers
+
+- ``init()``
 - ``init(frame:)``
 - ``init(color:)``
 - ``init(cgColor:)``
 - ``init(ciColor:)``
 - ``init(_:)``
-- ``init(coder:)``
-- ``init()``
 
 ### Instance Properties
 

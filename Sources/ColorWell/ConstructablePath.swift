@@ -10,12 +10,22 @@ import Cocoa
 
 // MARK: - Corner
 
+/// A type that represents a corner of a rectangle.
 internal typealias Corner = KeyPath<CGRect, CGPoint>
 extension Corner {
+  /// The top left corner of a rectangle.
   internal static let topLeft: Corner = \.topLeft
+
+  /// The top right corner of a rectangle.
   internal static let topRight: Corner = \.topRight
+
+  /// The bottom left corner of a rectangle.
   internal static let bottomLeft: Corner = \.bottomLeft
+
+  /// The bottom right corner of a rectangle.
   internal static let bottomRight: Corner = \.bottomRight
+
+  /// A corner that represents an invalid point.
   internal static let invalid: Corner = \.invalidPoint
 
   /// The valid corners that can be used during path construction.
@@ -27,6 +37,10 @@ extension Corner {
 }
 
 extension Corner {
+  /// The corner at the opposite end of the rectangle from this corner.
+  ///
+  /// For example, if this corner is `topLeft`, its `opposite` corner
+  /// will be `bottomRight`.
   internal var opposite: Corner {
     switch self {
     case .topLeft:
@@ -43,28 +57,46 @@ extension Corner {
     }
   }
 
+  /// Executes an assertion failure indicating that an invalid corner
+  /// was used.
   internal func assertionInvalid() {
     assertionFailure("Valid corners are topLeft, topRight, bottomLeft, and bottomRight")
   }
 }
 
+/// A type that represents a side of a rectangle.
 struct Side {
+  /// The corners that, when connected by a path, make up this side.
   let corners: [Corner]
 
+  /// Creates a side with the given corners.
   init(_ corners: [Corner]) {
     self.corners = corners
   }
 }
 
 extension Side {
+  /// The top side of a rectangle.
   static let top = Self([.topLeft, .topRight])
+
+  /// The bottom side of a rectangle.
   static let bottom = Self([.bottomLeft, .bottomRight])
+
+  /// The left side of a rectangle.
   static let left = Self([.topLeft, .bottomLeft])
+
+  /// The right side of a rectangle.
   static let right = Self([.topRight, .bottomRight])
+
+  /// A side that represents the absence of a value.
   static let null = Self([])
 }
 
 extension Side {
+  /// The side on the opposite end of the rectangle.
+  ///
+  /// For example, if this side is `top`, its `opposite`
+  /// side will be `bottom`.
   var opposite: Self {
     .init(corners.map { $0.opposite })
   }
@@ -174,7 +206,7 @@ extension ConstructablePathComponent: ExpressibleByArrayLiteral {
 /// A type that can produce a version of itself that can be constructed
 /// from `ConstructablePathComponent` values.
 internal protocol ConstructablePath<Constructed, MutablePath> {
-  /// The constructed result.
+  /// The constructed result of this path type.
   associatedtype Constructed: ConstructablePath<Constructed, MutablePath>
 
   /// A mutable version of this type, that produces the same constructed result.
@@ -185,18 +217,21 @@ internal protocol ConstructablePath<Constructed, MutablePath> {
 
   /// Constructs a path from the given components.
   ///
-  /// - Parameters:
-  ///   - components: The components to construct the path with.
+  /// - Parameter components: The components to use to construct the path.
   /// - Returns: A `Constructed`-typed path, constructed using `components`.
-  static func constructed(with components: [ConstructablePathComponent]) -> Constructed
+  static func construct(with components: [ConstructablePathComponent]) -> Constructed
 }
 
+// MARK: - ConstructablePath Default Implementations
+
+// MARK: ConstructablePath (Constructed == Self)
 extension ConstructablePath where Constructed == Self {
   internal var asConstructedType: Self { self }
 }
 
+// MARK: ConstructablePath Construct
 extension ConstructablePath {
-  internal static func constructed(with components: [ConstructablePathComponent]) -> Constructed {
+  internal static func construct(with components: [ConstructablePathComponent]) -> Constructed {
     let path = MutablePath()
     for component in components {
       path.apply(component)
@@ -205,14 +240,16 @@ extension ConstructablePath {
   }
 }
 
-// MARK: Color Well Path
+// MARK: - ConstructablePath Helpers
+
+// MARK: ConstructablePath Color Well Path
 extension ConstructablePath {
   /// Produces a path for a part of a color well.
   ///
   /// - Parameters:
   ///   - rect: The rectangle to draw the path in.
-  ///   - corners: The corners that should be drawn with sharp right angles.
-  ///     Corners not provided here will be rounded.
+  ///   - corners: The corners that should be drawn with sharp right
+  ///     angles. Corners not provided here will be rounded.
   internal static func colorWellPath(
     rect: CGRect,
     squaredCorners corners: [Corner] = []
@@ -226,9 +263,20 @@ extension ConstructablePath {
       return .rightAngleCurve(around: $0, ofRect: rect, radius: radius, inset: amount)
     }
     components.append(.close)
-    return .constructed(with: components)
+    return .construct(with: components)
   }
+}
 
+// MARK: ConstructablePath Color Well Segment
+extension ConstructablePath {
+  /// Produces a color well segment path for the specified side of
+  /// a rectangle.
+  ///
+  /// - Parameters:
+  ///   - rect: The rectangle to draw the path in.
+  ///   - side: The side of `rect` that the path should be drawn in.
+  ///     > Note: This parameter implies which corners should be rounded
+  ///       and which corners should be drawn with sharp right angles.
   internal static func colorWellSegment(rect: CGRect, side: Side) -> Constructed {
     colorWellPath(rect: rect, squaredCorners: side.opposite.corners)
   }
@@ -239,6 +287,7 @@ extension ConstructablePath {
 /// A constructable path type whose instances can be altered with
 /// path components after their creation.
 internal protocol MutableConstructablePath<Constructed, MutablePath>: ConstructablePath {
+  /// Creates an empty mutable constructable path.
   init()
 
   /// Applies the given path component to this path.

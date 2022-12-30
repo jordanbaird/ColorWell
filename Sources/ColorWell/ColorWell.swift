@@ -549,7 +549,7 @@ extension ColorWell {
   /// - Parameter exclusive: If this value is `true`, all other active
   ///   color wells attached to this color well's color panel will be
   ///   deactivated.
-  @available(*, deprecated, message: "Renamed to `activate(exclusive:)`")
+  @available(*, deprecated, message: "Renamed to 'activate(exclusive:)'", renamed: "activate(exclusive:)")
   public func activate(_ exclusive: Bool) {
     activate(exclusive: exclusive)
   }
@@ -569,7 +569,7 @@ extension ColorWell {
   ///
   /// - Parameter handler: A block of code that will be executed when
   ///   the color well's color changes.
-  @available(*, deprecated, message: "Renamed to `onColorChange(perform:)`")
+  @available(*, deprecated, message: "Renamed to 'onColorChange(perform:)'", renamed: "onColorChange(perform:)")
   public func observeColor(onChange handler: @escaping (NSColor) -> Void) {
     onColorChange(perform: handler)
   }

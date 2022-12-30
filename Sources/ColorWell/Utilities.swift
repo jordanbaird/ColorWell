@@ -7,6 +7,9 @@
 //===----------------------------------------------------------------------===//
 
 import Foundation
+#if canImport(SwiftUI)
+import SwiftUI
+#endif
 
 // MARK: - ComparableID
 
@@ -139,8 +142,9 @@ extension AssociationPolicy {
   }
 }
 
+// MARK: - SwiftUI Utilities
+
 #if canImport(SwiftUI)
-import SwiftUI
 
 // MARK: - ViewConstructor
 
