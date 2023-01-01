@@ -57,4 +57,4 @@ colorWell.onColorChange { color in
 
 ## License
 
-ColorWell is licensed under the [MIT license](http://www.opensource.org/licenses/mit-license).
+ColorWell is available under the [MIT license](LICENSE).
