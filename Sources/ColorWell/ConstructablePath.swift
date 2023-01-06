@@ -226,7 +226,7 @@ internal protocol ConstructablePath<Constructed, MutablePath> {
 
 // MARK: ConstructablePath (Constructed == Self)
 extension ConstructablePath where Constructed == Self {
-  internal var asConstructedType: Self { self }
+  internal var asConstructedType: Constructed { self }
 }
 
 // MARK: ConstructablePath Construct
