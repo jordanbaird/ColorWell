@@ -172,10 +172,6 @@ public class ColorWell: _ColorWellBaseView {
 
   // MARK: Public Properties
 
-  /// The color panel controlled by the color well. Default value
-  /// is `NSColorPanel.shared`.
-  public var colorPanel = NSColorPanel.shared
-
   /// A Boolean value that indicates whether the color well's color panel
   /// allows adjusting the selected color's opacity. Default value is `true`.
   public var supportsOpacity = true
@@ -220,6 +216,58 @@ public class ColorWell: _ColorWellBaseView {
   /// - Note: If the array is empty, the color well's ``colorPanel`` will be
   ///   shown instead of a popover.
   public var swatchColors = defaultSwatchColors
+
+  // FIXME: Only `NSColorPanel.shared` should be allowed as a value here.
+  //
+  // Even though NSColorPanel is _supposed_ to be a singleton, it lets you
+  // create custom instances using initializers inherited from NSObject,
+  // NSPanel, etc. The problem is that NSColorPanel internally manages its
+  // memory, and caches parts of its interface. Color panels other than
+  // '.shared' could get released, leaving behind a slew of cached objects
+  // with no reference of what they belong to.
+  //
+  // For now, we'll deprecate the public property's setter, but it should
+  // eventually be made into a get-only property, a la:
+  // ```
+  // public var colorPanel: NSColorPanel { .shared }
+  // ```
+  private lazy var _colorPanel = NSColorPanel.shared {
+    willSet {
+      if isActive {
+        newValue.activeColorWells.insert(self)
+      }
+    }
+    didSet {
+      observations.removeAll()
+      if isActive {
+        oldValue.activeColorWells.remove(self)
+        synchronizeColorPanel()
+        setUpObservations()
+      }
+    }
+  }
+
+  /// The color panel controlled by the color well.
+  ///
+  /// - Important: The setter for this property is deprecated, and will be
+  ///   removed in a future release. Using any other value besides `NSColorPanel.shared`
+  ///   will result in memory leaks.
+  public var colorPanel: NSColorPanel {
+    get {
+      _colorPanel
+    }
+    @available(
+      *,
+       deprecated,
+       message: """
+        Only the 'shared' instance of NSColorPanel is valid. Creation of additional \
+        instances causes memory leaks.
+        """
+    )
+    set {
+      _colorPanel = newValue
+    }
+  }
 
   /// A Boolean value that indicates whether the color well is
   /// currently active.
