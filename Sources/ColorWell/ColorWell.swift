@@ -141,21 +141,30 @@ public class ColorWell: _ColorWellBaseView {
 
   // MARK: Private/Internal Properties
 
+  /// A view that displays the color well's segments, side by side.
   private var layoutView: ColorWellLayoutView!
 
-  private var observations = [NSKeyValueObservation]()
+  /// A Boolean value that indicates whether the color well can
+  /// currently perform synchronization with its color panel.
+  fileprivate var canSynchronizeColorPanel = false
 
-  private var canSynchronizeColorPanel = true
-  private var canExecuteChangeHandlers = true
+  /// A Boolean value that indicates whether the color well can
+  /// currently execute its change handlers.
+  fileprivate var canExecuteChangeHandlers = false
 
+  /// The observations currently associated with the color well.
+  private var observations = [ObjectIdentifier: Set<NSKeyValueObservation>]()
+
+  /// The color well's unordered change handlers.
   private var changeHandlers = Set<ChangeHandler>()
 
+  /// The color well's change handlers, sorted by order of creation.
   private var sortedChangeHandlers: [ChangeHandler] {
     changeHandlers.sorted()
   }
 
   /// The segment that shows the color well's color.
-  fileprivate var swatchSegment: SwatchSegment {
+  private var swatchSegment: SwatchSegment {
     layoutView.swatchSegment
   }
 
@@ -168,6 +177,36 @@ public class ColorWell: _ColorWellBaseView {
   fileprivate var popover: ColorWellPopover? {
     get { swatchSegment.popover }
     set { swatchSegment.popover = newValue }
+  }
+
+  // FIXME: Only `NSColorPanel.shared` should be allowed as a value here.
+  //
+  // Even though NSColorPanel is _supposed_ to be a singleton, it lets you
+  // create custom instances using initializers inherited from NSObject,
+  // NSPanel, etc. The problem is that NSColorPanel internally manages its
+  // memory, and caches parts of its interface. Color panels other than
+  // '.shared' could get released, leaving behind a slew of cached objects
+  // with no reference of what they belong to.
+  //
+  // For now, we'll deprecate the public property's setter, but it should
+  // eventually be made into a get-only property, a la:
+  // ```
+  // public var colorPanel: NSColorPanel { .shared }
+  // ```
+  private lazy var _colorPanel = NSColorPanel.shared {
+    willSet {
+      if isActive {
+        newValue.activeColorWells.insert(self)
+      }
+    }
+    didSet {
+      removeColorPanelObservations()
+      if isActive {
+        oldValue.activeColorWells.remove(self)
+        synchronizeColorPanel()
+        setUpColorPanelObservations()
+      }
+    }
   }
 
   // MARK: Public Properties
@@ -216,36 +255,6 @@ public class ColorWell: _ColorWellBaseView {
   /// - Note: If the array is empty, the color well's ``colorPanel`` will be
   ///   shown instead of a popover.
   public var swatchColors = defaultSwatchColors
-
-  // FIXME: Only `NSColorPanel.shared` should be allowed as a value here.
-  //
-  // Even though NSColorPanel is _supposed_ to be a singleton, it lets you
-  // create custom instances using initializers inherited from NSObject,
-  // NSPanel, etc. The problem is that NSColorPanel internally manages its
-  // memory, and caches parts of its interface. Color panels other than
-  // '.shared' could get released, leaving behind a slew of cached objects
-  // with no reference of what they belong to.
-  //
-  // For now, we'll deprecate the public property's setter, but it should
-  // eventually be made into a get-only property, a la:
-  // ```
-  // public var colorPanel: NSColorPanel { .shared }
-  // ```
-  private lazy var _colorPanel = NSColorPanel.shared {
-    willSet {
-      if isActive {
-        newValue.activeColorWells.insert(self)
-      }
-    }
-    didSet {
-      observations.removeAll()
-      if isActive {
-        oldValue.activeColorWells.remove(self)
-        synchronizeColorPanel()
-        setUpObservations()
-      }
-    }
-  }
 
   /// The color panel controlled by the color well.
   ///
@@ -299,7 +308,9 @@ public class ColorWell: _ColorWellBaseView {
       if isActive {
         synchronizeColorPanel()
       }
-      synchronizeSwatchSegment()
+      if swatchSegment.fillColor != color {
+        swatchSegment.fillColor = color
+      }
       executeChangeHandlers()
     }
   }
@@ -368,6 +379,38 @@ public class ColorWell: _ColorWellBaseView {
 
 // MARK: ColorWell Private/Internal Methods
 extension ColorWell {
+  /// Shared code to execute on a color well's initialization.
+  private func sharedInit(color: NSColor) {
+    layoutView = .init(colorWell: self)
+
+    addSubview(layoutView)
+
+    layoutView.translatesAutoresizingMaskIntoConstraints = false
+    layoutView.widthAnchor.constraint(equalTo: widthAnchor).isActive = true
+    layoutView.heightAnchor.constraint(equalTo: heightAnchor).isActive = true
+    layoutView.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
+    layoutView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
+
+    self.color = color
+
+    if #available(macOS 10.14, *) {
+      observations[NSApplication.self].insert(NSApp.observe(
+        \.effectiveAppearance
+      ) { [weak self] _, _ in
+        self?.needsDisplay = true
+      })
+    }
+
+    canSynchronizeColorPanel = true
+    canExecuteChangeHandlers = true
+  }
+
+  /// Inserts the change handlers in the given sequence into the
+  /// color well's stored change handlers.
+  internal func insertChangeHandlers(_ handlers: any Sequence<ChangeHandler>) {
+    changeHandlers.formUnion(handlers)
+  }
+
   /// Iterates through the color well's stored change handlers,
   /// executing them in the order that they were created.
   private func executeChangeHandlers() {
@@ -379,22 +422,37 @@ extension ColorWell {
     }
   }
 
-  /// Inserts the change handlers in the given sequence into the
-  /// color well's stored change handlers.
-  internal func insertChangeHandlers(_ handlers: any Sequence<ChangeHandler>) {
-    changeHandlers.formUnion(handlers)
+  /// Sets the color panel's color to be equal to the color
+  /// well's color.
+  fileprivate func synchronizeColorPanel(force: Bool = false) {
+    guard !force else {
+      colorPanel.color = color
+      return
+    }
+    guard
+      canSynchronizeColorPanel,
+      colorPanel.color != color
+    else {
+      return
+    }
+    if colorPanel.activeColorWells == [self] {
+      synchronizeColorPanel(force: true)
+    } else {
+      color = colorPanel.color
+    }
   }
 
   /// Creates a series of key-value observations that work to keep
   /// the various aspects of the color well and its color panel in
   /// sync.
-  private func setUpObservations() {
-    observations = [
+  private func setUpColorPanelObservations() {
+    observations[NSColorPanel.self] = [
       colorPanel.observe(\.color, options: .new) { colorPanel, change in
         guard let newValue = change.newValue else {
           return
         }
-        for colorWell in colorPanel.activeColorWells {
+        // ???: Should every active color well be updated, even if their color already matches?
+        for colorWell in colorPanel.activeColorWells where colorWell.color != newValue {
           colorWell.color = newValue
         }
       },
@@ -425,71 +483,9 @@ extension ColorWell {
     ]
   }
 
-  /// Shared code to execute on a color well's initialization.
-  private func sharedInit(color: NSColor) {
-    layoutView = .init(colorWell: self)
-
-    addSubview(layoutView)
-
-    layoutView.translatesAutoresizingMaskIntoConstraints = false
-    layoutView.widthAnchor.constraint(equalTo: widthAnchor).isActive = true
-    layoutView.heightAnchor.constraint(equalTo: heightAnchor).isActive = true
-    layoutView.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
-    layoutView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-
-    withoutExecutingChangeHandlers { colorWell in
-      colorWell.withoutSynchronizingColorPanel { colorWell in
-        colorWell.color = color
-      }
-    }
-  }
-
-  /// Sets the color panel's color to be equal to the color
-  /// well's color.
-  internal func synchronizeColorPanel() {
-    guard
-      canSynchronizeColorPanel,
-      colorPanel.color != color
-    else {
-      return
-    }
-    if colorPanel.activeColorWells.subtracting([self]).isEmpty {
-      colorPanel.color = color
-    } else {
-      color = colorPanel.color
-    }
-  }
-
-  /// Sets the swatch segment's fill color to be equal to the
-  /// color well's color.
-  private func synchronizeSwatchSegment() {
-    if swatchSegment.fillColor != color {
-      swatchSegment.fillColor = color
-    }
-  }
-  
-  /// Performs a block of code, ensuring that the color well's
-  /// change handlers are not executed.
-  internal func withoutExecutingChangeHandlers<T>(
-    execute block: (ColorWell) throws -> T
-  ) rethrows -> T {
-    canExecuteChangeHandlers = false
-    defer {
-      canExecuteChangeHandlers = true
-    }
-    return try block(self)
-  }
-
-  /// Performs a block of code, ensuring that the color panel is
-  /// not synchronized.
-  internal func withoutSynchronizingColorPanel<T>(
-    execute block: (ColorWell) throws -> T
-  ) rethrows -> T {
-    canSynchronizeColorPanel = false
-    defer {
-      canSynchronizeColorPanel = true
-    }
-    return try block(self)
+  /// Removes all observations for the color panel.
+  private func removeColorPanelObservations() {
+    observations[NSColorPanel.self].removeAll()
   }
 }
 
@@ -514,10 +510,10 @@ extension ColorWell {
       }
     }
 
-    synchronizeColorPanel()
     colorPanel.activeColorWells.insert(self)
+    synchronizeColorPanel()
+    setUpColorPanelObservations()
     colorPanel.orderFront(self)
-    setUpObservations()
   }
 
   /// Deactivates the color well, detaching it from its color panel.
@@ -527,7 +523,7 @@ extension ColorWell {
   public func deactivate() {
     colorPanel.activeColorWells.remove(self)
     toggleSegment.state = .default
-    observations.removeAll()
+    removeColorPanelObservations()
   }
 
   /// Adds an action to perform when the color well's color changes.
@@ -690,8 +686,6 @@ extension ColorWellLayoutView {
 class ColorWellSegment: NSView {
   weak var colorWell: ColorWell?
 
-  private var appearanceObservation: NSKeyValueObservation?
-
   private var trackingArea: NSTrackingArea?
 
   private var draggingOffset = CGSize()
@@ -767,14 +761,6 @@ class ColorWellSegment: NSView {
   init(colorWell: ColorWell) {
     super.init(frame: .zero)
     self.colorWell = colorWell
-    if #available(macOS 10.14, *) {
-      appearanceObservation = NSApp.observe(
-        \.effectiveAppearance,
-         options: .new
-      ) { [weak self] _, _ in
-        self?.needsDisplay = true
-      }
-    }
   }
 
   @available(*, unavailable)
@@ -1101,16 +1087,9 @@ extension SwatchSegment {
   private func makeAndShowPopover() {
     // The popover should be nil no matter what here.
     assert(popover == nil, "Popover should not exist yet")
+
     popover = makePopover()
-    guard let popover else {
-      return
-    }
-    // The popover _shouldn't_ be shown, but check for it just in case.
-    if popover.isShown {
-      popover.close()
-    } else {
-      popover.show(relativeTo: frame, of: self, preferredEdge: .minY)
-    }
+    popover?.show(relativeTo: frame, of: self, preferredEdge: .minY)
   }
 
   private func setDraggingFrame(for draggingItem: NSDraggingItem) {
@@ -1764,11 +1743,11 @@ extension ColorSwatch {
   /// that of the swatch, and closing the popover.
   func performAction() {
     if colorWell.isActive {
-      colorWell.withoutSynchronizingColorPanel {
-        $0.color = color
+      withTemporaryChange(of: (colorWell, \.canSynchronizeColorPanel), to: false) {
+        colorWell.color = color
       }
-      colorWell.withoutExecutingChangeHandlers {
-        $0.synchronizeColorPanel()
+      withTemporaryChange(of: (colorWell, \.canExecuteChangeHandlers), to: false) {
+        colorWell.synchronizeColorPanel(force: true)
       }
     } else {
       colorWell.color = color

@@ -226,3 +226,80 @@ extension StringProtocol {
   }
 }
 #endif
+
+/// A type that references a value using an object and a keypath.
+internal struct ReferencePath<Root, Value> {
+  private let root: Root
+  private let keyPath: ReferenceWritableKeyPath<Root, Value>
+
+  var value: Value {
+    get {
+      root[keyPath: keyPath]
+    }
+    nonmutating set {
+      root[keyPath: keyPath] = newValue
+    }
+  }
+
+  /// Creates a reference path using the given object and keypath.
+  init(_ root: Root, keyPath: ReferenceWritableKeyPath<Root, Value>) {
+    self.root = root
+    self.keyPath = keyPath
+  }
+
+  /// Creates a reference path using the object and keypath in the
+  /// given tuple.
+  init(_ tuple: (Root, ReferenceWritableKeyPath<Root, Value>)) {
+    self.init(tuple.0, keyPath: tuple.1)
+  }
+}
+
+/// Evaluates a closure after temporarily changing the specified value to
+/// a given secondary value, restoring the original value after the block
+/// returns.
+///
+/// - Parameters:
+///   - path: A value containing an object and a keypath to one of its
+///     properties.
+///   - tempValue: The secondary value to change the value at `path`'s
+///     keypath to.
+///   - body: A closure to perform after `tempValue` has replaced the
+///     keypath's value.
+///
+/// - Returns: Whatever is returned by `body`.
+internal func withTemporaryChange<T, U, V>(
+  of path: ReferencePath<T, U>,
+  to tempValue: @autoclosure () throws -> U,
+  _ body: () throws -> V
+) rethrows -> V {
+  let cached = path.value
+  path.value = try tempValue()
+  defer {
+    path.value = cached
+  }
+  return try body()
+}
+
+/// Evaluates a closure after temporarily changing the specified value to
+/// a given secondary value, restoring the original value after the block
+/// returns.
+///
+/// - Parameters:
+///   - path: A tuple containing an object and a keypath to one of its
+///     properties.
+///   - tempValue: The secondary value to change the value at `path`'s
+///     keypath to.
+///   - body: A closure to perform after `tempValue` has replaced the
+///     keypath's value.
+///
+/// - Returns: Whatever is returned by `body`.
+internal func withTemporaryChange<T, U, V>(
+  of path: (T, ReferenceWritableKeyPath<T, U>),
+  to tempValue: @autoclosure () throws -> U,
+  _ body: () throws -> V
+) rethrows -> V {
+  try withTemporaryChange(
+    of: ReferencePath(path),
+    to: tempValue(),
+    body)
+}
