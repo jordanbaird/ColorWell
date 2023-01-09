@@ -9,21 +9,48 @@ import Foundation
 import SwiftUI
 #endif
 
+// MARK: - Counter
+
+/// A counter type that must be incremented in order for its value to be
+/// accessed, ensuring an accurate count.
+internal struct Counter {
+  /// A pointer containing the counter's value.
+  ///
+  /// We use a pointer, rather than an integer to avoid having to declare
+  /// the counter as a `var`.
+  private let pointer: UnsafeMutablePointer<Int> = {
+    let pointer = UnsafeMutablePointer<Int>.allocate(capacity: 1)
+    pointer.pointee = 0
+    return pointer
+  }()
+
+  /// Creates a counter initialized to `0`.
+  init() { }
+
+  /// Returns the current value and increments the counter.
+  func bump() -> Int {
+    defer {
+      pointer.pointee += 1
+    }
+    return pointer.pointee
+  }
+}
+
 // MARK: - ComparableID
 
 /// An identifier type that can be compared by order of creation.
 ///
 /// For identifiers `id1` and `id2`, `id1 < id2` if `id1` was created first.
-struct ComparableID {
-  private static var totalCount = 0
+internal struct ComparableID {
+  private static let counter = Counter()
 
-  let root = UUID()
-  let count: Int
+  private let root = UUID()
+  private let count = counter.bump()
 
-  init() {
-    defer { Self.totalCount += 1 }
-    count = Self.totalCount
-  }
+  /// Creates a unique identifier that can be compared with other
+  /// instances of this type according to the order in which they
+  /// were created.
+  init() { }
 }
 
 extension ComparableID: Comparable {
@@ -44,19 +71,33 @@ extension ComparableID: Hashable { }
 /// This type can be compared by order of creation.
 ///
 /// For handlers `h1` and `h2`, `h1 < h2` if `h1` was created first.
-struct ChangeHandler {
-  let id: ComparableID
-  let handler: (NSColor) -> Void
+internal struct ChangeHandler {
+  private let id: ComparableID
+  private let handler: (NSColor) -> Void
 
+  /// Creates a change handler with the given identifier and closure.
+  ///
+  /// - Parameters:
+  ///   - id: An identifier that can be compared by order of creation.
+  ///   - handler: A closure to store for later execution.
   init(id: ComparableID, handler: @escaping (NSColor) -> Void) {
     self.id = id
     self.handler = handler
   }
 
+  /// Creates a change handler from a closure.
+  ///
+  /// This initializer automatically creates the handler's identifier.
+  ///
+  /// - Parameter handler: A closure to store for later execution.
   init(handler: @escaping (NSColor) -> Void) {
     self.init(id: .init(), handler: handler)
   }
 
+  /// Invokes the closure that is stored by this instance, passing the
+  /// given color as an argument.
+  ///
+  /// - Parameter color: The color to pass into the handler's closure.
   func callAsFunction(_ color: NSColor) {
     handler(color)
   }
@@ -83,7 +124,7 @@ extension ChangeHandler: Hashable {
 // MARK: - Storage
 
 /// A type that uses object association to store external values.
-class Storage<Value> {
+internal class Storage<Value> {
   private let policy: AssociationPolicy
 
   private var key: UnsafeMutableRawPointer {
@@ -109,7 +150,7 @@ class Storage<Value> {
 // MARK: - AssociationPolicy
 
 /// A type that specifies the behavior of an object association.
-struct AssociationPolicy {
+internal struct AssociationPolicy {
   fileprivate let objcValue: objc_AssociationPolicy
 
   private init(_ objcValue: objc_AssociationPolicy) {
@@ -147,7 +188,7 @@ extension AssociationPolicy {
 // MARK: - ViewConstructor
 
 @available(macOS 10.15, *)
-struct ViewConstructor<Content: View>: View {
+internal struct ViewConstructor<Content: View>: View {
   private let content: Content
 
   var body: some View {
@@ -174,7 +215,7 @@ struct ViewConstructor<Content: View>: View {
 // MARK: - AnyViewConstructor
 
 @available(macOS 10.15, *)
-struct AnyViewConstructor: View {
+internal struct AnyViewConstructor: View {
   let base: any View
 
   var body: some View {
@@ -225,11 +266,14 @@ extension StringProtocol {
 }
 #endif
 
+// MARK: - ReferencePath
+
 /// A type that references a value using an object and a keypath.
 internal struct ReferencePath<Root, Value> {
   private let root: Root
   private let keyPath: ReferenceWritableKeyPath<Root, Value>
 
+  /// Provides direct access to the value referenced by this path.
   var value: Value {
     get {
       root[keyPath: keyPath]
@@ -251,6 +295,8 @@ internal struct ReferencePath<Root, Value> {
     self.init(tuple.0, keyPath: tuple.1)
   }
 }
+
+// MARK: - With Temporary Change
 
 /// Evaluates a closure after temporarily changing the specified value to
 /// a given secondary value, restoring the original value after the block
