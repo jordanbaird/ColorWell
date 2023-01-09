@@ -143,9 +143,7 @@ public class ColorWell: _ColorWellBaseView {
 
   private var layoutView: ColorWellLayoutView!
 
-  private var colorPanelColorObservation: NSKeyValueObservation?
-  private var colorPanelShowsAlphaObservation: NSKeyValueObservation?
-  private var colorPanelVisibilityObservation: NSKeyValueObservation?
+  private var observations = [NSKeyValueObservation]()
 
   private var canSynchronizeColorPanel = true
   private var canExecuteChangeHandlers = true
@@ -339,52 +337,44 @@ extension ColorWell {
     changeHandlers.formUnion(handlers)
   }
 
-  private func observeColorPanelShowsAlpha() {
-    colorPanelShowsAlphaObservation = colorPanel.observe(
-      \.showsAlpha,
-       options: [.initial, .new]
-    ) { [weak self] colorPanel, changes in
-      guard
-        let self,
-        let newValue = changes.newValue
-      else {
-        return
-      }
-      if newValue != self.supportsOpacity {
-        colorPanel.showsAlpha = self.supportsOpacity
-      }
-    }
-  }
+  /// Creates a series of key-value observations that work to keep
+  /// the various aspects of the color well and its color panel in
+  /// sync.
+  private func setUpObservations() {
+    observations = [
+      colorPanel.observe(\.color, options: .new) { colorPanel, change in
+        guard let newValue = change.newValue else {
+          return
+        }
+        for colorWell in colorPanel.activeColorWells {
+          colorWell.color = newValue
+        }
+      },
 
-  private func observeColorPanelColor() {
-    colorPanelColorObservation = colorPanel.observe(
-      \.color,
-       options: .new
-    ) { colorPanel, change in
-      guard let newValue = change.newValue else {
-        return
-      }
-      for colorWell in colorPanel.activeColorWells {
-        colorWell.color = newValue
-      }
-    }
-  }
+      colorPanel.observe(\.isVisible, options: .new) { [weak self] _, change in
+        guard
+          let self,
+          let newValue = change.newValue
+        else {
+          return
+        }
+        if !newValue {
+          self.deactivate()
+        }
+      },
 
-  private func observeColorPanelVisibility() {
-    colorPanelVisibilityObservation = colorPanel.observe(
-      \.isVisible,
-       options: .new
-    ) { [weak self] _, change in
-      guard
-        let self,
-        let newValue = change.newValue
-      else {
-        return
-      }
-      if !newValue {
-        self.deactivate()
-      }
-    }
+      colorPanel.observe(\.showsAlpha, options: [.initial, .new]) { [weak self] colorPanel, change in
+        guard
+          let self,
+          let newValue = change.newValue
+        else {
+          return
+        }
+        if newValue != self.supportsOpacity {
+          colorPanel.showsAlpha = self.supportsOpacity
+        }
+      },
+    ]
   }
 
   /// Shared code to execute on a color well's initialization.
@@ -479,10 +469,7 @@ extension ColorWell {
     synchronizeColorPanel()
     colorPanel.activeColorWells.insert(self)
     colorPanel.orderFront(self)
-
-    observeColorPanelColor()
-    observeColorPanelVisibility()
-    observeColorPanelShowsAlpha()
+    setUpObservations()
   }
 
   /// Deactivates the color well, detaching it from its color panel.
@@ -492,10 +479,7 @@ extension ColorWell {
   public func deactivate() {
     colorPanel.activeColorWells.remove(self)
     toggleSegment.state = .default
-
-    colorPanelColorObservation = nil
-    colorPanelVisibilityObservation = nil
-    colorPanelShowsAlphaObservation = nil
+    observations.removeAll()
   }
 
   /// Adds an action to perform when the color well's color changes.
