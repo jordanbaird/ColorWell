@@ -17,7 +17,7 @@ internal struct Counter {
   /// A pointer containing the counter's value.
   ///
   /// We use a pointer, rather than an integer to avoid having to declare
-  /// the counter as a `var`.
+  /// counters as `var`.
   private let pointer: UnsafeMutablePointer<Int> = {
     let pointer = UnsafeMutablePointer<Int>.allocate(capacity: 1)
     pointer.pointee = 0
