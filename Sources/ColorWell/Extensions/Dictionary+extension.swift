@@ -4,8 +4,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Foundation
-
 extension Dictionary where Key == ObjectIdentifier, Value: ExpressibleByArrayLiteral {
   /// Access the value for the given metatype by transforming it into
   /// an object identifier.
