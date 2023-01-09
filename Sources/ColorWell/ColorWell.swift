@@ -19,10 +19,17 @@ public class _ColorWellBaseView: NSView {
 
   // MARK: Static Properties
 
+  /// The default width for a color well's frame.
   internal static let defaultWidth: CGFloat = 64
+
+  /// The default height for a color well's frame.
   internal static let defaultHeight: CGFloat = 28
+
+  /// The default frame for a color well.
   internal static let defaultFrame = NSRect(x: 0, y: 0, width: defaultWidth, height: defaultHeight)
 
+  /// A base value to use when computing the width of lines drawn as
+  /// part of a color well or its elements.
   internal static let lineWidth: CGFloat = 1
 
   /// The color shown by color wells that were not initialized with
