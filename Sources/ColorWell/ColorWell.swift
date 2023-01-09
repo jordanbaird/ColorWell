@@ -42,10 +42,8 @@ public class _ColorWellBaseView: NSView {
   ]
 
   /// The default colors shown in the color well's popover.
-  internal static var defaultSwatchColors: [NSColor] {
-    defaultHexCodes.compactMap {
-      .init(hexString: $0)
-    }
+  internal static let defaultSwatchColors = defaultHexCodes.compactMap {
+    NSColor(hexString: $0)
   }
 }
 
