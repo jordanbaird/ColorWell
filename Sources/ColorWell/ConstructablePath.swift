@@ -104,7 +104,7 @@ extension Side {
 // MARK: - ConstructablePathComponent
 
 /// A type that represents a component in a constructable path.
-enum ConstructablePathComponent {
+internal enum ConstructablePathComponent {
   /// Closes the path.
   case close
 

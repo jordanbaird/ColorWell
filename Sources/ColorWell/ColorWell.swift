@@ -607,7 +607,7 @@ extension ColorWell {
 // MARK: - ColorWellLayoutView
 
 /// A grid view that displays color well segments side by side.
-class ColorWellLayoutView: NSGridView {
+internal class ColorWellLayoutView: NSGridView {
   /// A segment that displays a color swatch with the color well's
   /// current color selection.
   let swatchSegment: SwatchSegment
@@ -679,17 +679,20 @@ extension ColorWellLayoutView {
 
 // MARK: - ColorWellSegment
 
-class ColorWellSegment: NSView {
+internal class ColorWellSegment: NSView {
   weak var colorWell: ColorWell?
 
   private var trackingArea: NSTrackingArea?
 
+  /// The accumulated offset of the current series of dragging events.
   private var draggingOffset = CGSize()
 
   var isActive: Bool {
     colorWell?.isActive ?? false
   }
 
+  /// A Boolean value that indicates whether the current dragging event,
+  /// if any, is valid for starting a dragging session.
   var isValidDrag: Bool {
     max(abs(draggingOffset.width), abs(draggingOffset.height)) >= 2
   }
@@ -719,6 +722,7 @@ class ColorWellSegment: NSView {
     }
   }
 
+  /// The side of the color well that this segment is on.
   var side: Side { .null }
 
   /// The color well's current height.
@@ -948,7 +952,7 @@ extension ColorWellSegment {
 
 // MARK: - ToggleSegment
 
-class ToggleSegment: ColorWellSegment {
+internal class ToggleSegment: ColorWellSegment {
   private var imageLayer: CALayer?
 
   override var side: Side { .right }
@@ -1032,7 +1036,7 @@ extension ToggleSegment {
 
 // MARK: - SwatchSegment
 
-class SwatchSegment: ColorWellSegment {
+internal class SwatchSegment: ColorWellSegment {
   private var caretView: CaretView?
 
   private var canShowPopover = false
@@ -1314,7 +1318,7 @@ extension SwatchSegment {
 // MARK: - ColorWellPopover
 
 /// A popover that contains a grid of selectable color swatches.
-class ColorWellPopover: NSPopover {
+internal class ColorWellPopover: NSPopover {
   weak var colorWell: ColorWell?
 
   /// The popover's content view controller.
@@ -1374,7 +1378,7 @@ extension ColorWellPopover: NSPopoverDelegate {
 
 /// A view controller that controls a view that contains a grid
 /// of selectable color swatches.
-class ColorWellPopoverViewController: NSViewController {
+internal class ColorWellPopoverViewController: NSViewController {
   var containerView: ColorWellPopoverContainerView {
     didSet {
       synchronize()
@@ -1404,7 +1408,7 @@ class ColorWellPopoverViewController: NSViewController {
 // MARK: - ColorWellPopoverContainerView
 
 /// A view that contains a grid of selectable color swatches.
-class ColorWellPopoverContainerView: NSView {
+internal class ColorWellPopoverContainerView: NSView {
   var layoutView: ColorWellPopoverLayoutView?
 
   var swatches: [ColorSwatch] {
@@ -1456,10 +1460,12 @@ extension ColorWellPopoverContainerView {
 // MARK: - ColorWellPopoverLayoutView
 
 /// A view that provides the layout for a popover's color swatches.
-class ColorWellPopoverLayoutView: NSGridView {
+internal class ColorWellPopoverLayoutView: NSGridView {
   weak var containerView: ColorWellPopoverContainerView?
-  let maxItemsPerRow: Int
+
   private(set) var swatches = [ColorSwatch]()
+
+  let maxItemsPerRow: Int
 
   var selectedSwatch: ColorSwatch? {
     swatches.first { $0.isSelected }
@@ -1554,13 +1560,17 @@ extension ColorWellPopoverLayoutView {
 ///
 /// When a swatch is clicked, the color well's color value is set
 /// to the color value of the swatch.
-class ColorSwatch: NSView {
+internal class ColorSwatch: NSView {
   weak var layoutView: ColorWellPopoverLayoutView?
+
   let colorWell: ColorWell
+
   let color: NSColor
 
   private var bezelLayer: CAShapeLayer?
+
   private let borderWidth: CGFloat = 2
+
   private let cornerRadius: CGFloat = 1
 
   /// A Boolean value that indicates whether the swatch is selected.

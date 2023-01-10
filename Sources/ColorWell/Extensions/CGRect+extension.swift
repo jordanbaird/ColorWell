@@ -28,7 +28,8 @@ extension CGRect {
   }
 
   /// Centers the current rectangle within the bounds of another rectangle.
-  /// - Parameters otherRect: The rectangle to center the current rectangle in.
+  ///
+  /// - Parameter otherRect: The rectangle to center the current rectangle in.
   internal func centered(in otherRect: Self) -> Self {
     var new = self
     new.origin.x = otherRect.midX - (new.width / 2)

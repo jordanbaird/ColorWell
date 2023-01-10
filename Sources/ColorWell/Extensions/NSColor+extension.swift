@@ -76,35 +76,38 @@ extension NSColor {
   /// the color's current color space.
   private func extractSimpleDescriptionAndComponents() -> (description: String, components: [Double]) {
     switch colorSpace.colorSpaceModel {
-    case .rgb: return (
-      "rgb",
-      [
+    case .rgb:
+      return ("rgb", [
         redComponent,
         greenComponent,
         blueComponent,
         alphaComponent,
       ])
-    case .cmyk: return (
-      "cmyk",
-      [
+    case .cmyk:
+      return ("cmyk", [
         cyanComponent,
         magentaComponent,
         yellowComponent,
         blackComponent,
         alphaComponent,
       ])
-    case .deviceN: return ("deviceN", [])
-    case .gray: return (
-      "grayscale",
-      [
+    case .deviceN:
+      return ("deviceN", [])
+    case .gray:
+      return ("grayscale", [
         whiteComponent,
         alphaComponent,
       ])
-    case .indexed: return ("indexed", [])
-    case .lab: return ("L*a*b*", [])
-    case .patterned: return ("pattern", [])
-    case .unknown: break
-    @unknown default: break
+    case .indexed:
+      return ("indexed", [])
+    case .lab:
+      return ("L*a*b*", [])
+    case .patterned:
+      return ("pattern", [])
+    case .unknown:
+      break
+    @unknown default:
+      break
     }
     return ("\(self)", [])
   }
