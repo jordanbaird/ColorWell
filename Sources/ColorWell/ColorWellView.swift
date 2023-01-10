@@ -13,6 +13,8 @@ import SwiftUI
 private struct RootView: NSViewRepresentable {
   let color: NSColor?
 
+  @Binding var showsAlpha: Bool
+
   func makeNSView(context: Context) -> ColorWell {
     if let color {
       return ColorWell(color: color)
@@ -22,6 +24,7 @@ private struct RootView: NSViewRepresentable {
   }
 
   func updateNSView(_ nsView: ColorWell, context: Context) {
+    nsView.showsAlpha = showsAlpha
     nsView.insertChangeHandlers(context.environment.changeHandlers)
     nsView.isEnabled = context.environment.isEnabled
 
@@ -56,9 +59,12 @@ public struct ColorWellView<Label: View>: View {
     _color: NSColor? = nil,
     _label: () -> L,
     _action: ((C) -> Void)? = Optional<(Color) -> Void>.none
+    // TODO: _showsAlpha: Binding<Bool>
   ) {
     constructor = ViewConstructor {
-      RootView(color: _color)
+      // TODO: Need an API that accepts a Binding<Bool> for showsAlpha.
+      // For now, we'll just pass a constant.
+      RootView(color: _color, showsAlpha: .constant(true))
     }
     .with { view in
       if let _action {
@@ -83,8 +89,9 @@ public struct ColorWellView<Label: View>: View {
     _color: NSColor? = nil,
     _label: @autoclosure () -> L,
     _action: ((C) -> Void)? = Optional<(Color) -> Void>.none
+    // TODO: _showsAlpha: Binding<Bool>
   ) {
-    self.init(_color: _color, _label: _label, _action: _action)
+    self.init(_color: _color, _label: _label, _action: _action/*, _showsAlpha: _showsAlpha*/)
   }
 }
 
