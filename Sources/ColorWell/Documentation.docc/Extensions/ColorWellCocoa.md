@@ -32,6 +32,12 @@
 - ``deactivate()``
 - ``onColorChange(perform:)``
 
+### Partially Deprecated
+
+__Setters__
+
+- ``colorPanel``
+
 ### Deprecated
 
 - ``supportsOpacity``
