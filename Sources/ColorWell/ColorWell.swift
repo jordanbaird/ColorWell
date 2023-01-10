@@ -1051,7 +1051,7 @@ class SwatchSegment: ColorWellSegment {
         displayColor.averageBrightness,
         displayColor.alphaComponent),
       0.2)
-    return NSColor(white: 1, alpha: alpha)
+    return NSColor(white: 1 - alpha, alpha: alpha)
   }
 
   private var overrideShowPopover: Bool {
@@ -1113,8 +1113,10 @@ extension SwatchSegment {
       clippingTo: defaultPath(for: dirtyRect))
 
     borderColor.setStroke()
-    let borderPath = defaultPath(for: dirtyRect.insetBy(dx: 0.125, dy: 0.25))
-    borderPath.lineWidth = 0.5
+
+    let lineWidth = ColorWell.lineWidth
+    let borderPath = defaultPath(for: dirtyRect.insetBy(dx: lineWidth / 4, dy: lineWidth / 2))
+    borderPath.lineWidth = lineWidth
     borderPath.stroke()
   }
 
