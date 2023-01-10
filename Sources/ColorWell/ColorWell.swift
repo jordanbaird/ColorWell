@@ -70,7 +70,7 @@ extension _ColorWellBaseView {
   /// dynamic casting to type `T`, based on the context of the callee.
   ///
   /// ** Non-overrideable **
-  private func provideValue<T>(forAttribute attribute: NSAccessibility.Attribute) -> T? {
+  private final func provideValue<T>(forAttribute attribute: NSAccessibility.Attribute) -> T? {
     provideValue(forAttribute: attribute) as? T
   }
 }
@@ -249,6 +249,24 @@ public class ColorWell: _ColorWellBaseView {
   ///   shown instead of a popover.
   public var swatchColors = defaultSwatchColors
 
+  /// The color well's color.
+  ///
+  /// Setting this value immediately updates the visual state of both
+  /// the color well and its color panel, and executes all change
+  /// handlers stored by the color well.
+  @objc dynamic
+  public var color = ColorWell.defaultColor {
+    didSet {
+      if isActive {
+        synchronizeColorPanel()
+      }
+      if swatchSegment.fillColor != color {
+        swatchSegment.fillColor = color
+      }
+      executeChangeHandlers()
+    }
+  }
+
   /// The color panel controlled by the color well.
   ///
   /// - Important: The setter for this property is deprecated, and will be
@@ -290,29 +308,11 @@ public class ColorWell: _ColorWellBaseView {
     }
   }
 
-  /// A Boolean value indicating whether or not the color well's color panel
-  /// shows alpha values and an opacity slider.
+  /// A Boolean value indicating whether or not the color well's color
+  /// panel shows alpha values and an opacity slider.
   public var showsAlpha: Bool {
     get { colorPanel.showsAlpha }
     set { colorPanel.showsAlpha = newValue }
-  }
-
-  /// The color well's color.
-  ///
-  /// Setting this value immediately updates the visual state of both
-  /// the color well and its color panel, and executes all change
-  /// handlers stored by the color well.
-  @objc dynamic
-  public var color = ColorWell.defaultColor {
-    didSet {
-      if isActive {
-        synchronizeColorPanel()
-      }
-      if swatchSegment.fillColor != color {
-        swatchSegment.fillColor = color
-      }
-      executeChangeHandlers()
-    }
   }
 
   // MARK: Initializers
