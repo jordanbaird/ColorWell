@@ -7,11 +7,6 @@
 import CoreGraphics
 
 extension CGRect {
-  /// A point that represents an invalid location in the rectangle.
-  internal var invalidPoint: CGPoint {
-    .init(x: CGFloat.nan, y: CGFloat.nan)
-  }
-
   /// The bottom left point of the rectangle.
   internal var bottomLeft: CGPoint {
     .init(x: minX, y: minY)

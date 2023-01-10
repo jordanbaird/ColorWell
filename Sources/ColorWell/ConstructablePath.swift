@@ -9,29 +9,25 @@ import Cocoa
 // MARK: - Corner
 
 /// A type that represents a corner of a rectangle.
-internal typealias Corner = KeyPath<CGRect, CGPoint>
-extension Corner {
+internal enum Corner: CaseIterable {
   /// The top left corner of a rectangle.
-  internal static let topLeft: Corner = \.topLeft
+  case topLeft
 
   /// The top right corner of a rectangle.
-  internal static let topRight: Corner = \.topRight
+  case topRight
 
   /// The bottom left corner of a rectangle.
-  internal static let bottomLeft: Corner = \.bottomLeft
+  case bottomLeft
 
   /// The bottom right corner of a rectangle.
-  internal static let bottomRight: Corner = \.bottomRight
-
-  /// A corner that represents an invalid point.
-  internal static let invalid: Corner = \.invalidPoint
+  case bottomRight
 
   /// The valid corners that can be used during path construction.
   ///
   /// - Important: The order of elements in the array is the order that is
   ///   used during color well path construction, starting at the top left
   ///   and moving clockwise around the color well's border.
-  internal static let all: [Corner] = [.topLeft, .topRight, .bottomRight, .bottomLeft]
+  static let clockwiseOrder: [Self] = [.topLeft, .topRight, .bottomRight, .bottomLeft]
 }
 
 extension Corner {
@@ -39,7 +35,7 @@ extension Corner {
   ///
   /// For example, if this corner is `topLeft`, its `opposite` corner
   /// will be `bottomRight`.
-  internal var opposite: Corner {
+  var opposite: Self {
     switch self {
     case .topLeft:
       return .bottomRight
@@ -49,26 +45,31 @@ extension Corner {
       return .topRight
     case .bottomRight:
       return .topLeft
-    default:
-      assertionInvalid()
-      return .invalid
     }
   }
 
-  /// Executes an assertion failure indicating that an invalid corner
-  /// was used.
-  internal func assertionInvalid() {
-    assertionFailure("Valid corners are topLeft, topRight, bottomLeft, and bottomRight")
+  /// Returns the point in the given rectangle that corresponds to this corner.
+  func point(forRect rect: CGRect) -> CGPoint {
+    switch self {
+    case .topLeft:
+      return rect.topLeft
+    case .topRight:
+      return rect.topRight
+    case .bottomLeft:
+      return rect.bottomLeft
+    case .bottomRight:
+      return rect.bottomRight
+    }
   }
 }
 
 /// A type that represents a side of a rectangle.
-struct Side {
+internal struct Side {
   /// The corners that, when connected by a path, make up this side.
   let corners: [Corner]
 
   /// Creates a side with the given corners.
-  init(_ corners: [Corner]) {
+  private init(_ corners: [Corner]) {
     self.corners = corners
   }
 }
@@ -86,7 +87,7 @@ extension Side {
   /// The right side of a rectangle.
   static let right = Self([.topRight, .bottomRight])
 
-  /// A side that represents the absence of a value.
+  /// A side that contains no points.
   static let null = Self([])
 }
 
@@ -115,7 +116,12 @@ enum ConstructablePathComponent {
 
   /// Draws a curved line in the path from its current point to the given
   /// point, using the provided control points to determine the curve's shape.
-  case curve(to: CGPoint, c1: CGPoint, c2: CGPoint)
+  case curve(to: CGPoint, control1: CGPoint, control2: CGPoint)
+
+  /// Draws an arc in the path from its current point, through the given
+  /// midpoint, to the given endpoint, curving the path to the specified
+  /// radius.
+  case arc(through: CGPoint, to: CGPoint, radius: CGFloat)
 
   /// A component that nests other components.
   ///
@@ -140,40 +146,34 @@ enum ConstructablePathComponent {
 extension ConstructablePathComponent {
   /// Returns a compound component that constructs a right angle curve around
   /// the given corner of the provided rectangle, using the provided radius and inset.
-  static func rightAngleCurve(
-    around corner: Corner,
-    ofRect rect: CGRect,
-    radius r: CGFloat,
-    inset amount: CGFloat
-  ) -> Self {
-    let rX = min(r, rect.width / 2)
-    let rY = min(r, rect.height / 2)
-    let inset = rect.insetBy(dx: -amount, dy: -amount)
+  static func rightAngleCurve(around corner: Corner, ofRect rect: CGRect, radius: CGFloat) -> Self {
+    let start: CGPoint
+    let mid: CGPoint
+    let end: CGPoint
+
     switch corner {
     case .topLeft:
-      return [
-        .line(to: rect.topLeft.translating(y: -rY)),
-        .curve(to: rect.topLeft.translating(x: rX), c1: inset.topLeft, c2: inset.topLeft),
-      ]
+      start = rect.topLeft.translating(y: -radius)
+      mid = rect.topLeft
+      end = rect.topLeft.translating(x: radius)
     case .topRight:
-      return [
-        .line(to: rect.topRight.translating(x: -rX)),
-        .curve(to: rect.topRight.translating(y: -rY), c1: inset.topRight, c2: inset.topRight),
-      ]
+      start = rect.topRight.translating(x: -radius)
+      mid = rect.topRight
+      end = rect.topRight.translating(y: -radius)
     case .bottomRight:
-      return [
-        .line(to: rect.bottomRight.translating(y: rY)),
-        .curve(to: rect.bottomRight.translating(x: -rX), c1: inset.bottomRight, c2: inset.bottomRight),
-      ]
+      start = rect.bottomRight.translating(y: radius)
+      mid = rect.bottomRight
+      end = rect.bottomRight.translating(x: -radius)
     case .bottomLeft:
-      return [
-        .line(to: rect.bottomLeft.translating(x: rX)),
-        .curve(to: rect.bottomLeft.translating(y: rY), c1: inset.bottomLeft, c2: inset.bottomLeft),
-      ]
-    default:
-      corner.assertionInvalid()
-      return []
+      start = rect.bottomLeft.translating(x: radius)
+      mid = rect.bottomLeft
+      end = rect.bottomLeft.translating(y: radius)
     }
+
+    return [
+      .line(to: start),
+      .arc(through: mid, to: end, radius: radius),
+    ]
   }
 
   /// Returns a Boolean value that indicates whether this component is equal to, or
@@ -252,13 +252,11 @@ extension ConstructablePath {
     rect: CGRect,
     squaredCorners corners: [Corner] = []
   ) -> Constructed {
-    let radius: CGFloat = 14
-    let amount = ColorWell.lineWidth / 2
-    var components: [ConstructablePathComponent] = Corner.all.map {
+    var components: [ConstructablePathComponent] = Corner.clockwiseOrder.map {
       if corners.contains($0) {
-        return .line(to: rect[keyPath: $0])
+        return .line(to: $0.point(forRect: rect))
       }
-      return .rightAngleCurve(around: $0, ofRect: rect, radius: radius, inset: amount)
+      return .rightAngleCurve(around: $0, ofRect: rect, radius: 7)
     }
     components.append(.close)
     return .construct(with: components)
@@ -310,11 +308,17 @@ extension NSBezierPath: MutableConstructablePath {
       } else {
         line(to: point)
       }
-    case .curve(let point, let c1, let c2):
+    case .curve(let point, let control1, let control2):
       if isEmpty {
         move(to: point)
       } else {
-        curve(to: point, controlPoint1: c1, controlPoint2: c2)
+        curve(to: point, controlPoint1: control1, controlPoint2: control2)
+      }
+    case .arc(let midPoint, let endPoint, let radius):
+      if isEmpty {
+        move(to: endPoint)
+      } else {
+        appendArc(from: midPoint, to: endPoint, radius: radius)
       }
     case .compound(let components):
       for component in components {
@@ -338,11 +342,17 @@ extension CGMutablePath: MutableConstructablePath {
       } else {
         addLine(to: point)
       }
-    case .curve(let point, let c1, let c2):
+    case .curve(let point, let control1, let control2):
       if isEmpty {
         move(to: point)
       } else {
-        addCurve(to: point, control1: c1, control2: c2)
+        addCurve(to: point, control1: control1, control2: control2)
+      }
+    case .arc(let midPoint, let endPoint, let radius):
+      if isEmpty {
+        move(to: endPoint)
+      } else {
+        addArc(tangent1End: midPoint, tangent2End: endPoint, radius: radius)
       }
     case .compound(let components):
       for component in components {
