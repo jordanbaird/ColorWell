@@ -13,25 +13,29 @@ extension NSColor {
   }
 
   /// The current color, using the `sRGB` color space.
-  internal var sRGB: NSColor {
-    usingColorSpace(.sRGB)!
+  internal var sRGB: NSColor? {
+    usingColorSpace(.sRGB)
   }
 
   /// The `sRGB` color space components of the current color.
-  internal var sRGBComponents: (red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat) {
-    let color = sRGB
-    let r = color.redComponent
-    let g = color.greenComponent
-    let b = color.blueComponent
-    let a = color.alphaComponent
+  internal var sRGBComponents: (red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat)? {
+    guard let sRGB else {
+      return nil
+    }
+    let r = sRGB.redComponent
+    let g = sRGB.greenComponent
+    let b = sRGB.blueComponent
+    let a = sRGB.alphaComponent
     return (r, g, b, a)
   }
 
   /// Returns the average of this color's red, green, and blue components,
   /// approximating the brightness of the color.
   internal var averageBrightness: CGFloat {
-    let c = sRGBComponents
-    return (c.red + c.green + c.blue) / 3
+    guard let sRGBComponents else {
+      return 0
+    }
+    return (sRGBComponents.red + sRGBComponents.green + sRGBComponents.blue) / 3
   }
 
   /// Creates a color from a hexadecimal string.

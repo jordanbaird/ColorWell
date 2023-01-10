@@ -1042,7 +1042,7 @@ class SwatchSegment: ColorWellSegment {
   override var side: Side { .left }
 
   override var displayColor: NSColor {
-    super.displayColor.sRGB
+    super.displayColor.sRGB ?? super.displayColor
   }
 
   private var borderColor: NSColor {
@@ -1587,6 +1587,12 @@ class ColorSwatch: NSView {
     }
   }
 
+  /// The color of the swatch, converted to a standardized format
+  /// for display.
+  private var displayColor: NSColor {
+    color.sRGB ?? color
+  }
+
   /// The computed border color of the swatch, created based on its
   /// current color.
   private var borderColor: CGColor {
@@ -1757,7 +1763,7 @@ extension ColorSwatch {
 // MARK: ColorSwatch Overrides
 extension ColorSwatch {
   override func draw(_ dirtyRect: NSRect) {
-    color.sRGB.drawSwatch(in: dirtyRect)
+    displayColor.drawSwatch(in: dirtyRect)
     updateBorder()
   }
 
