@@ -23,7 +23,7 @@
 - ``colorPanel``
 - ``isActive``
 - ``isEnabled``
-- ``supportsOpacity``
+- ``showsAlpha``
 - ``swatchColors``
 
 ### Instance Methods
@@ -34,5 +34,6 @@
 
 ### Deprecated
 
+- ``supportsOpacity``
 - ``activate(_:)``
 - ``observeColor(onChange:)``

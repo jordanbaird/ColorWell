@@ -13,10 +13,10 @@ import SwiftUI
 
 /// A base view class that contains some default properties and methods
 /// for use in the main `ColorWell` class.
-public class _ColorWellBaseView: NSView {
+public class _ColorWellBaseView: NSView { }
 
-  // MARK: Static Properties
-
+// MARK: _ColorWellBaseView Static Properties
+extension _ColorWellBaseView {
   /// The default width for a color well's frame.
   internal static let defaultWidth: CGFloat = 64
 
@@ -36,9 +36,9 @@ public class _ColorWellBaseView: NSView {
   /// Currently, this color is an RGBA white.
   internal static let defaultColor = NSColor(red: 1, green: 1, blue: 1, alpha: 1)
 
-  /// Hexadecimal codes used to construct the default colors shown in
-  /// the color well's popover.
-  internal static let defaultHexCodes = [
+  /// Hexadecimal strings used to construct the default colors shown
+  /// in the color well's popover.
+  internal static let defaultHexStrings = [
     "56C1FF", "72FDEA", "88FA4F", "FFF056", "FF968D", "FF95CA",
     "00A1FF", "15E6CF", "60D937", "FFDA31", "FF644E", "FF42A1",
     "0076BA", "00AC8E", "1FB100", "FEAE00", "ED220D", "D31876",
@@ -47,22 +47,13 @@ public class _ColorWellBaseView: NSView {
   ]
 
   /// The default colors shown in the color well's popover.
-  internal static let defaultSwatchColors = defaultHexCodes.compactMap {
+  internal static let defaultSwatchColors = defaultHexStrings.compactMap {
     NSColor(hexString: $0)
   }
 }
 
 // MARK: _ColorWellBaseView Methods
 extension _ColorWellBaseView {
-  /// Returns a value for the given accessibility attribute,
-  /// performing dynamic casting to the given type.
-  private func provideAttributeValue<T>(
-    ofType type: T.Type = T.self,
-    for attribute: NSAccessibility.Attribute
-  ) -> T? {
-    provideValue(forAttribute: attribute) as? T
-  }
-  
   /// Returns a value for the given accessibility attribute.
   ///
   /// To be overridden by the main ``ColorWell`` class.
@@ -74,6 +65,14 @@ extension _ColorWellBaseView {
   /// To be overridden by the main ``ColorWell`` class.
   @objc dynamic
   internal func performAction(forType type: NSAccessibility.Action) -> Bool { false }
+
+  /// Returns a value for the given accessibility attribute, performing
+  /// dynamic casting to type `T`, based on the context of the callee.
+  ///
+  /// ** Non-overrideable **
+  private func provideValue<T>(forAttribute attribute: NSAccessibility.Attribute) -> T? {
+    provideValue(forAttribute: attribute) as? T
+  }
 }
 
 // MARK: _ColorWellBaseView Overrides
@@ -102,7 +101,7 @@ extension _ColorWellBaseView {
 // MARK: _ColorWellBaseView Accessibility
 extension _ColorWellBaseView {
   public override func accessibilityChildren() -> [Any]? {
-    provideAttributeValue(for: .children)
+    provideValue(forAttribute: .children)
   }
 
   public override func accessibilityPerformPress() -> Bool {
@@ -114,7 +113,7 @@ extension _ColorWellBaseView {
   }
 
   public override func accessibilityValue() -> Any? {
-    provideAttributeValue(for: .value)
+    provideValue(forAttribute: .value)
   }
 
   public override func isAccessibilityElement() -> Bool {
@@ -122,7 +121,7 @@ extension _ColorWellBaseView {
   }
 
   public override func isAccessibilityEnabled() -> Bool {
-    provideAttributeValue(for: .enabled) ?? true
+    provideValue(forAttribute: .enabled) ?? true
   }
 }
 
@@ -137,7 +136,7 @@ extension _ColorWellBaseView {
 /// for selecting new colors.
 public class ColorWell: _ColorWellBaseView {
 
-  // MARK: Private/Internal Properties
+  // MARK: Private Properties
 
   /// A view that displays the color well's segments, side by side.
   private var layoutView: ColorWellLayoutView!
@@ -208,10 +207,6 @@ public class ColorWell: _ColorWellBaseView {
   }
 
   // MARK: Public Properties
-
-  /// A Boolean value that indicates whether the color well's color panel
-  /// allows adjusting the selected color's opacity. Default value is `true`.
-  public var supportsOpacity = true
 
   /// A Boolean value that indicates whether the color well supports being
   /// included in group selections (using "Shift-click" functionality).
@@ -293,6 +288,13 @@ public class ColorWell: _ColorWellBaseView {
     didSet {
       needsDisplay = true
     }
+  }
+
+  /// A Boolean value indicating whether or not the color well's color panel
+  /// shows alpha values and an opacity slider.
+  public var showsAlpha: Bool {
+    get { colorPanel.showsAlpha }
+    set { colorPanel.showsAlpha = newValue }
   }
 
   /// The color well's color.
@@ -466,18 +468,6 @@ extension ColorWell {
           self.deactivate()
         }
       },
-
-      colorPanel.observe(\.showsAlpha, options: [.initial, .new]) { [weak self] colorPanel, change in
-        guard
-          let self,
-          let newValue = change.newValue
-        else {
-          return
-        }
-        if newValue != self.supportsOpacity {
-          colorPanel.showsAlpha = self.supportsOpacity
-        }
-      },
     ]
   }
 
@@ -572,6 +562,14 @@ extension ColorWell {
 
 // MARK: ColorWell Deprecated
 extension ColorWell {
+  /// A Boolean value that indicates whether the color well's color panel
+  /// allows adjusting the selected color's opacity.
+  @available(*, deprecated, message: "Renamed to 'showsAlpha'", renamed: "showsAlpha")
+  public var supportsOpacity: Bool {
+    get { showsAlpha }
+    set { showsAlpha = newValue }
+  }
+
   /// Activates the color well and displays its color panel.
   ///
   /// Both elements will remain synchronized until either the color panel
