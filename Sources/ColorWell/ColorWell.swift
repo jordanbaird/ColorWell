@@ -210,6 +210,7 @@ public class ColorWell: _ColorWellBaseView {
 
   /// A Boolean value that indicates whether the color well supports being
   /// included in group selections (using "Shift-click" functionality).
+  /// Default value is `true`.
   public var allowsMultipleSelection = true
 
   /// The colors that will be shown as swatches in the color well's popover.
@@ -302,6 +303,8 @@ public class ColorWell: _ColorWellBaseView {
   ///
   /// If `false`, the color well will not react to mouse events, open
   /// its color panel, or show its popover.
+  ///
+  /// Default value is `true`.
   public var isEnabled: Bool = true {
     didSet {
       needsDisplay = true
@@ -377,7 +380,7 @@ public class ColorWell: _ColorWellBaseView {
   }
 }
 
-// MARK: ColorWell Private/Internal Methods
+// MARK: ColorWell Private Methods
 extension ColorWell {
   /// Shared code to execute on a color well's initialization.
   private func sharedInit(color: NSColor) {
@@ -403,12 +406,6 @@ extension ColorWell {
 
     canSynchronizeColorPanel = true
     canExecuteChangeHandlers = true
-  }
-
-  /// Inserts the change handlers in the given sequence into the
-  /// color well's stored change handlers.
-  internal func insertChangeHandlers(_ handlers: any Sequence<ChangeHandler>) {
-    changeHandlers.formUnion(handlers)
   }
 
   /// Iterates through the color well's stored change handlers,
@@ -474,6 +471,15 @@ extension ColorWell {
   /// Removes all observations for the color panel.
   private func removeColorPanelObservations() {
     observations[NSColorPanel.self].removeAll()
+  }
+}
+
+// MARK: ColorWell Internal Methods
+extension ColorWell {
+  /// Inserts the change handlers in the given sequence into the
+  /// color well's stored change handlers.
+  internal func insertChangeHandlers(_ handlers: any Sequence<ChangeHandler>) {
+    changeHandlers.formUnion(handlers)
   }
 }
 
