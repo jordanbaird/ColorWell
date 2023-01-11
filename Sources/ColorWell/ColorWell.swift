@@ -210,6 +210,7 @@ public class ColorWell: _ColorWellBaseView {
 
   /// A Boolean value that indicates whether the color well supports being
   /// included in group selections (using "Shift-click" functionality).
+  ///
   /// Default value is `true`.
   public var allowsMultipleSelection = true
 
@@ -331,6 +332,7 @@ public class ColorWell: _ColorWellBaseView {
   }
 
   /// Creates a color well with the given frame rectangle.
+  ///
   /// - Parameter frameRect: The frame rectangle for the created color panel.
   public override convenience init(frame frameRect: NSRect) {
     self.init(frame: frameRect, color: Self.defaultColor)
@@ -342,12 +344,14 @@ public class ColorWell: _ColorWellBaseView {
   }
 
   /// Creates a color well with the given color.
+  ///
   /// - Parameter color: The initial value of the color well's color.
   public convenience init(color: NSColor) {
     self.init(frame: Self.defaultFrame, color: color)
   }
 
   /// Creates a color well with the given `CoreGraphics` color.
+  ///
   /// - Parameter cgColor: The initial value of the color well's color.
   public convenience init?(cgColor: CGColor) {
     guard let color = NSColor(cgColor: cgColor) else {
@@ -357,6 +361,7 @@ public class ColorWell: _ColorWellBaseView {
   }
 
   /// Creates a color well with the given `CoreImage` color.
+  ///
   /// - Parameter ciColor: The initial value of the color well's color.
   public convenience init(ciColor: CIColor) {
     self.init(color: .init(ciColor: ciColor))
@@ -364,6 +369,7 @@ public class ColorWell: _ColorWellBaseView {
 
   #if canImport(SwiftUI)
   /// Creates a color well with the given `SwiftUI` color.
+  ///
   /// - Parameter color: The initial value of the color well's color.
   @available(macOS 11.0, *)
   public convenience init(_ color: Color) {
@@ -372,6 +378,7 @@ public class ColorWell: _ColorWellBaseView {
   #endif
 
   /// Creates a color well from data in the given coder object.
+  ///
   /// - Parameter coder: The coder object that contains the color
   ///   well's configuration details.
   public required init?(coder: NSCoder) {
@@ -764,6 +771,7 @@ internal class ColorWellSegment: NSView {
     }
   }
 
+  /// Creates a segment for the given color well.
   init(colorWell: ColorWell) {
     super.init(frame: .zero)
     self.colorWell = colorWell
@@ -776,12 +784,18 @@ internal class ColorWellSegment: NSView {
 
   // MARK: ColorWellSegment Dynamic Methods
 
+  /// Invoked to update the segment to indicate that it is
+  /// being hovered over.
   @objc dynamic
   func drawHoverIndicator() { }
 
+  /// Invoked to update the segment to indicate that is is
+  /// not being hovered over.
   @objc dynamic
   func removeHoverIndicator() { }
 
+  /// Invoked to update the segment to indicate that it is
+  /// being highlighted.
   @objc dynamic
   func drawHighlightIndicator() {
     if #available(macOS 10.14, *) {
@@ -791,11 +805,15 @@ internal class ColorWellSegment: NSView {
     }
   }
 
+  /// Invoked to update the segment to indicate that it is
+  /// not being highlighted.
   @objc dynamic
   func removeHighlightIndicator() {
     fillColor = defaultFillColor
   }
 
+  /// Invoked to update the segment to indicate that it is
+  /// being pressed.
   @objc dynamic
   func drawPressedIndicator() {
     if #available(macOS 10.14, *) {
@@ -813,29 +831,33 @@ internal class ColorWellSegment: NSView {
     }
   }
 
+  /// Invoked to update the segment to indicate that it is
+  /// not being pressed.
   @objc dynamic
   func removePressedIndicator() {
     fillColor = defaultFillColor
   }
 
+  /// Invoked to perform the segment's action.
   @objc dynamic
   func performAction() { }
 }
 
-// MARK: ColorWellSegment Private/Internal Methods
+// MARK: ColorWellSegment Private Methods
 extension ColorWellSegment {
-  /// Returns the default path that will be used to draw the segment.
-  func defaultPath(for rect: NSRect) -> NSBezierPath {
-    .colorWellSegment(rect: rect, side: side)
-  }
-
+  /// Updates the segment's dragging offset according to the x and y
+  /// deltas of the given event.
   private func updateDraggingOffset(with event: NSEvent) {
     draggingOffset.width += event.deltaX
     draggingOffset.height += event.deltaY
   }
+}
 
-  private func resetDraggingOffset() {
-    draggingOffset = .zero
+// MARK: ColorWellSegment Internal Methods
+extension ColorWellSegment {
+  /// Returns the default path that will be used to draw the segment.
+  func defaultPath(for rect: NSRect) -> NSBezierPath {
+    .colorWellSegment(rect: rect, side: side)
   }
 }
 
@@ -876,7 +898,7 @@ extension ColorWellSegment {
 
   override func mouseUp(with event: NSEvent) {
     super.mouseUp(with: event)
-    resetDraggingOffset()
+    draggingOffset = .zero
     guard
       colorWellIsEnabled,
       frameConvertedToWindow.contains(event.locationInWindow)
@@ -946,7 +968,7 @@ extension ColorWellSegment {
   }
 }
 
-// MARK: State
+// MARK: ColorWellSegment State
 extension ColorWellSegment {
   enum State {
     case hover
@@ -1045,14 +1067,12 @@ extension ToggleSegment {
 internal class SwatchSegment: ColorWellSegment {
   private var caretView: CaretView?
 
-  private var canShowPopover = false
-
   fileprivate var popover: ColorWellPopover?
 
-  override var side: Side { .left }
+  private var canShowPopover = false
 
-  override var displayColor: NSColor {
-    super.displayColor.sRGB ?? super.displayColor
+  private var overrideShowPopover: Bool {
+    colorWell?.swatchColors.isEmpty ?? false
   }
 
   private var borderColor: NSColor {
@@ -1064,8 +1084,10 @@ internal class SwatchSegment: ColorWellSegment {
     return NSColor(white: 1 - alpha, alpha: alpha)
   }
 
-  private var overrideShowPopover: Bool {
-    colorWell?.swatchColors.isEmpty ?? false
+  override var side: Side { .left }
+
+  override var displayColor: NSColor {
+    super.displayColor.sRGB ?? super.displayColor
   }
 
   override init(colorWell: ColorWell) {
@@ -1076,7 +1098,7 @@ internal class SwatchSegment: ColorWellSegment {
 
 // MARK: SwatchSegment Methods
 extension SwatchSegment {
-  func prepareForPopover() {
+  private func prepareForPopover() {
     guard !overrideShowPopover else {
       return
     }
@@ -1261,7 +1283,7 @@ extension SwatchSegment: NSPasteboardItemDataProvider {
 extension SwatchSegment {
   /// A view that contains a downward-facing caret inside of a translucent
   /// circle. This view appears when the mouse hovers over a swatch segment.
-  class CaretView: NSImageView {
+  private class CaretView: NSImageView {
     /// An image of a downward-facing caret inside of a translucent circle.
     private var caretImage: NSImage {
       let sizeConstant: CGFloat = 12
