@@ -256,7 +256,7 @@ extension ConstructablePath {
       if corners.contains($0) {
         return .line(to: $0.point(forRect: rect))
       }
-      return .rightAngleCurve(around: $0, ofRect: rect, radius: 7)
+      return .rightAngleCurve(around: $0, ofRect: rect, radius: 5.5)
     }
     components.append(.close)
     return .construct(with: components)
