@@ -1374,7 +1374,7 @@ internal class ColorWellPopover: NSPopover {
         self.colorWell = colorWell
         contentViewController = popoverViewController
         behavior = .transient
-        delegate = self
+        delegate = popoverViewController
     }
 
     @available(*, unavailable)
@@ -1402,45 +1402,40 @@ internal class ColorWellPopover: NSPopover {
     }
 }
 
-// MARK: ColorWellPopover: NSPopoverDelegate
-extension ColorWellPopover: NSPopoverDelegate {
-    func popoverDidClose(_ notification: Notification) {
-        // Async so that ColorWellSegment's mouseDown method
-        // has a chance to run before the popover becomes nil.
-        DispatchQueue.main.async { [weak colorWell] in
-            colorWell?.popover = nil
-        }
-    }
-}
-
 // MARK: - ColorWellPopoverViewController
 
 /// A view controller that controls a view that contains a grid
 /// of selectable color swatches.
 internal class ColorWellPopoverViewController: NSViewController {
-    var containerView: ColorWellPopoverContainerView {
-        didSet {
-            synchronize()
-        }
-    }
+    weak var colorWell: ColorWell?
+
+    let containerView: ColorWellPopoverContainerView
 
     var swatches: [ColorSwatch] {
         containerView.swatches
     }
 
     init(colorWell: ColorWell) {
-        containerView = .init(colorWell: colorWell)
+        self.containerView = .init(colorWell: colorWell)
         super.init(nibName: nil, bundle: nil)
-        synchronize()
+        self.view = containerView
+        self.colorWell = colorWell
     }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+}
 
-    func synchronize() {
-        view = containerView
+// MARK: ColorWellPopoverViewController: NSPopoverDelegate
+extension ColorWellPopoverViewController: NSPopoverDelegate {
+    func popoverDidClose(_ notification: Notification) {
+        // Async so that ColorWellSegment's mouseDown method
+        // has a chance to run before the popover becomes nil.
+        DispatchQueue.main.async { [weak colorWell] in
+            colorWell?.popover = nil
+        }
     }
 }
 
