@@ -48,10 +48,12 @@ extension NSImage {
     internal func clippedToCircle(insetBy amount: CGFloat = 0) -> NSImage {
         let originalFrame = NSRect(origin: .zero, size: size)
         let insetDimension = min(size.width, size.height) - amount
+
         let insetFrame = NSRect(
             origin: .zero,
             size: .init(width: insetDimension, height: insetDimension)
         ).centered(in: originalFrame)
+
         return .init(size: insetFrame.size, flipped: false) { [self] bounds in
             let destFrame = NSRect(origin: .zero, size: bounds.size)
             NSBezierPath(ovalIn: destFrame).setClip()
@@ -80,7 +82,8 @@ extension NSImage {
                 in: bounds,
                 from: .init(origin: .zero, size: tintImage.size),
                 operation: .sourceAtop,
-                fraction: amount)
+                fraction: amount
+            )
             return true
         }
     }

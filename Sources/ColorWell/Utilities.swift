@@ -53,14 +53,17 @@ internal struct ComparableID {
     init() { }
 }
 
+// MARK: ComparableID: Comparable
 extension ComparableID: Comparable {
     static func < (lhs: Self, rhs: Self) -> Bool {
         lhs.count < rhs.count
     }
 }
 
+// MARK: ComparableID: Equatable
 extension ComparableID: Equatable { }
 
+// MARK: ComparableID: Hashable
 extension ComparableID: Hashable { }
 
 // MARK: - ChangeHandler
@@ -103,18 +106,21 @@ internal struct ChangeHandler {
     }
 }
 
+// MARK: ChangeHandler: Comparable
 extension ChangeHandler: Comparable {
     static func < (lhs: Self, rhs: Self) -> Bool {
         lhs.id < rhs.id
     }
 }
 
+// MARK: ChangeHandler: Equatable
 extension ChangeHandler: Equatable {
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.id == rhs.id
     }
 }
 
+// MARK: ChangeHandler: Hashable
 extension ChangeHandler: Hashable {
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
@@ -158,6 +164,7 @@ internal struct AssociationPolicy {
     }
 }
 
+// MARK: AssociationPolicy Static Members
 extension AssociationPolicy {
     /// A weak reference to the associated object.
     static var assign: Self {
@@ -243,6 +250,7 @@ internal protocol CustomCocoaConvertible<CocoaType, Converted> {
     static func converted(from source: CocoaType) -> Converted
 }
 
+// MARK: Color: CustomCocoaConvertible
 @available(macOS 10.15, *)
 extension Color: CustomCocoaConvertible {
     internal static func converted(from source: NSColor) -> Self {
@@ -250,6 +258,7 @@ extension Color: CustomCocoaConvertible {
     }
 }
 
+// MARK: CGColor: CustomCocoaConvertible
 extension CGColor: CustomCocoaConvertible {
     internal static func converted(from source: NSColor) -> CGColor {
         source.cgColor
@@ -260,9 +269,7 @@ extension CGColor: CustomCocoaConvertible {
 
 @available(macOS 10.15, *)
 extension StringProtocol {
-    internal var label: Text {
-        .init(self)
-    }
+    internal var label: Text { .init(self) }
 }
 #endif
 
@@ -345,5 +352,6 @@ internal func withTemporaryChange<T, U, V>(
     try withTemporaryChange(
         of: ReferencePath(path),
         to: tempValue(),
-        body)
+        body
+    )
 }

@@ -282,9 +282,9 @@ public class ColorWell: _ColorWellBaseView {
             *,
              deprecated,
              message: """
-        Only the 'shared' instance of NSColorPanel is valid. Creation of additional \
-        instances causes memory leaks.
-        """
+                Only the 'shared' instance of NSColorPanel is valid. Creation of additional \
+                instances causes memory leaks.
+                """
         )
         set {
             _colorPanel = newValue
@@ -672,7 +672,8 @@ extension ColorWellLayoutView {
 
         let bezelFrame = bezelLayer.frame.insetBy(
             dx: ColorWell.lineWidth / 2,
-            dy: ColorWell.lineWidth / 2)
+            dy: ColorWell.lineWidth / 2
+        )
 
         let maskLayer = CAShapeLayer()
         maskLayer.fillColor = .clear
@@ -942,7 +943,8 @@ extension ColorWellSegment {
                 .activeInKeyWindow,
                 .mouseEnteredAndExited,
             ],
-            owner: self)
+            owner: self
+        )
         // Force unwrap is fine, as we just set this value.
         addTrackingArea(trackingArea!)
     }
@@ -968,7 +970,8 @@ extension ColorWellSegment {
     }
 }
 
-// MARK: ColorWellSegment State
+// MARK: - ColorWellSegment State
+
 extension ColorWellSegment {
     enum State {
         case hover
@@ -1079,8 +1082,10 @@ internal class SwatchSegment: ColorWellSegment {
         let alpha = min(
             min(
                 displayColor.averageBrightness,
-                displayColor.alphaComponent),
-            0.2)
+                displayColor.alphaComponent
+            ),
+            0.2
+        )
         return NSColor(white: 1 - alpha, alpha: alpha)
     }
 
@@ -1142,7 +1147,8 @@ extension SwatchSegment {
         NSImage.drawSwatch(
             with: displayColor,
             in: dirtyRect,
-            clippingTo: defaultPath(for: dirtyRect))
+            clippingTo: defaultPath(for: dirtyRect)
+        )
 
         borderColor.setStroke()
 
@@ -1158,13 +1164,10 @@ extension SwatchSegment {
         }
         let caretView = CaretView()
         addSubview(caretView)
-        caretView.trailingAnchor.constraint(
-            equalTo: trailingAnchor,
-            constant: -2.5
-        ).isActive = true
-        caretView.centerYAnchor.constraint(
-            equalTo: centerYAnchor
-        ).isActive = true
+
+        caretView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -2.5).isActive = true
+        caretView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
+
         self.caretView = caretView
     }
 
@@ -1251,7 +1254,7 @@ extension SwatchSegment {
     }
 }
 
-// MARK: SwatchSegment NSDraggingSource
+// MARK: SwatchSegment: NSDraggingSource
 extension SwatchSegment: NSDraggingSource {
     func draggingSession(
         _ session: NSDraggingSession,
@@ -1261,7 +1264,7 @@ extension SwatchSegment: NSDraggingSource {
     }
 }
 
-// MARK: SwatchSegment NSPasteboardItemDataProvider
+// MARK: SwatchSegment: NSPasteboardItemDataProvider
 extension SwatchSegment: NSPasteboardItemDataProvider {
     func pasteboard(
         _ pasteboard: NSPasteboard?,
@@ -1279,7 +1282,8 @@ extension SwatchSegment: NSPasteboardItemDataProvider {
     }
 }
 
-// MARK: CaretView
+// MARK: - SwatchSegment CaretView
+
 extension SwatchSegment {
     /// A view that contains a downward-facing caret inside of a translucent
     /// circle. This view appears when the mouse hovers over a swatch segment.
@@ -1313,15 +1317,21 @@ extension SwatchSegment {
                 caretPath.move(
                     to: .init(
                         x: caretPathBounds.minX,
-                        y: caretPathBounds.maxY - (caretPath.lineWidth / 4)))
+                        y: caretPathBounds.maxY - (caretPath.lineWidth / 4)
+                    )
+                )
                 caretPath.line(
                     to: .init(
                         x: caretPathBounds.midX,
-                        y: caretPathBounds.minY - (caretPath.lineWidth / 4)))
+                        y: caretPathBounds.minY - (caretPath.lineWidth / 4)
+                    )
+                )
                 caretPath.line(
                     to: .init(
                         x: caretPathBounds.maxX,
-                        y: caretPathBounds.maxY - (caretPath.lineWidth / 4)))
+                        y: caretPathBounds.maxY - (caretPath.lineWidth / 4)
+                    )
+                )
 
                 NSColor.white.setStroke()
                 caretPath.stroke()
@@ -1380,7 +1390,8 @@ internal class ColorWellPopover: NSPopover {
         super.show(
             relativeTo: positioningRect,
             of: positioningView,
-            preferredEdge: preferredEdge)
+            preferredEdge: preferredEdge
+        )
         guard
             let color = colorWell?.color,
             let swatch = swatches.first(where: { $0.color.resembles(color) })
@@ -1391,7 +1402,7 @@ internal class ColorWellPopover: NSPopover {
     }
 }
 
-// MARK: ColorWellPopover NSPopoverDelegate
+// MARK: ColorWellPopover: NSPopoverDelegate
 extension ColorWellPopover: NSPopoverDelegate {
     func popoverDidClose(_ notification: Notification) {
         // Async so that ColorWellSegment's mouseDown method
@@ -1456,14 +1467,8 @@ internal class ColorWellPopoverContainerView: NSView {
 
         // Give the container a 20px padding.
         translatesAutoresizingMaskIntoConstraints = false
-        widthAnchor.constraint(
-            equalTo: layoutView.widthAnchor,
-            constant: 20
-        ).isActive = true
-        heightAnchor.constraint(
-            equalTo: layoutView.heightAnchor,
-            constant: 20
-        ).isActive = true
+        widthAnchor.constraint(equalTo: layoutView.widthAnchor, constant: 20).isActive = true
+        heightAnchor.constraint(equalTo: layoutView.heightAnchor, constant: 20).isActive = true
 
         self.layoutView = layoutView
     }
@@ -1743,7 +1748,8 @@ extension ColorSwatch {
             roundedRect: layer.bounds,
             cornerWidth: cornerRadius,
             cornerHeight: cornerRadius,
-            transform: nil)
+            transform: nil
+        )
 
         bezelLayer.fillColor = .clear
         bezelLayer.strokeColor = bezelColor
@@ -1763,7 +1769,8 @@ extension ColorSwatch {
             strokingWithWidth: borderWidth,
             lineCap: .round,
             lineJoin: .round,
-            miterLimit: 0)
+            miterLimit: 0
+        )
 
         layer.addSublayer(bezelLayer)
         layer.masksToBounds = false
