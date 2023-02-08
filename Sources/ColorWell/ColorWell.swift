@@ -143,11 +143,11 @@ public class ColorWell: _ColorWellBaseView {
 
     /// A Boolean value that indicates whether the color well can
     /// currently perform synchronization with its color panel.
-    fileprivate var canSynchronizeColorPanel = false
+    private var canSynchronizeColorPanel = false
 
     /// A Boolean value that indicates whether the color well can
     /// currently execute its change handlers.
-    fileprivate var canExecuteChangeHandlers = false
+    private var canExecuteChangeHandlers = false
 
     /// The observations currently associated with the color well.
     private var observations = [ObjectIdentifier: Set<NSKeyValueObservation>]()
@@ -278,14 +278,7 @@ public class ColorWell: _ColorWellBaseView {
         get {
             _colorPanel
         }
-        @available(
-            *,
-             deprecated,
-             message: """
-                Only the 'shared' instance of NSColorPanel is valid. Creation of additional \
-                instances causes memory leaks.
-                """
-        )
+        @available(*, deprecated, message: "Only the 'shared' instance of NSColorPanel is valid. Creation of additional instances causes memory leaks.")
         set {
             _colorPanel = newValue
         }
@@ -487,6 +480,28 @@ extension ColorWell {
     /// color well's stored change handlers.
     internal func insertChangeHandlers(_ handlers: any Sequence<ChangeHandler>) {
         changeHandlers.formUnion(handlers)
+    }
+
+    /// Performs the specified block of code, ensuring that the color
+    /// well's stored change handlers are not executed.
+    internal func withoutExecutingChangeHandlers<T>(_ body: (ColorWell) throws -> T) rethrows -> T {
+        let cached = canExecuteChangeHandlers
+        canExecuteChangeHandlers = false
+        defer {
+            canExecuteChangeHandlers = cached
+        }
+        return try body(self)
+    }
+
+    /// Performs the specified block of code, ensuring that the color
+    /// well's color panel is not synchronized.
+    internal func withoutSynchronizingColorPanel<T>(_ body: (ColorWell) throws -> T) rethrows -> T {
+        let cached = canSynchronizeColorPanel
+        canSynchronizeColorPanel = false
+        defer {
+            canSynchronizeColorPanel = cached
+        }
+        return try body(self)
     }
 }
 
@@ -1787,10 +1802,10 @@ extension ColorSwatch {
     /// that of the swatch, and closing the popover.
     func performAction() {
         if colorWell.isActive {
-            withTemporaryChange(of: (colorWell, \.canSynchronizeColorPanel), to: false) {
+            colorWell.withoutSynchronizingColorPanel { colorWell in
                 colorWell.color = color
             }
-            withTemporaryChange(of: (colorWell, \.canExecuteChangeHandlers), to: false) {
+            colorWell.withoutExecutingChangeHandlers { colorWell in
                 colorWell.synchronizeColorPanel(force: true)
             }
         } else {
