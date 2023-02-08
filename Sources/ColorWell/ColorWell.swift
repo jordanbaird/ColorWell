@@ -275,13 +275,9 @@ public class ColorWell: _ColorWellBaseView {
     ///   removed in a future release. Using any other value besides `NSColorPanel.shared`
     ///   will result in memory leaks.
     public var colorPanel: NSColorPanel {
-        get {
-            _colorPanel
-        }
+        get { _colorPanel }
         @available(*, deprecated, message: "Only the 'shared' instance of NSColorPanel is valid. Creation of additional instances causes memory leaks.")
-        set {
-            _colorPanel = newValue
-        }
+        set { _colorPanel = newValue }
     }
 
     /// A Boolean value that indicates whether the color well is
