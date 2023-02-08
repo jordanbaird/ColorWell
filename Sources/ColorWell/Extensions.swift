@@ -67,7 +67,7 @@ extension Dictionary where Key == ObjectIdentifier, Value: ExpressibleByArrayLit
 
 extension NSAppearance {
     /// The dark appearance names supported by the system.
-    private static let builtinDarkNames: Set<Name> = {
+    private var systemDarkNames: Set<Name> {
         var names: Set<Name> = [.vibrantDark]
         if #available(macOS 10.14, *) {
             names.insert(.darkAqua)
@@ -75,7 +75,7 @@ extension NSAppearance {
             names.insert(.accessibilityHighContrastVibrantDark)
         }
         return names
-    }()
+    }
 
     /// Whether the current appearance's name indicates a dark appearance.
     private var nameIndicatesDarkAppearance: Bool {
@@ -84,7 +84,7 @@ extension NSAppearance {
 
     /// Whether the current appearance is a dark appearance.
     internal var isDarkAppearance: Bool {
-        Self.builtinDarkNames.contains(name) || nameIndicatesDarkAppearance
+        systemDarkNames.contains(name) || nameIndicatesDarkAppearance
     }
 }
 
@@ -107,7 +107,7 @@ extension NSApplication {
 extension NSColor {
     /// The module-defined color for buttons and other, similar controls.
     internal static var buttonColor: NSColor {
-        .init(named: "ButtonColor", bundle: .module)!
+        NSColor(named: "ButtonColor", bundle: .module)!
     }
 
     /// The current color, using the `sRGB` color space.
@@ -138,19 +138,23 @@ extension NSColor {
 
     /// Creates a color from a hexadecimal string.
     internal convenience init?(hexString: String) {
-        let hexString = hexString.trimmingCharacters(in: .init(["#"]))
+        let hexString = hexString.trimmingCharacters(in: ["#"]).lowercased()
+        let count = hexString.count
 
-        guard hexString.count % 2 == 0 else {
+        guard
+            count >= 6,
+            count.isMultiple(of: 2)
+        else {
             return nil
         }
 
-        let hexArray = hexString.map { "\($0)" }
+        let hexArray = hexString.map { String($0) }
 
         let rString = hexArray[0..<2].joined()
         let gString = hexArray[2..<4].joined()
         let bString = hexArray[4..<6].joined()
         let aString = {
-            if hexArray.count == 6 {
+            if count == 6 {
                 return "ff"
             } else {
                 return hexArray[6..<8].joined()
@@ -368,24 +372,20 @@ extension NSColorPanel {
 extension NSGraphicsContext {
     /// Executes a block of code on the current graphics context, restoring
     /// the graphics state after the block returns.
-    internal static func withTemporaryGraphicsState<T>(
-        do block: (NSGraphicsContext?) throws -> T
-    ) rethrows -> T {
+    internal static func withCachedGraphicsState<T>(_ body: (NSGraphicsContext?) throws -> T) rethrows -> T {
         let context = current
         context?.saveGraphicsState()
         defer {
             context?.restoreGraphicsState()
         }
-        return try block(context)
+        return try body(context)
     }
 
     /// Executes a block of code on the current graphics context, restoring
     /// the graphics state after the block returns.
-    internal static func withTemporaryGraphicsState<T>(
-        do block: () throws -> T
-    ) rethrows -> T {
-        try withTemporaryGraphicsState { _ in
-            try block()
+    internal static func withCachedGraphicsState<T>(_ body: () throws -> T) rethrows -> T {
+        try withCachedGraphicsState { _ in
+            try body()
         }
     }
 }
@@ -423,7 +423,7 @@ extension NSImage {
         in rect: NSRect,
         clippingTo clippingPath: NSBezierPath? = nil
     ) {
-        NSGraphicsContext.withTemporaryGraphicsState {
+        NSGraphicsContext.withCachedGraphicsState {
             clippingPath?.addClip()
             NSImage(color: color, size: rect.size).draw(in: rect)
         }
@@ -440,7 +440,7 @@ extension NSImage {
             size: .init(width: insetDimension, height: insetDimension)
         ).centered(in: originalFrame)
 
-        return .init(size: insetFrame.size, flipped: false) { [self] bounds in
+        return NSImage(size: insetFrame.size, flipped: false) { [self] bounds in
             let destFrame = NSRect(origin: .zero, size: bounds.size)
             NSBezierPath(ovalIn: destFrame).setClip()
             draw(in: destFrame, from: insetFrame, operation: .copy, fraction: 1)
@@ -462,7 +462,7 @@ extension NSImage {
             context.fill(bounds)
             return true
         }
-        return .init(size: size, flipped: false) { [self] bounds in
+        return NSImage(size: size, flipped: false) { [self] bounds in
             draw(in: bounds)
             tintImage.draw(
                 in: bounds,
