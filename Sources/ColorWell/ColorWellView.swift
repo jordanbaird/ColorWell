@@ -208,6 +208,9 @@ extension ColorWellView<Never> {
 // MARK: ColorWellView Initializers (Label == Text)
 @available(macOS 10.15, *)
 extension ColorWellView<Text> {
+
+    // MARK: Generate Label From StringProtocol
+
     /// Creates a color well with an initial color value, that generates
     /// its label from a string.
     ///
@@ -260,7 +263,7 @@ extension ColorWellView<Text> {
     ///   an underlying representation. In some cases, the translation process
     ///   may be forced to return an approximation, rather than the original
     ///   color. To receive a color that is guaranteed to be equivalent to the
-    ///   color well's underlying representation, use ``init(_:color:action:)``.
+    ///   color well's underlying representation, use ``init(_:color:action:)-8ghst``.
     ///
     /// - Parameters:
     ///   - title: A string that describes the purpose of the color well.
@@ -268,6 +271,70 @@ extension ColorWellView<Text> {
     ///   - action: An action to perform when the color well's color changes.
     public init<S: StringProtocol>(_ title: S, cgColor: CGColor, action: @escaping (CGColor) -> Void) {
         self.init(_color: NSColor(cgColor: cgColor), _label: Text(title), _action: action)
+    }
+
+    // MARK: Generate Label From LocalizedStringKey
+
+    /// Creates a color well with an initial color value, that generates
+    /// its label from a localized string key.
+    ///
+    /// - Parameters:
+    ///   - titleKey: The key for the localized title of the color well.
+    ///   - color: The initial value of the color well's color.
+    @available(macOS 11.0, *)
+    public init(_ titleKey: LocalizedStringKey, color: Color) {
+        self.init(_color: NSColor(color), _label: Text(titleKey))
+    }
+
+    /// Creates a color well with an initial color value, that generates
+    /// its label from a localized string key.
+    ///
+    /// - Parameters:
+    ///   - titleKey: The key for the localized title of the color well.
+    ///   - cgColor: The initial value of the color well's color.
+    public init(_ titleKey: LocalizedStringKey, cgColor: CGColor) {
+        self.init(_color: NSColor(cgColor: cgColor), _label: Text(titleKey))
+    }
+
+    /// Creates a color well that generates its label from a localized
+    /// string key, and performs the given action when its color changes.
+    ///
+    /// - Parameters:
+    ///   - titleKey: The key for the localized title of the color well.
+    ///   - action: An action to perform when the color well's color changes.
+    public init(_ titleKey: LocalizedStringKey, action: @escaping (Color) -> Void) {
+        self.init(_label: Text(titleKey), _action: action)
+    }
+
+    /// Creates a color well with an initial color value that generates
+    /// its label from a localized string key, and performs the given action
+    /// when its color changes.
+    ///
+    /// - Parameters:
+    ///   - titleKey: The key for the localized title of the color well.
+    ///   - color: The initial value of the color well's color.
+    ///   - action: An action to perform when the color well's color changes.
+    @available(macOS 11.0, *)
+    public init(_ titleKey: LocalizedStringKey, color: Color, action: @escaping (Color) -> Void) {
+        self.init(_color: NSColor(color), _label: Text(titleKey), _action: action)
+    }
+
+    /// Creates a color well with an initial color value that generates
+    /// its label from a localized string key, and performs the given action
+    /// when its color changes.
+    ///
+    /// - Note: The color well's color is translated into a `CGColor` from
+    ///   an underlying representation. In some cases, the translation process
+    ///   may be forced to return an approximation, rather than the original
+    ///   color. To receive a color that is guaranteed to be equivalent to the
+    ///   color well's underlying representation, use ``init(_:color:action:)-3s0o1``.
+    ///
+    /// - Parameters:
+    ///   - titleKey: The key for the localized title of the color well.
+    ///   - cgColor: The initial value of the color well's color.
+    ///   - action: An action to perform when the color well's color changes.
+    public init(_ titleKey: LocalizedStringKey, cgColor: CGColor, action: @escaping (CGColor) -> Void) {
+        self.init(_color: NSColor(cgColor: cgColor), _label: Text(titleKey), _action: action)
     }
 }
 
