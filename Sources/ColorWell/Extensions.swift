@@ -1,10 +1,108 @@
 //===----------------------------------------------------------------------===//
 //
-// NSColor+extension.swift
+// Extensions.swift
 //
 //===----------------------------------------------------------------------===//
 
 import Cocoa
+
+// MARK: - CGPoint
+
+extension CGPoint {
+    /// Returns a new point resulting from a translation of the current point.
+    internal func translating(x: CGFloat = 0, y: CGFloat = 0) -> Self {
+        applying(.init(translationX: x, y: y))
+    }
+}
+
+// MARK: - CGRect
+
+extension CGRect {
+    /// The bottom left point of the rectangle.
+    internal var bottomLeft: CGPoint {
+        .init(x: minX, y: minY)
+    }
+
+    /// The top left point of the rectangle.
+    internal var topLeft: CGPoint {
+        .init(x: minX, y: maxY)
+    }
+
+    /// The top right point of the rectangle.
+    internal var topRight: CGPoint {
+        .init(x: maxX, y: maxY)
+    }
+
+    /// The bottom right point of the rectangle.
+    internal var bottomRight: CGPoint {
+        .init(x: maxX, y: minY)
+    }
+
+    /// Centers the current rectangle within the bounds of another rectangle.
+    ///
+    /// - Parameter otherRect: The rectangle to center the current rectangle in.
+    internal func centered(in otherRect: Self) -> Self {
+        var new = self
+        new.origin.x = otherRect.midX - (new.width / 2)
+        new.origin.y = otherRect.midY - (new.height / 2)
+        return new
+    }
+}
+
+// MARK: - Dictionary (Key == ObjectIdentifier, Value: ExpressibleByArrayLiteral)
+
+extension Dictionary where Key == ObjectIdentifier, Value: ExpressibleByArrayLiteral {
+    /// Access the value for the given metatype by transforming it into
+    /// an object identifier.
+    ///
+    /// In the event that no value is stored for `type`, an empty value
+    /// will be created and returned.
+    internal subscript<T>(type: T.Type) -> Value {
+        get { self[ObjectIdentifier(type), default: []] }
+        set { self[ObjectIdentifier(type)] = newValue }
+    }
+}
+
+// MARK: - NSAppearance
+
+extension NSAppearance {
+    /// The dark appearance names supported by the system.
+    private static let builtinDarkNames: Set<Name> = {
+        var names: Set<Name> = [.vibrantDark]
+        if #available(macOS 10.14, *) {
+            names.insert(.darkAqua)
+            names.insert(.accessibilityHighContrastDarkAqua)
+            names.insert(.accessibilityHighContrastVibrantDark)
+        }
+        return names
+    }()
+
+    /// Whether the current appearance's name indicates a dark appearance.
+    private var nameIndicatesDarkAppearance: Bool {
+        name.rawValue.lowercased().contains("dark")
+    }
+
+    /// Whether the current appearance is a dark appearance.
+    internal var isDarkAppearance: Bool {
+        Self.builtinDarkNames.contains(name) || nameIndicatesDarkAppearance
+    }
+}
+
+// MARK: - NSApplication
+
+extension NSApplication {
+    /// A Boolean value that indicates whether the application's current
+    /// effective appearance is a dark appearance.
+    internal var effectiveAppearanceIsDarkAppearance: Bool {
+        if #available(macOS 10.14, *) {
+            return effectiveAppearance.isDarkAppearance
+        } else {
+            return false
+        }
+    }
+}
+
+// MARK: - NSColor
 
 extension NSColor {
     /// The module-defined color for buttons and other, similar controls.
@@ -242,5 +340,146 @@ extension NSColor {
         }
 
         return false
+    }
+}
+
+// MARK: - NSColorPanel
+
+extension NSColorPanel {
+    private static let storage = Storage(Set<ColorWell>.self)
+
+    /// The color wells that are currently active and share this color panel.
+    internal var activeColorWells: Set<ColorWell> {
+        get {
+            Self.storage[self] ?? []
+        }
+        set {
+            if newValue.isEmpty {
+                Self.storage[self] = nil
+            } else {
+                Self.storage[self] = newValue
+            }
+        }
+    }
+}
+
+// MARK: - NSGraphicsContext
+
+extension NSGraphicsContext {
+    /// Executes a block of code on the current graphics context, restoring
+    /// the graphics state after the block returns.
+    internal static func withTemporaryGraphicsState<T>(
+        do block: (NSGraphicsContext?) throws -> T
+    ) rethrows -> T {
+        let context = current
+        context?.saveGraphicsState()
+        defer {
+            context?.restoreGraphicsState()
+        }
+        return try block(context)
+    }
+
+    /// Executes a block of code on the current graphics context, restoring
+    /// the graphics state after the block returns.
+    internal static func withTemporaryGraphicsState<T>(
+        do block: () throws -> T
+    ) rethrows -> T {
+        try withTemporaryGraphicsState { _ in
+            try block()
+        }
+    }
+}
+
+// MARK: - NSImage
+
+extension NSImage {
+    /// Creates an image by drawing a swatch in the given color and size.
+    internal convenience init(color: NSColor, size: NSSize, radius: CGFloat = 0) {
+        self.init(size: size, flipped: false) { bounds in
+            NSBezierPath(roundedRect: bounds, xRadius: radius, yRadius: radius).addClip()
+            color.drawSwatch(in: bounds)
+            return true
+        }
+    }
+
+    /// Draws the specified color in the given rectangle, with the given
+    /// clipping path.
+    ///
+    /// > Explanation:
+    /// This method differs from the `drawSwatch(in:)` method on `NSColor`
+    /// in that it allows you to set a clipping path without affecting the
+    /// border of the swatch.
+    ///
+    /// The swatch that is drawn using the `NSColor` method is drawn with
+    /// a thin border around its edges, which is affected by the current
+    /// graphics context's clipping path. This can yield undesirable
+    /// results if we want to, for example, set our own border with a
+    /// slightly different appearance (which we do).
+    ///
+    /// Basically, this method uses `NSColor`'s `drawSwatch(in:)` method
+    /// to draw an image, then clips the image instead of the swatch path.
+    internal static func drawSwatch(
+        with color: NSColor,
+        in rect: NSRect,
+        clippingTo clippingPath: NSBezierPath? = nil
+    ) {
+        NSGraphicsContext.withTemporaryGraphicsState {
+            clippingPath?.addClip()
+            NSImage(color: color, size: rect.size).draw(in: rect)
+        }
+    }
+
+    /// Returns a new image by clipping the current image to a circular shape
+    /// and insetting its size by the given amount.
+    internal func clippedToCircle(insetBy amount: CGFloat = 0) -> NSImage {
+        let originalFrame = NSRect(origin: .zero, size: size)
+        let insetDimension = min(size.width, size.height) - amount
+
+        let insetFrame = NSRect(
+            origin: .zero,
+            size: .init(width: insetDimension, height: insetDimension)
+        ).centered(in: originalFrame)
+
+        return .init(size: insetFrame.size, flipped: false) { [self] bounds in
+            let destFrame = NSRect(origin: .zero, size: bounds.size)
+            NSBezierPath(ovalIn: destFrame).setClip()
+            draw(in: destFrame, from: insetFrame, operation: .copy, fraction: 1)
+            return true
+        }
+    }
+
+    /// Returns new image that has been tinted to the given color.
+    internal func tinted(to color: NSColor, amount: CGFloat) -> NSImage {
+        guard let cgImage = cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+            return self
+        }
+        let tintImage = NSImage(size: size, flipped: false) { bounds in
+            guard let context = NSGraphicsContext.current?.cgContext else {
+                return false
+            }
+            color.setFill()
+            context.clip(to: bounds, mask: cgImage)
+            context.fill(bounds)
+            return true
+        }
+        return .init(size: size, flipped: false) { [self] bounds in
+            draw(in: bounds)
+            tintImage.draw(
+                in: bounds,
+                from: .init(origin: .zero, size: tintImage.size),
+                operation: .sourceAtop,
+                fraction: amount
+            )
+            return true
+        }
+    }
+}
+
+// MARK: - NSView
+
+extension NSView {
+    /// Returns the view's frame, converted to the coordinate system of its window.
+    internal var frameConvertedToWindow: NSRect {
+        superview?.convert(frame, to: nil) ?? frame
     }
 }
