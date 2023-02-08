@@ -264,11 +264,4 @@ extension CGColor: CustomCocoaConvertible {
         source.cgColor
     }
 }
-
-// MARK: - StringProtocol Label
-
-@available(macOS 10.15, *)
-extension StringProtocol {
-    internal var label: Text { .init(self) }
-}
 #endif

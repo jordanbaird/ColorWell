@@ -116,7 +116,7 @@ extension ColorWellView {
     ///   - label: A view that describes the purpose of the color well.
     @available(macOS 11.0, *)
     public init(color: Color, @ViewBuilder label: () -> Label) {
-        self.init(_color: .init(color), _label: label)
+        self.init(_color: NSColor(color), _label: label)
     }
 
     /// Creates a color well with an initial color value, with the provided
@@ -126,7 +126,7 @@ extension ColorWellView {
     ///   - cgColor: The initial value of the color well's color.
     ///   - label: A view that describes the purpose of the color well.
     public init(cgColor: CGColor, @ViewBuilder label: () -> Label) {
-        self.init(_color: .init(cgColor: cgColor), _label: label)
+        self.init(_color: NSColor(cgColor: cgColor), _label: label)
     }
 
     /// Creates a color well with an initial color value, with the provided view
@@ -139,7 +139,7 @@ extension ColorWellView {
     ///   - action: An action to perform when the color well's color changes.
     @available(macOS 11.0, *)
     public init(color: Color, @ViewBuilder label: () -> Label, action: @escaping (Color) -> Void) {
-        self.init(_color: .init(color), _label: label, _action: action)
+        self.init(_color: NSColor(color), _label: label, _action: action)
     }
 
     /// Creates a color well with an initial color value, with the provided view
@@ -157,7 +157,7 @@ extension ColorWellView {
     ///   - label: A view that describes the purpose of the color well.
     ///   - action: An action to perform when the color well's color changes.
     public init(cgColor: CGColor, @ViewBuilder label: () -> Label, action: @escaping (CGColor) -> Void) {
-        self.init(_color: .init(cgColor: cgColor), _label: label, _action: action)
+        self.init(_color: NSColor(cgColor: cgColor), _label: label, _action: action)
     }
 }
 
@@ -168,13 +168,13 @@ extension ColorWellView<Never> {
     /// - Parameter color: The initial value of the color well's color.
     @available(macOS 11.0, *)
     public init(color: Color) {
-        self.init(_color: .init(color), _label: NoLabel())
+        self.init(_color: NSColor(color), _label: NoLabel())
     }
 
     /// Creates a color well with an initial color value.
     /// - Parameter cgColor: The initial value of the color well's color.
     public init(cgColor: CGColor) {
-        self.init(_color: .init(cgColor: cgColor), _label: NoLabel())
+        self.init(_color: NSColor(cgColor: cgColor), _label: NoLabel())
     }
 
     /// Creates a color well with an initial color value, that executes the
@@ -185,7 +185,7 @@ extension ColorWellView<Never> {
     ///   - action: An action to perform when the color well's color changes.
     @available(macOS 11.0, *)
     public init(color: Color, action: @escaping (Color) -> Void) {
-        self.init(_color: .init(color), _label: NoLabel(), _action: action)
+        self.init(_color: NSColor(color), _label: NoLabel(), _action: action)
     }
 
     /// Creates a color well with an initial color value, that executes the
@@ -201,7 +201,7 @@ extension ColorWellView<Never> {
     ///   - cgColor: The initial value of the color well's color.
     ///   - action: An action to perform when the color well's color changes.
     public init(cgColor: CGColor, action: @escaping (CGColor) -> Void) {
-        self.init(_color: .init(cgColor: cgColor), _label: NoLabel(), _action: action)
+        self.init(_color: NSColor(cgColor: cgColor), _label: NoLabel(), _action: action)
     }
 }
 
@@ -216,7 +216,7 @@ extension ColorWellView<Text> {
     ///   - color: The initial value of the color well's color.
     @available(macOS 11.0, *)
     public init<S: StringProtocol>(_ title: S, color: Color) {
-        self.init(_color: .init(color), _label: title.label)
+        self.init(_color: NSColor(color), _label: Text(title))
     }
 
     /// Creates a color well with an initial color value, that generates
@@ -226,7 +226,7 @@ extension ColorWellView<Text> {
     ///   - title: A string that describes the purpose of the color well.
     ///   - cgColor: The initial value of the color well's color.
     public init<S: StringProtocol>(_ title: S, cgColor: CGColor) {
-        self.init(_color: .init(cgColor: cgColor), _label: title.label)
+        self.init(_color: NSColor(cgColor: cgColor), _label: Text(title))
     }
 
     /// Creates a color well that generates its label from a string, and
@@ -236,7 +236,7 @@ extension ColorWellView<Text> {
     ///   - title: A string that describes the purpose of the color well.
     ///   - action: An action to perform when the color well's color changes.
     public init<S: StringProtocol>(_ title: S, action: @escaping (Color) -> Void) {
-        self.init(_label: title.label, _action: action)
+        self.init(_label: Text(title), _action: action)
     }
 
     /// Creates a color well with an initial color value that generates
@@ -249,7 +249,7 @@ extension ColorWellView<Text> {
     ///   - action: An action to perform when the color well's color changes.
     @available(macOS 11.0, *)
     public init<S: StringProtocol>(_ title: S, color: Color, action: @escaping (Color) -> Void) {
-        self.init(_color: .init(color), _label: title.label, _action: action)
+        self.init(_color: NSColor(color), _label: Text(title), _action: action)
     }
 
     /// Creates a color well with an initial color value that generates
@@ -267,7 +267,7 @@ extension ColorWellView<Text> {
     ///   - cgColor: The initial value of the color well's color.
     ///   - action: An action to perform when the color well's color changes.
     public init<S: StringProtocol>(_ title: S, cgColor: CGColor, action: @escaping (CGColor) -> Void) {
-        self.init(_color: .init(cgColor: cgColor), _label: title.label, _action: action)
+        self.init(_color: NSColor(cgColor: cgColor), _label: Text(title), _action: action)
     }
 }
 
