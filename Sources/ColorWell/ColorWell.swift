@@ -353,7 +353,7 @@ public class ColorWell: _ColorWellBaseView {
     ///
     /// - Parameter ciColor: The initial value of the color well's color.
     public convenience init(ciColor: CIColor) {
-        self.init(color: .init(ciColor: ciColor))
+        self.init(color: NSColor(ciColor: ciColor))
     }
 
     #if canImport(SwiftUI)
@@ -362,7 +362,7 @@ public class ColorWell: _ColorWellBaseView {
     /// - Parameter color: The initial value of the color well's color.
     @available(macOS 11.0, *)
     public convenience init(_ color: Color) {
-        self.init(color: .init(color))
+        self.init(color: NSColor(color))
     }
     #endif
 
@@ -647,7 +647,9 @@ internal class ColorWellLayoutView: NSGridView {
     init(colorWell: ColorWell) {
         swatchSegment = .init(colorWell: colorWell)
         toggleSegment = .init(colorWell: colorWell)
+
         super.init(frame: .zero)
+
         wantsLayer = true
         columnSpacing = 0
         xPlacement = .fill
@@ -948,7 +950,7 @@ extension ColorWellSegment {
         if let trackingArea {
             removeTrackingArea(trackingArea)
         }
-        trackingArea = .init(
+        trackingArea = NSTrackingArea(
             rect: bounds,
             options: [
                 .activeInKeyWindow,
@@ -1030,7 +1032,7 @@ extension ToggleSegment {
         let dimension = min(layer.bounds.width, layer.bounds.height) - 5
         let imageLayer = CALayer()
 
-        imageLayer.frame = .init(
+        imageLayer.frame = NSRect(
             x: 0,
             y: 0,
             width: dimension,
@@ -1302,7 +1304,7 @@ extension SwatchSegment {
         /// An image of a downward-facing caret inside of a translucent circle.
         private var caretImage: NSImage {
             let sizeConstant: CGFloat = 12
-            return .init(
+            return NSImage(
                 size: .init(width: sizeConstant, height: sizeConstant),
                 flipped: false
             ) { bounds in
@@ -1518,16 +1520,18 @@ internal class ColorWellPopoverLayoutView: NSGridView {
         colorWell: ColorWell
     ) {
         self.containerView = containerView
+
         let swatchCount = colorWell.swatchColors.count
-        self.maxItemsPerRow = max(4, Int(sqrt(Double(swatchCount)).rounded(.up)))
+        maxItemsPerRow = max(4, Int(sqrt(Double(swatchCount)).rounded(.up)))
 
         super.init(frame: .zero)
+
         rowSpacing = 1
         columnSpacing = 1
 
         let rowCount = Int((Double(swatchCount) / Double(maxItemsPerRow)).rounded(.up))
         swatches = colorWell.swatchColors.map {
-            .init(rowCount: rowCount, color: $0, colorWell: colorWell, layoutView: self)
+            ColorSwatch(rowCount: rowCount, color: $0, colorWell: colorWell, layoutView: self)
         }
 
         for row in makeRows() {
@@ -1662,8 +1666,11 @@ internal class ColorSwatch: NSView {
         self.color = color
         self.colorWell = colorWell
         self.layoutView = layoutView
+
         let size = Self.size(forRowCount: rowCount)
+
         super.init(frame: .init(origin: .zero, size: size))
+
         wantsLayer = true
         translatesAutoresizingMaskIntoConstraints = false
         widthAnchor.constraint(equalToConstant: size.width).isActive = true
@@ -1680,7 +1687,7 @@ internal class ColorSwatch: NSView {
 extension ColorSwatch {
     /// Returns the correct size for a swatch based on the row count that
     /// is passed into it. Bigger row counts result in smaller swatches.
-    static func size(forRowCount rowCount: Int) -> CGSize {
+    static func size(forRowCount rowCount: Int) -> NSSize {
         if rowCount < 6 {
             return .init(width: 37, height: 20)
         } else if rowCount < 10 {
@@ -1750,7 +1757,7 @@ extension ColorSwatch {
         bezelLayer.masksToBounds = false
         bezelLayer.frame = layer.bounds
 
-        bezelLayer.path = .init(
+        bezelLayer.path = CGPath(
             roundedRect: layer.bounds,
             cornerWidth: cornerRadius,
             cornerHeight: cornerRadius,
@@ -1766,7 +1773,7 @@ extension ColorSwatch {
         bezelLayer.shadowOpacity = 0.25
         bezelLayer.shadowOffset = .zero
 
-        bezelLayer.shadowPath = .init(
+        bezelLayer.shadowPath = CGPath(
             roundedRect: layer.bounds.insetBy(dx: borderWidth, dy: borderWidth),
             cornerWidth: cornerRadius,
             cornerHeight: cornerRadius,

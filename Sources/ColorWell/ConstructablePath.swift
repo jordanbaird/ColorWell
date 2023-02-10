@@ -102,7 +102,7 @@ extension Side {
     /// For example, if this side is `top`, its `opposite`
     /// side will be `bottom`.
     var opposite: Self {
-        .init(corners.map { $0.opposite })
+        Self(corners.map { $0.opposite })
     }
 }
 
