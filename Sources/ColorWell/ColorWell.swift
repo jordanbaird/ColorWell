@@ -396,7 +396,7 @@ extension ColorWell {
             NSApp.observe(\.effectiveAppearance) { [weak self] _, _ in
                 self?.needsDisplay = true
             }
-            .store(in: &observations[NSApplication.self])
+            .store(in: &observations[for: NSApplication.self])
         }
 
         canSynchronizeColorPanel = true
@@ -436,7 +436,7 @@ extension ColorWell {
 
     /// Removes all observations for the color panel.
     private func removeColorPanelObservations() {
-        observations[NSColorPanel.self].removeAll()
+        observations[for: NSColorPanel.self].removeAll()
     }
 
     /// Creates a series of key-value observations that work to keep
@@ -454,7 +454,7 @@ extension ColorWell {
                 colorWell.color = newValue
             }
         }
-        .store(in: &observations[NSColorPanel.self])
+        .store(in: &observations[for: NSColorPanel.self])
 
         colorPanel.observe(\.isVisible, options: .new) { [weak self] _, change in
             guard
@@ -467,7 +467,7 @@ extension ColorWell {
                 self.deactivate()
             }
         }
-        .store(in: &observations[NSColorPanel.self])
+        .store(in: &observations[for: NSColorPanel.self])
     }
 }
 

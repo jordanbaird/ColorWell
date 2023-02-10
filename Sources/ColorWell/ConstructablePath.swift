@@ -177,20 +177,6 @@ extension ConstructablePathComponent {
             .arc(through: mid, to: end, radius: radius),
         ]
     }
-
-    /// Returns a Boolean value that indicates whether this component is equal to, or
-    /// (if this component is a `compound(_:)` component) whether its nested components
-    /// contain the given component.
-    func contains(_ other: Self) -> Bool {
-        switch self {
-        case .compound(let components):
-            return components.contains {
-                $0.contains(other)
-            }
-        default:
-            return other == self
-        }
-    }
 }
 
 // MARK: ConstructablePathComponent: Equatable
@@ -251,11 +237,11 @@ extension ConstructablePath {
     ///   - corners: The corners that should be drawn with sharp right
     ///     angles. Corners not provided here will be rounded.
     internal static func colorWellPath(rect: CGRect, squaredCorners corners: [Corner] = []) -> Constructed {
-        var components: [ConstructablePathComponent] = Corner.clockwiseOrder.map {
-            if corners.contains($0) {
-                return .line(to: $0.point(forRect: rect))
+        var components: [ConstructablePathComponent] = Corner.clockwiseOrder.map { corner in
+            if corners.contains(corner) {
+                return .line(to: corner.point(forRect: rect))
             }
-            return .rightAngleCurve(around: $0, ofRect: rect, radius: 5.5)
+            return .rightAngleCurve(around: corner, ofRect: rect, radius: 5.5)
         }
         components.append(.close)
         return .construct(with: components)

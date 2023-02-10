@@ -9,18 +9,18 @@ import Cocoa
 // MARK: - CGPoint
 
 extension CGPoint {
-    /// Returns a new point resulting from a translation of the current point.
+    /// Returns a new point resulting from a translation of the current
+    /// point by the given x and y amounts.
     internal func translating(x: CGFloat = 0, y: CGFloat = 0) -> Self {
-        applying(.init(translationX: x, y: y))
+        applying(CGAffineTransform(translationX: x, y: y))
     }
 }
 
 // MARK: - CGRect
 
 extension CGRect {
-    /// Centers the current rectangle within the bounds of another rectangle.
-    ///
-    /// - Parameter otherRect: The rectangle to center the current rectangle in.
+    /// Returns a rectangle that is the result of centering the current
+    /// rectangle within the bounds of another rectangle.
     internal func centered(in otherRect: Self) -> Self {
         var new = self
         new.origin.x = otherRect.midX - (new.width / 2)
@@ -37,7 +37,7 @@ extension Dictionary where Key == ObjectIdentifier, Value: ExpressibleByArrayLit
     ///
     /// In the event that no value is stored for `type`, an empty value
     /// will be created and returned.
-    internal subscript<T>(type: T.Type) -> Value {
+    internal subscript<T>(for type: T.Type) -> Value {
         get { self[ObjectIdentifier(type), default: []] }
         set { self[ObjectIdentifier(type)] = newValue }
     }
@@ -154,83 +154,10 @@ extension NSColor {
         self.init(srgbRed: rFloat, green: gFloat, blue: bFloat, alpha: aFloat)
     }
 
-    /// Returns a basic description of the color, alongside the components for
-    /// the color's current color space.
-    private func extractSimpleDescriptionAndComponents() -> (description: String, components: [Double]) {
-        switch colorSpace.colorSpaceModel {
-        case .rgb:
-            return ("rgb", [
-                redComponent,
-                greenComponent,
-                blueComponent,
-                alphaComponent,
-            ])
-        case .cmyk:
-            return ("cmyk", [
-                cyanComponent,
-                magentaComponent,
-                yellowComponent,
-                blackComponent,
-                alphaComponent,
-            ])
-        case .deviceN:
-            return ("deviceN", [])
-        case .gray:
-            return ("grayscale", [
-                whiteComponent,
-                alphaComponent,
-            ])
-        case .indexed:
-            return ("indexed", [])
-        case .lab:
-            return ("L*a*b*", [])
-        case .patterned:
-            return ("pattern", [])
-        case .unknown:
-            break
-        @unknown default:
-            break
-        }
-        return ("\(self)", [])
-    }
-
     /// Creates a value containing a description of the color, for use with
     /// accessibility features.
     internal func createAccessibilityValue() -> String {
-        switch type {
-        case .componentBased:
-            let extracted = extractSimpleDescriptionAndComponents()
-
-            guard
-                !extracted.components.isEmpty,
-                extracted.components.count == numberOfComponents
-            else {
-                // Returning a generic description is the best we can do.
-                // Example: "rgb color"
-                return "\(extracted.description) color"
-            }
-
-            let results = [extracted.description] + extracted.components.map {
-                var string = String($0)
-                while
-                    string.count > 1,
-                    string.count > 8 || string.last == "0" || string.last == "."
-                {
-                    string.removeLast()
-                }
-                assert(!string.isEmpty, "String should not be empty.")
-                return string
-            }
-
-            return results.joined(separator: " ")
-        case .catalog:
-            return "catalog color \(localizedColorNameComponent)"
-        case .pattern:
-            return "pattern"
-        @unknown default:
-            break
-        }
-        return "\(self)"
+        ComponentFormatter(color: self).string ?? ""
     }
 
     /// Returns a Boolean value that indicates whether this color resembles another
@@ -330,7 +257,8 @@ extension NSColor {
 // MARK: - NSColorPanel
 
 extension NSColorPanel {
-    private static let storage = Storage(Set<ColorWell>.self)
+    /// Backing storage for the `activeColorWells` instance property.
+    private static let storage = Storage<Set<ColorWell>>()
 
     /// The color wells that are currently active and share this color panel.
     internal var activeColorWells: Set<ColorWell> {
@@ -459,14 +387,14 @@ extension NSKeyValueObservation {
     /// Stores this key-value observation in the specified collection.
     ///
     /// - Parameter collection: The collection in which to store this observation.
-    func store<C: RangeReplaceableCollection<NSKeyValueObservation>>(in collection: inout C) {
+    internal func store<C: RangeReplaceableCollection<NSKeyValueObservation>>(in collection: inout C) {
         collection.append(self)
     }
 
     /// Stores this key-value observation in the specified set.
     ///
     /// - Parameter set: The set in which to store this observation.
-    func store(in set: inout Set<NSKeyValueObservation>) {
+    internal func store(in set: inout Set<NSKeyValueObservation>) {
         set.insert(self)
     }
 }

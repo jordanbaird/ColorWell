@@ -190,6 +190,113 @@ extension AssociationPolicy {
     }
 }
 
+// MARK: - ComponentFormatter
+
+/// A specialized number formatter that formats the components of
+/// a color for display as an accessibility value.
+internal struct ComponentFormatter {
+    /// The color that is formatted by this formatter.
+    let color: NSColor
+
+    /// Returns a basic description of the formatter's color,
+    /// alongside the components for the color's current color space.
+    private var simpleDescriptionAndComponents: (description: String, components: [Double]) {
+        switch color.colorSpace.colorSpaceModel {
+        case .rgb:
+            return ("rgb", [
+                color.redComponent,
+                color.greenComponent,
+                color.blueComponent,
+                color.alphaComponent,
+            ])
+        case .cmyk:
+            return ("cmyk", [
+                color.cyanComponent,
+                color.magentaComponent,
+                color.yellowComponent,
+                color.blackComponent,
+                color.alphaComponent,
+            ])
+        case .deviceN:
+            return ("deviceN", [])
+        case .gray:
+            return ("grayscale", [
+                color.whiteComponent,
+                color.alphaComponent,
+            ])
+        case .indexed:
+            return ("indexed", [])
+        case .lab:
+            return ("L*a*b*", [])
+        case .patterned:
+            return ("pattern", [])
+        case .unknown:
+            break
+        @unknown default:
+            break
+        }
+        return ("\(color)", [])
+    }
+
+    /// Returns a string containing a description of the formatter's
+    /// color, for use with accessibility features.
+    var string: String? {
+        switch color.type {
+        case .componentBased:
+            let extracted = simpleDescriptionAndComponents
+
+            guard
+                !extracted.components.isEmpty,
+                extracted.components.count == color.numberOfComponents
+            else {
+                // Returning a generic description is the best we can do.
+                // Example: "rgb color"
+                return "\(extracted.description) color"
+            }
+
+            let fmt = NumberFormatter()
+            fmt.locale = Locale(identifier: "en_US_POSIX")
+            fmt.minimumIntegerDigits = 1
+            fmt.minimumFractionDigits = 0
+            fmt.maximumFractionDigits = 6
+            fmt.nilSymbol = NilSentinel.nilSymbol
+
+            var results = [extracted.description]
+
+            for component in extracted.components {
+                guard
+                    let string = fmt.string(for: component),
+                    string != NilSentinel.nilSymbol
+                else {
+                    return nil
+                }
+                results.append(string)
+            }
+
+            return results.joined(separator: " ")
+        case .catalog:
+            return "catalog color \(color.localizedColorNameComponent)"
+        case .pattern:
+            return "pattern"
+        @unknown default:
+            break
+        }
+        return "\(color)"
+    }
+}
+
+// MARK: - ComponentFormatter NilSentinel
+
+extension ComponentFormatter {
+    /// A type that serves as the base for a sentinel value indicating
+    /// that a component formatter's underlying number formatter produced
+    /// a `nil` string.
+    private enum NilSentinel {
+        /// The sentinel value produced by this type.
+        static let nilSymbol = "\(Self.self)(" + String(ObjectIdentifier(Self.self).hashValue) + ")"
+    }
+}
+
 // MARK: - SwiftUI Utilities
 
 #if canImport(SwiftUI)
