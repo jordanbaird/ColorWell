@@ -16,16 +16,17 @@ import SwiftUI
 internal struct Counter {
     /// A pointer containing the counter's value.
     ///
-    /// We use a pointer, rather than an integer to avoid having to declare
-    /// counters as `var`.
-    private let pointer: UnsafeMutablePointer<Int> = {
-        let pointer = UnsafeMutablePointer<Int>.allocate(capacity: 1)
-        pointer.pointee = 0
-        return pointer
-    }()
+    /// We use a pointer, rather than a plain integer to avoid the use of
+    /// mutable counters (accidental reassignment of a counter variable
+    /// would invalidate all of its previous and future values). We could
+    /// make `Counter` a class instead of a struct, but we want it to be
+    /// as lightweight as possible.
+    private let pointer = UnsafeMutablePointer<Int>.allocate(capacity: 1)
 
     /// Creates a counter initialized to `0`.
-    init() { }
+    init() {
+        pointer.initialize(to: 0)
+    }
 
     /// Returns the current value and increments the counter.
     func bump() -> Int {
@@ -38,13 +39,14 @@ internal struct Counter {
 
 // MARK: - ComparableID
 
-/// An identifier type that can be compared by order of creation.
+/// A unique identifier that can be compared by order of creation.
 ///
-/// For identifiers `id1` and `id2`, `id1 < id2` if `id1` was created first.
+/// For identifiers `id1` and `id2`, `id1 < id2` if `id1` was created
+/// first.
 internal struct ComparableID {
     private static let counter = Counter()
 
-    private let root = UUID()
+    private let uuid = UUID()
     private let count = counter.bump()
 
     /// Creates a unique identifier that can be compared with other
@@ -94,7 +96,7 @@ internal struct ChangeHandler {
     ///
     /// - Parameter handler: A closure to store for later execution.
     init(handler: @escaping (NSColor) -> Void) {
-        self.init(id: .init(), handler: handler)
+        self.init(id: ComparableID(), handler: handler)
     }
 
     /// Invokes the closure that is stored by this instance, passing the
@@ -168,23 +170,23 @@ internal struct AssociationPolicy {
 extension AssociationPolicy {
     /// A weak reference to the associated object.
     static var assign: Self {
-        .init(.OBJC_ASSOCIATION_ASSIGN)
+        Self(.OBJC_ASSOCIATION_ASSIGN)
     }
 
     /// The associated object is copied.
     static func copy(_ isAtomic: Bool) -> Self {
         guard isAtomic else {
-            return .init(.OBJC_ASSOCIATION_COPY_NONATOMIC)
+            return Self(.OBJC_ASSOCIATION_COPY_NONATOMIC)
         }
-        return .init(.OBJC_ASSOCIATION_COPY)
+        return Self(.OBJC_ASSOCIATION_COPY)
     }
 
     /// A strong reference to the associated object.
     static func retain(_ isAtomic: Bool) -> Self {
         guard isAtomic else {
-            return .init(.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            return Self(.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
-        return .init(.OBJC_ASSOCIATION_RETAIN)
+        return Self(.OBJC_ASSOCIATION_RETAIN)
     }
 }
 
@@ -211,11 +213,11 @@ internal struct ViewConstructor<Content: View>: View {
     }
 
     func with<Modified: View>(@ViewBuilder _ block: (Content) -> Modified) -> ViewConstructor<Modified> {
-        .init(content: block(content))
+        ViewConstructor<Modified>(content: block(content))
     }
 
     func erased() -> AnyViewConstructor {
-        .init(base: self)
+        AnyViewConstructor(base: self)
     }
 }
 
@@ -234,7 +236,7 @@ internal struct AnyViewConstructor: View {
     }
 
     init<Content: View>(@ViewBuilder content: () -> Content) {
-        self.init(base: .init(content: content))
+        self.init(base: ViewConstructor(content: content))
     }
 
     init<Content: View>(content: @autoclosure () -> Content) {
@@ -254,7 +256,7 @@ internal protocol CustomCocoaConvertible<CocoaType, Converted> {
 @available(macOS 10.15, *)
 extension Color: CustomCocoaConvertible {
     internal static func converted(from source: NSColor) -> Self {
-        .init(source)
+        Self(source)
     }
 }
 

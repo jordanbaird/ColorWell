@@ -398,11 +398,7 @@ extension NSImage {
     ///
     /// Basically, this method uses `NSColor`'s `drawSwatch(in:)` method
     /// to draw an image, then clips the image instead of the swatch path.
-    internal static func drawSwatch(
-        with color: NSColor,
-        in rect: NSRect,
-        clippingTo clippingPath: NSBezierPath? = nil
-    ) {
+    internal static func drawSwatch(with color: NSColor, in rect: NSRect, clippingTo clippingPath: NSBezierPath? = nil) {
         NSGraphicsContext.withCachedGraphicsState {
             clippingPath?.addClip()
             NSImage(color: color, size: rect.size).draw(in: rect)
@@ -420,10 +416,10 @@ extension NSImage {
             size: .init(width: insetDimension, height: insetDimension)
         ).centered(in: originalFrame)
 
-        return NSImage(size: insetFrame.size, flipped: false) { [self] bounds in
+        return NSImage(size: insetFrame.size, flipped: false) { bounds in
             let destFrame = NSRect(origin: .zero, size: bounds.size)
             NSBezierPath(ovalIn: destFrame).setClip()
-            draw(in: destFrame, from: insetFrame, operation: .copy, fraction: 1)
+            self.draw(in: destFrame, from: insetFrame, operation: .copy, fraction: 1)
             return true
         }
     }
@@ -434,16 +430,18 @@ extension NSImage {
             return self
         }
         let tintImage = NSImage(size: size, flipped: false) { bounds in
-            guard let context = NSGraphicsContext.current?.cgContext else {
-                return false
+            NSGraphicsContext.withCachedGraphicsState { context in
+                guard let cgContext = context?.cgContext else {
+                    return false
+                }
+                color.setFill()
+                cgContext.clip(to: bounds, mask: cgImage)
+                cgContext.fill(bounds)
+                return true
             }
-            color.setFill()
-            context.clip(to: bounds, mask: cgImage)
-            context.fill(bounds)
-            return true
         }
-        return NSImage(size: size, flipped: false) { [self] bounds in
-            draw(in: bounds)
+        return NSImage(size: size, flipped: false) { bounds in
+            self.draw(in: bounds)
             tintImage.draw(
                 in: bounds,
                 from: .init(origin: .zero, size: tintImage.size),

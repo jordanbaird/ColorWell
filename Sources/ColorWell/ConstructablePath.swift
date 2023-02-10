@@ -152,25 +152,22 @@ extension ConstructablePathComponent {
     /// Returns a compound component that constructs a right angle curve around
     /// the given corner of the provided rectangle, using the provided radius and inset.
     static func rightAngleCurve(around corner: Corner, ofRect rect: CGRect, radius: CGFloat) -> Self {
-        let mid: CGPoint
+        let mid = corner.point(forRect: rect)
+
         let start: CGPoint
         let end: CGPoint
 
         switch corner {
         case .topLeft:
-            mid = corner.point(forRect: rect)
             start = mid.translating(y: -radius)
             end = mid.translating(x: radius)
         case .topRight:
-            mid = corner.point(forRect: rect)
             start = mid.translating(x: -radius)
             end = mid.translating(y: -radius)
         case .bottomRight:
-            mid = corner.point(forRect: rect)
             start = mid.translating(y: radius)
             end = mid.translating(x: -radius)
         case .bottomLeft:
-            mid = corner.point(forRect: rect)
             start = mid.translating(x: radius)
             end = mid.translating(y: radius)
         }
@@ -253,10 +250,7 @@ extension ConstructablePath {
     ///   - rect: The rectangle to draw the path in.
     ///   - corners: The corners that should be drawn with sharp right
     ///     angles. Corners not provided here will be rounded.
-    internal static func colorWellPath(
-        rect: CGRect,
-        squaredCorners corners: [Corner] = []
-    ) -> Constructed {
+    internal static func colorWellPath(rect: CGRect, squaredCorners corners: [Corner] = []) -> Constructed {
         var components: [ConstructablePathComponent] = Corner.clockwiseOrder.map {
             if corners.contains($0) {
                 return .line(to: $0.point(forRect: rect))
