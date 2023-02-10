@@ -453,6 +453,24 @@ extension NSImage {
     }
 }
 
+// MARK: - NSKeyValueObservation
+
+extension NSKeyValueObservation {
+    /// Stores this key-value observation in the specified collection.
+    ///
+    /// - Parameter collection: The collection in which to store this observation.
+    func store<C: RangeReplaceableCollection<NSKeyValueObservation>>(in collection: inout C) {
+        collection.append(self)
+    }
+
+    /// Stores this key-value observation in the specified set.
+    ///
+    /// - Parameter set: The set in which to store this observation.
+    func store(in set: inout Set<NSKeyValueObservation>) {
+        set.insert(self)
+    }
+}
+
 // MARK: - NSView
 
 extension NSView {

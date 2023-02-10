@@ -393,11 +393,10 @@ extension ColorWell {
         self.color = color
 
         if #available(macOS 10.14, *) {
-            observations[NSApplication.self].insert(NSApp.observe(
-                \.effectiveAppearance
-            ) { [weak self] _, _ in
+            NSApp.observe(\.effectiveAppearance) { [weak self] _, _ in
                 self?.needsDisplay = true
-            })
+            }
+            .store(in: &observations[NSApplication.self])
         }
 
         canSynchronizeColorPanel = true
@@ -435,38 +434,40 @@ extension ColorWell {
         }
     }
 
+    /// Removes all observations for the color panel.
+    private func removeColorPanelObservations() {
+        observations[NSColorPanel.self].removeAll()
+    }
+
     /// Creates a series of key-value observations that work to keep
     /// the various aspects of the color well and its color panel in
     /// sync.
     private func setUpColorPanelObservations() {
-        observations[NSColorPanel.self] = [
-            colorPanel.observe(\.color, options: .new) { colorPanel, change in
-                guard let newValue = change.newValue else {
-                    return
-                }
-                // ???: Should every active color well be updated, even if their color already matches?
-                for colorWell in colorPanel.activeColorWells where colorWell.color != newValue {
-                    colorWell.color = newValue
-                }
-            },
+        removeColorPanelObservations()
 
-            colorPanel.observe(\.isVisible, options: .new) { [weak self] _, change in
-                guard
-                    let self,
-                    let newValue = change.newValue
-                else {
-                    return
-                }
-                if !newValue {
-                    self.deactivate()
-                }
-            },
-        ]
-    }
+        colorPanel.observe(\.color, options: .new) { colorPanel, change in
+            guard let newValue = change.newValue else {
+                return
+            }
+            // ???: Should every active color well be updated, even if their color already matches?
+            for colorWell in colorPanel.activeColorWells where colorWell.color != newValue {
+                colorWell.color = newValue
+            }
+        }
+        .store(in: &observations[NSColorPanel.self])
 
-    /// Removes all observations for the color panel.
-    private func removeColorPanelObservations() {
-        observations[NSColorPanel.self].removeAll()
+        colorPanel.observe(\.isVisible, options: .new) { [weak self] _, change in
+            guard
+                let self,
+                let newValue = change.newValue
+            else {
+                return
+            }
+            if !newValue {
+                self.deactivate()
+            }
+        }
+        .store(in: &observations[NSColorPanel.self])
     }
 }
 
