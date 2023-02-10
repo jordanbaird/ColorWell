@@ -11,16 +11,16 @@ import SwiftUI
 
 // MARK: - Counter
 
-/// A counter type that must be incremented in order for its value to be
-/// accessed, ensuring an accurate count.
+/// A counter type whose value is incremented on access.
 internal struct Counter {
-    /// A pointer containing the counter's value.
+    /// A pointer to the counter's value.
     ///
-    /// We use a pointer, rather than a plain integer to avoid the use of
-    /// mutable counters (accidental reassignment of a counter variable
-    /// would invalidate all of its previous and future values). We could
-    /// make `Counter` a class instead of a struct, but we want it to be
-    /// as lightweight as possible.
+    /// We use a pointer instead of an integer to avoid the use of
+    /// mutable counters (accidental reassignment would invalidate
+    /// all previous and future values).
+    ///
+    /// Using a class instead of a struct would accomplish the same
+    /// thing, but we want to keep things as lightweight as possible.
     private let pointer = UnsafeMutablePointer<Int>.allocate(capacity: 1)
 
     /// Creates a counter initialized to `0`.
@@ -246,9 +246,21 @@ internal struct AnyViewConstructor: View {
 
 // MARK: - CustomCocoaConvertible
 
+/// A type that can be converted from an equivalent type
+/// in the `Cocoa` framework.
 internal protocol CustomCocoaConvertible<CocoaType, Converted> {
+    /// This type's equivalent type in the `Cocoa` framework.
     associatedtype CocoaType: NSObject
+
+    /// The `CustomCocoaConvertible` type that is created from
+    /// this type's `CocoaType`.
+    ///
+    /// This type defaults to `Self`, but can be redefined for
+    /// semantic reasons.
     associatedtype Converted: CustomCocoaConvertible = Self
+
+    /// Converts an instance of this type's `CocoaType` to an
+    /// instance of this type's `Converted` type.
     static func converted(from source: CocoaType) -> Converted
 }
 
