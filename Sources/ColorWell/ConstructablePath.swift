@@ -9,7 +9,7 @@ import Cocoa
 // MARK: - Corner
 
 /// A type that represents a corner of a rectangle.
-internal enum Corner: CaseIterable {
+internal enum Corner {
     /// The top left corner of a rectangle.
     case topLeft
 
@@ -30,6 +30,7 @@ internal enum Corner: CaseIterable {
     static let clockwiseOrder: [Self] = [.topLeft, .topRight, .bottomRight, .bottomLeft]
 }
 
+// MARK: Corner Helpers
 extension Corner {
     /// The corner at the opposite end of the rectangle from this corner.
     ///
@@ -52,16 +53,18 @@ extension Corner {
     func point(forRect rect: CGRect) -> CGPoint {
         switch self {
         case .topLeft:
-            return rect.topLeft
+            return CGPoint(x: rect.minX, y: rect.maxY)
         case .topRight:
-            return rect.topRight
+            return CGPoint(x: rect.maxX, y: rect.maxY)
         case .bottomLeft:
-            return rect.bottomLeft
+            return CGPoint(x: rect.minX, y: rect.minY)
         case .bottomRight:
-            return rect.bottomRight
+            return CGPoint(x: rect.maxX, y: rect.minY)
         }
     }
 }
+
+// MARK: - Side
 
 /// A type that represents a side of a rectangle.
 internal struct Side {
@@ -74,6 +77,7 @@ internal struct Side {
     }
 }
 
+// MARK: Side Static Members
 extension Side {
     /// The top side of a rectangle.
     static let top = Self([.topLeft, .topRight])
@@ -91,6 +95,7 @@ extension Side {
     static let null = Self([])
 }
 
+// MARK: Side Helpers
 extension Side {
     /// The side on the opposite end of the rectangle.
     ///
@@ -147,27 +152,27 @@ extension ConstructablePathComponent {
     /// Returns a compound component that constructs a right angle curve around
     /// the given corner of the provided rectangle, using the provided radius and inset.
     static func rightAngleCurve(around corner: Corner, ofRect rect: CGRect, radius: CGFloat) -> Self {
-        let start: CGPoint
         let mid: CGPoint
+        let start: CGPoint
         let end: CGPoint
 
         switch corner {
         case .topLeft:
-            start = rect.topLeft.translating(y: -radius)
-            mid = rect.topLeft
-            end = rect.topLeft.translating(x: radius)
+            mid = corner.point(forRect: rect)
+            start = mid.translating(y: -radius)
+            end = mid.translating(x: radius)
         case .topRight:
-            start = rect.topRight.translating(x: -radius)
-            mid = rect.topRight
-            end = rect.topRight.translating(y: -radius)
+            mid = corner.point(forRect: rect)
+            start = mid.translating(x: -radius)
+            end = mid.translating(y: -radius)
         case .bottomRight:
-            start = rect.bottomRight.translating(y: radius)
-            mid = rect.bottomRight
-            end = rect.bottomRight.translating(x: -radius)
+            mid = corner.point(forRect: rect)
+            start = mid.translating(y: radius)
+            end = mid.translating(x: -radius)
         case .bottomLeft:
-            start = rect.bottomLeft.translating(x: radius)
-            mid = rect.bottomLeft
-            end = rect.bottomLeft.translating(y: radius)
+            mid = corner.point(forRect: rect)
+            start = mid.translating(x: radius)
+            end = mid.translating(y: radius)
         }
 
         return [
@@ -191,8 +196,10 @@ extension ConstructablePathComponent {
     }
 }
 
+// MARK: ConstructablePathComponent: Equatable
 extension ConstructablePathComponent: Equatable { }
 
+// MARK: ConstructablePathComponent: ExpressibleByArrayLiteral
 extension ConstructablePathComponent: ExpressibleByArrayLiteral {
     init(arrayLiteral elements: Self...) {
         self = .compound(elements)
@@ -238,9 +245,7 @@ extension ConstructablePath {
     }
 }
 
-// MARK: - ConstructablePath Helpers
-
-// MARK: ConstructablePath Color Well Path
+// MARK: ConstructablePath Helpers
 extension ConstructablePath {
     /// Produces a path for a part of a color well.
     ///
@@ -261,10 +266,7 @@ extension ConstructablePath {
         components.append(.close)
         return .construct(with: components)
     }
-}
 
-// MARK: ConstructablePath Color Well Segment
-extension ConstructablePath {
     /// Produces a color well segment path for the specified side of
     /// a rectangle.
     ///
@@ -292,7 +294,7 @@ internal protocol MutableConstructablePath<Constructed, MutablePath>: Constructa
 
 // MARK: - Implementations
 
-// MARK: NSBezierPath MutableConstructablePath
+// MARK: NSBezierPath: MutableConstructablePath
 extension NSBezierPath: MutableConstructablePath {
     internal typealias MutablePath = NSBezierPath
 
@@ -328,7 +330,7 @@ extension NSBezierPath: MutableConstructablePath {
     }
 }
 
-// MARK: CGMutablePath MutableConstructablePath
+// MARK: CGMutablePath: MutableConstructablePath
 extension CGMutablePath: MutableConstructablePath {
     internal func apply(_ component: ConstructablePathComponent) {
         switch component {
@@ -362,7 +364,7 @@ extension CGMutablePath: MutableConstructablePath {
     }
 }
 
-// MARK: CGPath ConstructablePath
+// MARK: CGPath: ConstructablePath
 extension CGPath: ConstructablePath {
     internal typealias MutablePath = CGMutablePath
 }
