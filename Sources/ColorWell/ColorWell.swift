@@ -78,11 +78,11 @@ extension _ColorWellBaseView {
 // MARK: _ColorWellBaseView Overrides
 extension _ColorWellBaseView {
     public override var alignmentRectInsets: NSEdgeInsets {
-        .init(top: 2, left: 3, bottom: 2, right: 3)
+        NSEdgeInsets(top: 2, left: 3, bottom: 2, right: 3)
     }
 
     public override var intrinsicContentSize: NSSize {
-        Self.defaultFrame.size
+        Self.defaultFrame.size.applying(alignmentRectInsets)
     }
 
     public override func updateLayer() {
@@ -764,7 +764,7 @@ internal class ColorWellSegment: NSView {
     }
 
     /// The default fill color of the segment.
-    var defaultFillColor: NSColor { .buttonColor }
+    var defaultFillColor: NSColor { .controlColor }
 
     /// The unaltered fill color of the segment. Setting this value
     /// automatically redraws the segment.
@@ -813,10 +813,12 @@ internal class ColorWellSegment: NSView {
     /// being highlighted.
     @objc dynamic
     func drawHighlightIndicator() {
-        if #available(macOS 10.14, *) {
-            fillColor = defaultFillColor.withSystemEffect(.rollover)
-        } else if let blendedColor = defaultFillColor.blended(withFraction: 0.25, of: .black) {
-            fillColor = blendedColor
+        if NSApp.effectiveAppearanceIsDarkAppearance {
+            fillColor = defaultFillColor.withAlphaComponent(defaultFillColor.alphaComponent + 0.1)
+        } else if let blended = defaultFillColor.blended(withFraction: 0.5, of: .selectedControlColor) {
+            fillColor = blended
+        } else {
+            fillColor = .selectedControlColor
         }
     }
 
@@ -831,18 +833,10 @@ internal class ColorWellSegment: NSView {
     /// being pressed.
     @objc dynamic
     func drawPressedIndicator() {
-        if #available(macOS 10.14, *) {
-            switch NSColor.currentControlTint {
-            case .graphiteControlTint:
-                // The graphite control color is almost indistinguishable
-                // from the button color, so give it a "pressed" effect to
-                // make it more pronounced.
-                fillColor = .controlAccentColor.withSystemEffect(.pressed)
-            default:
-                fillColor = .controlAccentColor
-            }
-        } else if let blendedColor = fillColor.blended(withFraction: 0.25, of: .white) {
-            fillColor = blendedColor
+        if NSApp.effectiveAppearanceIsDarkAppearance {
+            fillColor = defaultFillColor.withAlphaComponent(defaultFillColor.alphaComponent + 0.25)
+        } else {
+            fillColor = .selectedControlColor
         }
     }
 
@@ -1000,6 +994,8 @@ extension ColorWellSegment {
 internal class ToggleSegment: ColorWellSegment {
     private var imageLayer: CALayer?
 
+    private var shadowLayer: CALayer?
+
     override var side: Side { .right }
 
     override init(colorWell: ColorWell) {
@@ -1027,10 +1023,12 @@ extension ToggleSegment {
         var image = NSImage(named: NSImage.touchBarColorPickerFillName)!
 
         if state == .highlight {
-            image = image.tinted(to: .white, amount: 0.33)
+            image = NSApp.effectiveAppearanceIsDarkAppearance
+            ? image.tinted(to: .white, amount: 0.33)
+            : image.tinted(to: .black, amount: 0.2)
         }
 
-        let dimension = min(layer.bounds.width, layer.bounds.height) - 5
+        let dimension = min(layer.bounds.width, layer.bounds.height) - 5.5
         let imageLayer = CALayer()
 
         imageLayer.frame = NSRect(
@@ -1048,6 +1046,31 @@ extension ToggleSegment {
         layer.addSublayer(imageLayer)
         self.imageLayer = imageLayer
     }
+
+    private func setShadowLayer() {
+        shadowLayer?.removeFromSuperlayer()
+
+        wantsLayer = true
+        guard let layer else {
+            return
+        }
+
+        let shadowLayer = CAShapeLayer()
+        shadowLayer.path = .colorWellSegment(
+            rect: bounds.insetBy(dx: -0.5, dy: -0.5),
+            side: side
+        )
+        shadowLayer.masksToBounds = false
+
+        shadowLayer.fillColor = .clear
+        shadowLayer.strokeColor = NSColor.shadowColor.cgColor
+        shadowLayer.lineWidth = 0.5
+        shadowLayer.opacity = 0.2
+
+        layer.masksToBounds = false
+        layer.addSublayer(shadowLayer)
+        self.shadowLayer = shadowLayer
+    }
 }
 
 // MARK: ToggleSegment Overrides
@@ -1055,6 +1078,7 @@ extension ToggleSegment {
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
         setImageLayer(clip: true)
+        setShadowLayer()
     }
 
     override func performAction() {
@@ -1650,7 +1674,7 @@ internal class ColorSwatch: NSView {
     /// The computed border color of the swatch, created based on its
     /// current color.
     private var borderColor: CGColor {
-        .init(gray: (1 - color.averageBrightness) / 4, alpha: 0.15)
+        CGColor(gray: (1 - color.averageBrightness) / 4, alpha: 0.15)
     }
 
     /// The computed bezel color of the swatch.
@@ -1702,9 +1726,7 @@ extension ColorSwatch {
 extension ColorSwatch {
     /// Returns all swatches in the layout view that match the given
     /// conditions.
-    private func swatches(
-        matching conditions: any Collection<(ColorSwatch) -> Bool>
-    ) -> [ColorSwatch] {
+    private func swatches(matching conditions: any Collection<(ColorSwatch) -> Bool>) -> [ColorSwatch] {
         guard let layoutView else {
             return []
         }

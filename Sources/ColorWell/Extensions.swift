@@ -29,6 +29,19 @@ extension CGRect {
     }
 }
 
+// MARK: - CGSize
+
+extension CGSize {
+    /// Returns the size that is the result of subtracting the specified
+    /// edge insets from the current size.
+    internal func applying(_ insets: NSEdgeInsets) -> Self {
+        Self(
+            width: width - insets.horizontal,
+            height: height - insets.vertical
+        )
+    }
+}
+
 // MARK: - Dictionary (Key == ObjectIdentifier, Value: ExpressibleByArrayLiteral)
 
 extension Dictionary where Key == ObjectIdentifier, Value: ExpressibleByArrayLiteral {
@@ -85,11 +98,6 @@ extension NSApplication {
 // MARK: - NSColor
 
 extension NSColor {
-    /// The module-defined color for buttons and other, similar controls.
-    internal static var buttonColor: NSColor {
-        NSColor(named: "ButtonColor", bundle: .module)!
-    }
-
     /// The current color, using the `sRGB` color space.
     internal var sRGB: NSColor? {
         usingColorSpace(.sRGB)
@@ -272,6 +280,20 @@ extension NSColorPanel {
                 Self.storage[self] = newValue
             }
         }
+    }
+}
+
+// MARK: - NSEdgeInsets
+
+extension NSEdgeInsets {
+    /// The combined left and right insets of this instance.
+    internal var horizontal: Double {
+        left + right
+    }
+
+    /// The combined top and bottom insets of this instance.
+    internal var vertical: Double {
+        top + bottom
     }
 }
 
