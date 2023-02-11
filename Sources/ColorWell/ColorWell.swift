@@ -84,18 +84,6 @@ extension _ColorWellBaseView {
     public override var intrinsicContentSize: NSSize {
         Self.defaultFrame.size.applying(alignmentRectInsets)
     }
-
-    public override func updateLayer() {
-        let shadow = NSShadow()
-        if NSApp.effectiveAppearanceIsDarkAppearance {
-            shadow.shadowBlurRadius = Self.lineWidth / 2
-            shadow.shadowColor = .shadowColor.withAlphaComponent(0.67)
-        } else {
-            shadow.shadowBlurRadius = Self.lineWidth
-            shadow.shadowColor = .shadowColor.withAlphaComponent(0.5)
-        }
-        self.shadow = shadow
-    }
 }
 
 // MARK: _ColorWellBaseView Accessibility
@@ -710,6 +698,8 @@ extension ColorWellLayoutView {
 internal class ColorWellSegment: NSView {
     weak var colorWell: ColorWell?
 
+    private var shadowLayer: CALayer?
+
     private var trackingArea: NSTrackingArea?
 
     /// The accumulated offset of the current series of dragging events.
@@ -790,6 +780,7 @@ internal class ColorWellSegment: NSView {
     init(colorWell: ColorWell) {
         super.init(frame: .zero)
         self.colorWell = colorWell
+        wantsLayer = true
     }
 
     @available(*, unavailable)
@@ -868,6 +859,48 @@ extension ColorWellSegment {
     func defaultPath(for rect: NSRect) -> NSBezierPath {
         .colorWellSegment(rect: rect, side: side)
     }
+
+    func addShadowLayer(for rect: NSRect) {
+        shadowLayer?.removeFromSuperlayer()
+        shadowLayer = nil
+
+        guard let layer else {
+            return
+        }
+
+        let shadowLayer = CALayer()
+
+        let shadowOffset = CGSize(width: 0, height: 0)
+        let shadowRadius = ColorWell.lineWidth * 0.75
+        let shadowPath = CGPath.colorWellSegment(rect: rect, side: side)
+
+        shadowLayer.shadowOffset = shadowOffset
+        shadowLayer.shadowOpacity = NSApp.effectiveAppearanceIsDarkAppearance ? 0.5 : 0.6
+        shadowLayer.shadowRadius = shadowRadius
+        shadowLayer.shadowPath = shadowPath
+        shadowLayer.shadowColor = NSColor.shadowColor.cgColor
+
+        let mutablePath = CGMutablePath()
+        mutablePath.addRect(
+            rect.insetBy(
+                dx: -(shadowRadius * 2) + shadowOffset.width,
+                dy: -(shadowRadius * 2) + shadowOffset.height
+            )
+        )
+        mutablePath.addPath(shadowPath)
+        mutablePath.closeSubpath()
+
+        let maskLayer = CAShapeLayer()
+        maskLayer.path = mutablePath
+        maskLayer.fillRule = .evenOdd
+
+        shadowLayer.mask = maskLayer
+
+        layer.addSublayer(shadowLayer)
+        layer.masksToBounds = false
+
+        self.shadowLayer = shadowLayer
+    }
 }
 
 // MARK: ColorWellSegment Overrides
@@ -875,6 +908,7 @@ extension ColorWellSegment {
     override func draw(_ dirtyRect: NSRect) {
         displayColor.setFill()
         defaultPath(for: dirtyRect).fill()
+        addShadowLayer(for: dirtyRect)
     }
 
     override func mouseEntered(with event: NSEvent) {
@@ -994,8 +1028,6 @@ extension ColorWellSegment {
 internal class ToggleSegment: ColorWellSegment {
     private var imageLayer: CALayer?
 
-    private var shadowLayer: CALayer?
-
     override var side: Side { .right }
 
     override init(colorWell: ColorWell) {
@@ -1013,8 +1045,8 @@ extension ToggleSegment {
     /// segment opens the color panel.
     private func setImageLayer(clip: Bool = false) {
         imageLayer?.removeFromSuperlayer()
+        imageLayer = nil
 
-        wantsLayer = true
         guard let layer else {
             return
         }
@@ -1046,31 +1078,6 @@ extension ToggleSegment {
         layer.addSublayer(imageLayer)
         self.imageLayer = imageLayer
     }
-
-    private func setShadowLayer() {
-        shadowLayer?.removeFromSuperlayer()
-
-        wantsLayer = true
-        guard let layer else {
-            return
-        }
-
-        let shadowLayer = CAShapeLayer()
-        shadowLayer.path = .colorWellSegment(
-            rect: bounds.insetBy(dx: -0.5, dy: -0.5),
-            side: side
-        )
-        shadowLayer.masksToBounds = false
-
-        shadowLayer.fillColor = .clear
-        shadowLayer.strokeColor = NSColor.shadowColor.cgColor
-        shadowLayer.lineWidth = 0.5
-        shadowLayer.opacity = 0.2
-
-        layer.masksToBounds = false
-        layer.addSublayer(shadowLayer)
-        self.shadowLayer = shadowLayer
-    }
 }
 
 // MARK: ToggleSegment Overrides
@@ -1078,7 +1085,6 @@ extension ToggleSegment {
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
         setImageLayer(clip: true)
-        setShadowLayer()
     }
 
     override func performAction() {
@@ -1194,6 +1200,8 @@ extension SwatchSegment {
         let borderPath = defaultPath(for: dirtyRect.insetBy(dx: lineWidth / 4, dy: lineWidth / 2))
         borderPath.lineWidth = lineWidth
         borderPath.stroke()
+
+        addShadowLayer(for: dirtyRect)
     }
 
     override func drawHoverIndicator() {
