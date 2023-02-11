@@ -355,15 +355,15 @@ internal struct AnyViewConstructor: View {
 
 /// A type that can be converted from an equivalent type
 /// in the `Cocoa` framework.
-internal protocol CustomCocoaConvertible<CocoaType, Converted> {
+internal protocol CustomCocoaConvertible {
     /// This type's equivalent type in the `Cocoa` framework.
     associatedtype CocoaType: NSObject
 
     /// The `CustomCocoaConvertible` type that is created from
     /// this type's `CocoaType`.
     ///
-    /// This type defaults to `Self`, but can be redefined for
-    /// semantic reasons.
+    /// This type defaults to `Self`, but can be redefined if
+    /// semantically necessary.
     associatedtype Converted: CustomCocoaConvertible = Self
 
     /// Converts an instance of this type's `CocoaType` to an

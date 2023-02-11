@@ -289,8 +289,8 @@ public class ColorWell: _ColorWellBaseView {
         }
     }
 
-    /// A Boolean value indicating whether or not the color well's color
-    /// panel shows alpha values and an opacity slider.
+    /// A Boolean value indicating whether the color well's color panel
+    /// shows alpha values and an opacity slider.
     public var showsAlpha: Bool {
         get { colorPanel.showsAlpha }
         set { colorPanel.showsAlpha = newValue }
@@ -463,7 +463,7 @@ extension ColorWell {
 extension ColorWell {
     /// Inserts the change handlers in the given sequence into the
     /// color well's stored change handlers.
-    internal func insertChangeHandlers(_ handlers: any Sequence<ChangeHandler>) {
+    internal func insertChangeHandlers<S: Sequence>(_ handlers: S) where S.Element == ChangeHandler {
         changeHandlers.formUnion(handlers)
     }
 
@@ -1732,9 +1732,8 @@ extension ColorSwatch {
 
 // MARK: ColorSwatch Methods
 extension ColorSwatch {
-    /// Returns all swatches in the layout view that match the given
-    /// conditions.
-    private func swatches(matching conditions: any Collection<(ColorSwatch) -> Bool>) -> [ColorSwatch] {
+    /// Returns all swatches in the layout view that match the given conditions.
+    private func swatches(matching conditions: [(ColorSwatch) -> Bool]) -> [ColorSwatch] {
         guard let layoutView else {
             return []
         }
@@ -1745,13 +1744,9 @@ extension ColorSwatch {
         }
     }
 
-    /// Iterates through all other swatches in the layout view and
-    /// executes the given block of code, provided a set of conditions
-    /// are met.
-    private func iterateOtherSwatches(
-        where conditions: any Collection<(ColorSwatch) -> Bool>,
-        block: (ColorSwatch) -> Void
-    ) {
+    /// Iterates through all other swatches in the layout view and executes
+    /// the given block of code, provided a set of conditions are met.
+    private func iterateOtherSwatches(where conditions: [(ColorSwatch) -> Bool], block: (ColorSwatch) -> Void) {
         let conditions = conditions + [{ $0 !== self }]
         for swatch in swatches(matching: conditions) {
             block(swatch)

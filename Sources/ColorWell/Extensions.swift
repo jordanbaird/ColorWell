@@ -374,7 +374,7 @@ extension NSImage {
         }
     }
 
-    /// Returns new image that has been tinted to the given color.
+    /// Returns a new image that has been tinted to the given color.
     internal func tinted(to color: NSColor, amount: CGFloat) -> NSImage {
         guard let cgImage = cgImage(forProposedRect: nil, context: nil, hints: nil) else {
             return self
@@ -409,7 +409,7 @@ extension NSKeyValueObservation {
     /// Stores this key-value observation in the specified collection.
     ///
     /// - Parameter collection: The collection in which to store this observation.
-    internal func store<C: RangeReplaceableCollection<NSKeyValueObservation>>(in collection: inout C) {
+    internal func store<C: RangeReplaceableCollection>(in collection: inout C) where C.Element == NSKeyValueObservation {
         collection.append(self)
     }
 

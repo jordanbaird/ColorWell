@@ -150,7 +150,7 @@ internal enum ConstructablePathComponent {
 // MARK: ConstructablePathComponent Helpers
 extension ConstructablePathComponent {
     /// Returns a compound component that constructs a right angle curve around
-    /// the given corner of the provided rectangle, using the provided radius and inset.
+    /// the given corner of the provided rectangle, using the provided radius.
     static func rightAngleCurve(around corner: Corner, ofRect rect: CGRect, radius: CGFloat) -> Self {
         let mid = corner.point(forRect: rect)
 
@@ -193,12 +193,15 @@ extension ConstructablePathComponent: ExpressibleByArrayLiteral {
 
 /// A type that can produce a version of itself that can be constructed
 /// from `ConstructablePathComponent` values.
-internal protocol ConstructablePath<Constructed, MutablePath> {
+internal protocol ConstructablePath
+    where Constructed.Constructed == Constructed,
+          MutablePath.Constructed == Constructed
+{
     /// The constructed result of this path type.
-    associatedtype Constructed: ConstructablePath<Constructed, MutablePath>
+    associatedtype Constructed: ConstructablePath
 
     /// A mutable version of this type, that produces the same constructed result.
-    associatedtype MutablePath: MutableConstructablePath<Constructed, MutablePath>
+    associatedtype MutablePath: MutableConstructablePath
 
     /// This path, as its constructed result type.
     var asConstructedType: Constructed { get }
@@ -264,7 +267,7 @@ extension ConstructablePath {
 
 /// A constructable path type whose instances can be altered with
 /// path components after their creation.
-internal protocol MutableConstructablePath<Constructed, MutablePath>: ConstructablePath {
+internal protocol MutableConstructablePath: ConstructablePath {
     /// Creates an empty mutable constructable path.
     init()
 

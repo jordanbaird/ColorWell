@@ -55,12 +55,12 @@ public struct ColorWellView<Label: View>: View {
     /// A base level initializer for other initializers to
     /// delegate to.
     /// ** For internal use only **
-    private init<L: View, C: CustomCocoaConvertible<NSColor, C>>(
+    private init<L: View, C: CustomCocoaConvertible>(
         _color: NSColor? = nil,
         _label: () -> L,
         _action: ((C) -> Void)? = Optional<(Color) -> Void>.none
         // TODO: _showsAlpha: Binding<Bool>
-    ) {
+    ) where C.CocoaType == NSColor, C.Converted == C {
         constructor = ViewConstructor {
             // TODO: Need an API that accepts a Binding<Bool> for showsAlpha.
             // For now, we'll just pass a constant.
@@ -85,12 +85,12 @@ public struct ColorWellView<Label: View>: View {
     /// A base level initializer for other initializers to
     /// delegate to, whose `_label` parameter is an `@autoclosure`.
     /// ** For internal use only **
-    private init<L: View, C: CustomCocoaConvertible<NSColor, C>>(
+    private init<L: View, C: CustomCocoaConvertible>(
         _color: NSColor? = nil,
         _label: @autoclosure () -> L,
         _action: ((C) -> Void)? = Optional<(Color) -> Void>.none
         // TODO: _showsAlpha: Binding<Bool>
-    ) {
+    ) where C.CocoaType == NSColor, C.Converted == C {
         self.init(_color: _color, _label: _label, _action: _action/*, _showsAlpha: _showsAlpha*/)
     }
 }
@@ -418,7 +418,10 @@ extension EnvironmentValues {
 // MARK: - View Modifiers
 
 @available(macOS 10.15, *)
-private struct OnColorChange<C: CustomCocoaConvertible<NSColor, C>>: ViewModifier {
+private struct OnColorChange<C: CustomCocoaConvertible>: ViewModifier
+    where C.CocoaType == NSColor,
+          C.Converted == C
+{
     let id = ComparableID()
     let action: (C) -> Void
 
