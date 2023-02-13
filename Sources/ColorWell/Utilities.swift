@@ -125,6 +125,7 @@ extension AssociationPolicy {
 
 // MARK: - ColorComponents
 
+/// A type that contains information about the color components for a color.
 internal enum ColorComponents {
     case rgb(red: Double, green: Double, blue: Double, alpha: Double)
     case cmyk(cyan: Double, magenta: Double, yellow: Double, black: Double, alpha: Double)
@@ -140,6 +141,7 @@ internal enum ColorComponents {
 // MARK: - ColorComponents Properties
 
 extension ColorComponents {
+    /// The name of the color space associated with this instance.
     var colorSpaceName: String {
         switch self {
         case .rgb:
@@ -163,6 +165,7 @@ extension ColorComponents {
         }
     }
 
+    /// The raw components extracted from this instance.
     var extractedComponents: [Any] {
         switch self {
         case .rgb(let red, let green, let blue, let alpha):
@@ -177,11 +180,30 @@ extension ColorComponents {
             guard color.type == .componentBased else {
                 return ["\(color)"]
             }
+
             var components = [CGFloat](repeating: 0, count: color.numberOfComponents)
             color.getComponents(&components)
-            return components
+
+            return components.map { component in
+                Double(component)
+            }
         default:
             return []
+        }
+    }
+
+    /// String representations of the raw components extracted from this instance.
+    var extractedComponentStrings: [String] {
+        let formatter = NumberFormatter()
+        formatter.minimumIntegerDigits = 1
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 6
+
+        return extractedComponents.compactMap { component in
+            if let component = component as? Double {
+                return formatter.string(for: component)
+            }
+            return String(describing: component)
         }
     }
 }
@@ -189,10 +211,44 @@ extension ColorComponents {
 // MARK: - ColorComponents Initializers
 
 extension ColorComponents {
+    /// Creates color components from the specified color.
     init(color: NSColor) {
         switch color.type {
         case .componentBased:
-            self = .componentBased(color: color)
+            switch color.colorSpace.colorSpaceModel {
+            case .rgb:
+                self = .rgb(
+                    red: color.redComponent,
+                    green: color.greenComponent,
+                    blue: color.blueComponent,
+                    alpha: color.alphaComponent
+                )
+            case .cmyk:
+                self = .cmyk(
+                    cyan: color.cyanComponent,
+                    magenta: color.magentaComponent,
+                    yellow: color.yellowComponent,
+                    black: color.blackComponent,
+                    alpha: color.alphaComponent
+                )
+            case .gray:
+                self = .grayscale(
+                    white: color.whiteComponent,
+                    alpha: color.alphaComponent
+                )
+            case .deviceN:
+                self = .deviceN
+            case .indexed:
+                self = .indexed
+            case .lab:
+                self = .lab
+            case .patterned:
+                self = .pattern
+            case .unknown:
+                self = .unknown(color: color)
+            @unknown default:
+                self = .unknown(color: color)
+            }
         case .pattern:
             self = .pattern
         case .catalog:
@@ -203,88 +259,13 @@ extension ColorComponents {
     }
 }
 
-// MARK: - ColorComponents Static Members
-
-extension ColorComponents {
-    static func componentBased(color: NSColor) -> Self {
-        guard color.type == .componentBased else {
-            return .unknown(color: color)
-        }
-
-        switch color.colorSpace.colorSpaceModel {
-        case .rgb:
-            return .rgb(
-                red: color.redComponent,
-                green: color.greenComponent,
-                blue: color.blueComponent,
-                alpha: color.alphaComponent
-            )
-        case .cmyk:
-            return .cmyk(
-                cyan: color.cyanComponent,
-                magenta: color.magentaComponent,
-                yellow: color.yellowComponent,
-                black: color.blackComponent,
-                alpha: color.alphaComponent
-            )
-        case .gray:
-            return .grayscale(
-                white: color.whiteComponent,
-                alpha: color.alphaComponent
-            )
-        case .deviceN:
-            return .deviceN
-        case .indexed:
-            return .indexed
-        case .lab:
-            return .lab
-        case .patterned:
-            return .pattern
-        case .unknown:
-            return .unknown(color: color)
-        @unknown default:
-            return .unknown(color: color)
-        }
-    }
-}
-
 // MARK: - ColorComponents: CustomStringConvertible
 
 extension ColorComponents: CustomStringConvertible {
     var description: String {
-        let formatter = NumberFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.minimumIntegerDigits = 1
-        formatter.minimumFractionDigits = 0
-        formatter.maximumFractionDigits = 6
-        formatter.nilSymbol = NilSentinel.nilSymbol
-
-        var results = [colorSpaceName]
-
-        for component in extractedComponents {
-            guard
-                let string = formatter.string(for: component),
-                string != NilSentinel.nilSymbol
-            else {
-                results.append("\(component)")
-                continue
-            }
-            results.append(string)
-        }
-
-        return results.joined(separator: " ")
-    }
-}
-
-// MARK: - ColorComponents NilSentinel
-
-extension ColorComponents {
-    /// A type that serves as the base for a sentinel value indicating
-    /// that a formatting operation on a `ColorComponents` instance
-    /// produced a `nil` string.
-    private enum NilSentinel {
-        /// The sentinel value produced by this type.
-        static let nilSymbol = "\(Self.self)(" + String(ObjectIdentifier(Self.self).hashValue) + ")"
+        colorSpaceName
+        + " "
+        + extractedComponentStrings.joined(separator: " ")
     }
 }
 
