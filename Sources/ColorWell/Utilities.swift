@@ -4,7 +4,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Foundation
+import Cocoa
 #if canImport(SwiftUI)
 import SwiftUI
 #endif
