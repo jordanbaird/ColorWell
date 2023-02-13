@@ -138,8 +138,7 @@ internal enum ColorComponents {
     case pattern
 }
 
-// MARK: - ColorComponents Properties
-
+// MARK: ColorComponents Properties
 extension ColorComponents {
     /// The name of the color space associated with this instance.
     var colorSpaceName: String {
@@ -208,8 +207,7 @@ extension ColorComponents {
     }
 }
 
-// MARK: - ColorComponents Initializers
-
+// MARK: ColorComponents Initializers
 extension ColorComponents {
     /// Creates color components from the specified color.
     init(color: NSColor) {
@@ -259,8 +257,7 @@ extension ColorComponents {
     }
 }
 
-// MARK: - ColorComponents: CustomStringConvertible
-
+// MARK: ColorComponents: CustomStringConvertible
 extension ColorComponents: CustomStringConvertible {
     var description: String {
         colorSpaceName
