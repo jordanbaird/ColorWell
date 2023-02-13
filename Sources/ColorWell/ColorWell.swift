@@ -140,13 +140,8 @@ public class ColorWell: _ColorWellBaseView {
     /// The observations currently associated with the color well.
     private var observations = [ObjectIdentifier: Set<NSKeyValueObservation>]()
 
-    /// The color well's unordered change handlers.
-    private var changeHandlers = Set<ChangeHandler>()
-
-    /// The color well's change handlers, sorted by order of creation.
-    private var sortedChangeHandlers: [ChangeHandler] {
-        changeHandlers.sorted()
-    }
+    /// The color well's change handlers.
+    private var changeHandlers = [ChangeHandler]()
 
     /// The segment that shows the color well's color.
     private var swatchSegment: SwatchSegment {
@@ -397,7 +392,7 @@ extension ColorWell {
         guard canExecuteChangeHandlers else {
             return
         }
-        for handler in sortedChangeHandlers {
+        for handler in changeHandlers {
             handler(color)
         }
     }
@@ -461,10 +456,11 @@ extension ColorWell {
 
 // MARK: ColorWell Internal Methods
 extension ColorWell {
-    /// Inserts the change handlers in the given sequence into the
-    /// color well's stored change handlers.
-    internal func insertChangeHandlers<S: Sequence>(_ handlers: S) where S.Element == ChangeHandler {
-        changeHandlers.formUnion(handlers)
+    /// Adds the change handlers in the given sequence that are not
+    /// already present to the end of the color well's stored change
+    /// handlers.
+    internal func appendUniqueChangeHandlers<S: Sequence>(_ handlers: S) where S.Element == ChangeHandler {
+        changeHandlers.appendUnique(contentsOf: handlers)
     }
 
     /// Performs the specified block of code, ensuring that the color
@@ -543,7 +539,7 @@ extension ColorWell {
     /// - Parameter action: A block of code that will be executed when
     ///   the color well's color changes.
     public func onColorChange(perform action: @escaping (NSColor) -> Void) {
-        changeHandlers.insert(ChangeHandler(handler: action))
+        changeHandlers.appendUnique(ChangeHandler(action: action))
     }
 }
 

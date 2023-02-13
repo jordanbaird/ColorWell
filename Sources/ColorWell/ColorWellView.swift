@@ -25,7 +25,7 @@ private struct RootView: NSViewRepresentable {
 
     func updateNSView(_ nsView: ColorWell, context: Context) {
         nsView.showsAlpha = showsAlpha
-        nsView.insertChangeHandlers(context.environment.changeHandlers)
+        nsView.appendUniqueChangeHandlers(context.environment.changeHandlers.reversed())
         nsView.isEnabled = context.environment.isEnabled
 
         if #available(macOS 11.0, *) {
@@ -389,7 +389,7 @@ private struct LayoutView<Label: View, LabelCandidate: View, Content: View>: Vie
 
 @available(macOS 10.15, *)
 private struct ChangeHandlersKey: EnvironmentKey {
-    static let defaultValue = Set<ChangeHandler>()
+    static let defaultValue = [ChangeHandler]()
 }
 
 @available(macOS 11.0, *)
@@ -401,7 +401,7 @@ private struct SwatchColorsKey: EnvironmentKey {
 
 @available(macOS 10.15, *)
 extension EnvironmentValues {
-    internal var changeHandlers: Set<ChangeHandler> {
+    internal var changeHandlers: [ChangeHandler] {
         get { self[ChangeHandlersKey.self] }
         set { self[ChangeHandlersKey.self] = newValue }
     }
@@ -422,18 +422,22 @@ private struct OnColorChange<C: CustomCocoaConvertible>: ViewModifier
     where C.CocoaType == NSColor,
           C.Converted == C
 {
-    let id = ComparableID()
-    let action: (C) -> Void
+    let id = UUID()
+    let action: ((C) -> Void)?
 
-    var transformedAction: ChangeHandler {
-        ChangeHandler(id: id) {
-            action(C.converted(from: $0))
+    var transformedAction: ChangeHandler? {
+        action.map { action in
+            ChangeHandler(id: id) {
+                action(C.converted(from: $0))
+            }
         }
     }
 
     func body(content: Content) -> some View {
-        content.transformEnvironment(\.changeHandlers) {
-            $0.insert(transformedAction)
+        content.transformEnvironment(\.changeHandlers) { changeHandlers in
+            if let transformedAction {
+                changeHandlers.appendUnique(transformedAction)
+            }
         }
     }
 }

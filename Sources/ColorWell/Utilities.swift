@@ -9,85 +9,25 @@ import Foundation
 import SwiftUI
 #endif
 
-// MARK: - Counter
-
-/// A counter type whose value is incremented on access.
-internal struct Counter {
-    /// A pointer to the counter's value.
-    ///
-    /// We use a pointer instead of an integer to avoid the use of
-    /// mutable counters (accidental reassignment would invalidate
-    /// all previous and future values).
-    ///
-    /// Using a class instead of a struct would accomplish the same
-    /// thing, but we want to keep things as lightweight as possible.
-    private let pointer = UnsafeMutablePointer<Int>.allocate(capacity: 1)
-
-    /// Creates a counter initialized to `0`.
-    init() {
-        pointer.initialize(to: 0)
-    }
-
-    /// Returns the current value and increments the counter.
-    func bump() -> Int {
-        defer {
-            pointer.pointee += 1
-        }
-        return pointer.pointee
-    }
-}
-
-// MARK: - ComparableID
-
-/// A unique identifier that can be compared by order of creation.
-///
-/// For identifiers `id1` and `id2`, `id1 < id2` if `id1` was created
-/// first.
-internal struct ComparableID {
-    private static let counter = Counter()
-
-    private let uuid = UUID()
-    private let count = counter.bump()
-
-    /// Creates a unique identifier that can be compared with other
-    /// instances of this type according to the order in which they
-    /// were created.
-    init() { }
-}
-
-// MARK: ComparableID: Comparable
-extension ComparableID: Comparable {
-    static func < (lhs: Self, rhs: Self) -> Bool {
-        lhs.count < rhs.count
-    }
-}
-
-// MARK: ComparableID: Equatable
-extension ComparableID: Equatable { }
-
-// MARK: ComparableID: Hashable
-extension ComparableID: Hashable { }
-
 // MARK: - ChangeHandler
 
 /// An identifiable, hashable wrapper for a change handler that is
 /// executed when a color well's color changes.
-///
-/// This type can be compared by order of creation.
-///
-/// For handlers `h1` and `h2`, `h1 < h2` if `h1` was created first.
 internal struct ChangeHandler {
-    private let id: ComparableID
-    private let handler: (NSColor) -> Void
+    /// A unique identifier for this change handler.
+    private let id: UUID
+
+    /// The underlying closure that is executed by this change handler.
+    private let action: (NSColor) -> Void
 
     /// Creates a change handler with the given identifier and closure.
     ///
     /// - Parameters:
-    ///   - id: An identifier that can be compared by order of creation.
+    ///   - id: A unique identifier for this change handler.
     ///   - handler: A closure to store for later execution.
-    init(id: ComparableID, handler: @escaping (NSColor) -> Void) {
+    init(id: UUID, action: @escaping (NSColor) -> Void) {
         self.id = id
-        self.handler = handler
+        self.action = action
     }
 
     /// Creates a change handler from a closure.
@@ -95,8 +35,8 @@ internal struct ChangeHandler {
     /// This initializer automatically creates the handler's identifier.
     ///
     /// - Parameter handler: A closure to store for later execution.
-    init(handler: @escaping (NSColor) -> Void) {
-        self.init(id: ComparableID(), handler: handler)
+    init(action: @escaping (NSColor) -> Void) {
+        self.init(id: UUID(), action: action)
     }
 
     /// Invokes the closure that is stored by this instance, passing the
@@ -104,14 +44,7 @@ internal struct ChangeHandler {
     ///
     /// - Parameter color: The color to pass into the handler's closure.
     func callAsFunction(_ color: NSColor) {
-        handler(color)
-    }
-}
-
-// MARK: ChangeHandler: Comparable
-extension ChangeHandler: Comparable {
-    static func < (lhs: Self, rhs: Self) -> Bool {
-        lhs.id < rhs.id
+        action(color)
     }
 }
 
