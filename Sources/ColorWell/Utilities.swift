@@ -123,166 +123,172 @@ extension AssociationPolicy {
     }
 }
 
-// MARK: - ComponentFormatter
+// MARK: - ColorComponents
 
-/// A specialized number formatter that formats the components of
-/// a color for display as an accessibility value.
-internal struct ComponentFormatter {
-    /// The color that is formatted by this formatter.
-    let color: NSColor
+internal enum ColorComponents {
+    case rgb(red: Double, green: Double, blue: Double, alpha: Double)
+    case cmyk(cyan: Double, magenta: Double, yellow: Double, black: Double, alpha: Double)
+    case grayscale(white: Double, alpha: Double)
+    case catalog(name: String)
+    case unknown(color: NSColor)
+    case deviceN
+    case indexed
+    case lab
+    case pattern
+}
 
-    /// Returns a basic description of the formatter's color,
-    /// alongside the components for the color's current color space.
-    private var simpleDescriptionAndComponents: (description: String, components: [Double]) {
-        switch color.colorSpace.colorSpaceModel {
+// MARK: - ColorComponents Properties
+
+extension ColorComponents {
+    var colorSpaceName: String {
+        switch self {
         case .rgb:
-            return ("rgb", [
-                color.redComponent,
-                color.greenComponent,
-                color.blueComponent,
-                color.alphaComponent,
-            ])
+            return "rgb"
         case .cmyk:
-            return ("cmyk", [
-                color.cyanComponent,
-                color.magentaComponent,
-                color.yellowComponent,
-                color.blackComponent,
-                color.alphaComponent,
-            ])
-        case .deviceN:
-            return ("deviceN", [])
-        case .gray:
-            return ("grayscale", [
-                color.whiteComponent,
-                color.alphaComponent,
-            ])
-        case .indexed:
-            return ("indexed", [])
-        case .lab:
-            return ("L*a*b*", [])
-        case .patterned:
-            return ("pattern", [])
+            return "cmyk"
+        case .grayscale:
+            return "grayscale"
+        case .catalog:
+            return "catalog color"
         case .unknown:
-            break
-        @unknown default:
-            break
+            return "unknown color space"
+        case .deviceN:
+            return "deviceN"
+        case .indexed:
+            return "indexed"
+        case .lab:
+            return "L*a*b*"
+        case .pattern:
+            return "pattern image"
         }
-        return ("\(color)", [])
     }
 
-    /// Returns a string containing a description of the formatter's
-    /// color, for use with accessibility features.
-    var string: String? {
-        switch color.type {
-        case .componentBased:
-            let extracted = simpleDescriptionAndComponents
-
-            guard
-                !extracted.components.isEmpty,
-                extracted.components.count == color.numberOfComponents
-            else {
-                // Returning a generic description is the best we can do.
-                // Example: "rgb color"
-                return "\(extracted.description) color"
+    var extractedComponents: [Any] {
+        switch self {
+        case .rgb(let red, let green, let blue, let alpha):
+            return [red, green, blue, alpha]
+        case .cmyk(let cyan, let magenta, let yellow, let black, let alpha):
+            return [cyan, magenta, yellow, black, alpha]
+        case .grayscale(let white, let alpha):
+            return [white, alpha]
+        case .catalog(let name):
+            return [name]
+        case .unknown(let color):
+            guard color.type == .componentBased else {
+                return ["\(color)"]
             }
-
-            let fmt = NumberFormatter()
-            fmt.locale = Locale(identifier: "en_US_POSIX")
-            fmt.minimumIntegerDigits = 1
-            fmt.minimumFractionDigits = 0
-            fmt.maximumFractionDigits = 6
-            fmt.nilSymbol = NilSentinel.nilSymbol
-
-            var results = [extracted.description]
-
-            for component in extracted.components {
-                guard
-                    let string = fmt.string(for: component),
-                    string != NilSentinel.nilSymbol
-                else {
-                    return nil
-                }
-                results.append(string)
-            }
-
-            return results.joined(separator: " ")
-        case .catalog:
-            return "catalog color \(color.localizedColorNameComponent)"
-        case .pattern:
-            return "pattern"
-        @unknown default:
-            break
+            var components = [CGFloat](repeating: 0, count: color.numberOfComponents)
+            color.getComponents(&components)
+            return components
+        default:
+            return []
         }
-        return "\(color)"
     }
 }
 
-// MARK: - ComponentFormatter NilSentinel
+// MARK: - ColorComponents Initializers
 
-extension ComponentFormatter {
+extension ColorComponents {
+    init(color: NSColor) {
+        switch color.type {
+        case .componentBased:
+            self = .componentBased(color: color)
+        case .pattern:
+            self = .pattern
+        case .catalog:
+            self = .catalog(name: color.localizedColorNameComponent)
+        @unknown default:
+            self = .unknown(color: color)
+        }
+    }
+}
+
+// MARK: - ColorComponents Static Members
+
+extension ColorComponents {
+    static func componentBased(color: NSColor) -> Self {
+        guard color.type == .componentBased else {
+            return .unknown(color: color)
+        }
+
+        switch color.colorSpace.colorSpaceModel {
+        case .rgb:
+            return .rgb(
+                red: color.redComponent,
+                green: color.greenComponent,
+                blue: color.blueComponent,
+                alpha: color.alphaComponent
+            )
+        case .cmyk:
+            return .cmyk(
+                cyan: color.cyanComponent,
+                magenta: color.magentaComponent,
+                yellow: color.yellowComponent,
+                black: color.blackComponent,
+                alpha: color.alphaComponent
+            )
+        case .gray:
+            return .grayscale(
+                white: color.whiteComponent,
+                alpha: color.alphaComponent
+            )
+        case .deviceN:
+            return .deviceN
+        case .indexed:
+            return .indexed
+        case .lab:
+            return .lab
+        case .patterned:
+            return .pattern
+        case .unknown:
+            return .unknown(color: color)
+        @unknown default:
+            return .unknown(color: color)
+        }
+    }
+}
+
+// MARK: - ColorComponents: CustomStringConvertible
+
+extension ColorComponents: CustomStringConvertible {
+    var description: String {
+        let formatter = NumberFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.minimumIntegerDigits = 1
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 6
+        formatter.nilSymbol = NilSentinel.nilSymbol
+
+        var results = [colorSpaceName]
+
+        for component in extractedComponents {
+            guard
+                let string = formatter.string(for: component),
+                string != NilSentinel.nilSymbol
+            else {
+                results.append("\(component)")
+                continue
+            }
+            results.append(string)
+        }
+
+        return results.joined(separator: " ")
+    }
+}
+
+// MARK: - ColorComponents NilSentinel
+
+extension ColorComponents {
     /// A type that serves as the base for a sentinel value indicating
-    /// that a component formatter's underlying number formatter produced
-    /// a `nil` string.
+    /// that a formatting operation on a `ColorComponents` instance
+    /// produced a `nil` string.
     private enum NilSentinel {
         /// The sentinel value produced by this type.
         static let nilSymbol = "\(Self.self)(" + String(ObjectIdentifier(Self.self).hashValue) + ")"
     }
 }
 
-// MARK: - SwiftUI Utilities
-
 #if canImport(SwiftUI)
-
-// MARK: - ViewConstructor
-
-@available(macOS 10.15, *)
-internal struct ViewConstructor<Content: View>: View {
-    private let content: Content
-
-    var body: some View {
-        content
-    }
-
-    init(@ViewBuilder content: () -> Content) {
-        self.content = content()
-    }
-
-    init(content: @autoclosure () -> Content) {
-        self.init(content: content)
-    }
-
-    func with<Modified: View>(@ViewBuilder _ block: (Content) -> Modified) -> ViewConstructor<Modified> {
-        ViewConstructor<Modified>(content: block(content))
-    }
-
-    func erased() -> AnyViewConstructor {
-        AnyViewConstructor(base: self)
-    }
-}
-
-// MARK: - AnyViewConstructor
-
-@available(macOS 10.15, *)
-internal struct AnyViewConstructor: View {
-    let base: any View
-
-    var body: some View {
-        AnyView(base)
-    }
-
-    init<Content: View>(base: ViewConstructor<Content>) {
-        self.base = base
-    }
-
-    init<Content: View>(@ViewBuilder content: () -> Content) {
-        self.init(base: ViewConstructor(content: content))
-    }
-
-    init<Content: View>(content: @autoclosure () -> Content) {
-        self.init(content: content)
-    }
-}
 
 // MARK: - CustomCocoaConvertible
 

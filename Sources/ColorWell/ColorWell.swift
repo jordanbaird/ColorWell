@@ -1132,7 +1132,7 @@ internal class SwatchSegment: ColorWellSegment {
     override var side: Side { .left }
 
     override var displayColor: NSColor {
-        super.displayColor.sRGB ?? super.displayColor
+        super.displayColor.usingColorSpace(.sRGB) ?? super.displayColor
     }
 
     override init(colorWell: ColorWell) {
@@ -1672,7 +1672,7 @@ internal class ColorSwatch: NSView {
     /// The color of the swatch, converted to a standardized format
     /// for display.
     private var displayColor: NSColor {
-        color.sRGB ?? color
+        color.usingColorSpace(.sRGB) ?? color
     }
 
     /// The computed border color of the swatch, created based on its

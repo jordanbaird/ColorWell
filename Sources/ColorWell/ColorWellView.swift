@@ -45,11 +45,11 @@ private struct RootView: NSViewRepresentable {
 /// for selecting new colors.
 @available(macOS 10.15, *)
 public struct ColorWellView<Label: View>: View {
-    private let constructor: AnyViewConstructor
+    private let content: AnyView
 
-    /// The content of the color well.
+    /// The content view of the color well.
     public var body: some View {
-        constructor
+        content
     }
 
     /// A base level initializer for other initializers to
@@ -60,25 +60,22 @@ public struct ColorWellView<Label: View>: View {
         _label: () -> L,
         _action: ((C) -> Void)? = Optional<(Color) -> Void>.none
         // TODO: _showsAlpha: Binding<Bool>
-    ) where C.CocoaType == NSColor, C.Converted == C {
-        constructor = ViewConstructor {
-            // TODO: Need an API that accepts a Binding<Bool> for showsAlpha.
-            // For now, we'll just pass a constant.
-            RootView(color: _color, showsAlpha: .constant(true))
-        }
-        .with { view in
-            if let _action {
-                view.modifier(OnColorChange(action: _action))
-            } else {
-                view
+    ) where C.CocoaType == NSColor,
+            C.Converted == C
+    {
+        content = LayoutView(
+            Label.self,
+            label: {
+                _label()
+            },
+            content: {
+                // TODO: Need an API that accepts a Binding<Bool> for showsAlpha.
+                // For now, we'll just pass a constant.
+                RootView(color: _color, showsAlpha: .constant(true))
+                    .onColorChange(maybePerform: _action)
+                    .fixedSize()
             }
-        }
-        .with { view in
-            view.fixedSize()
-        }
-        .with { view in
-            LayoutView(Label.self, label: _label(), content: view)
-        }
+        )
         .erased()
     }
 
@@ -90,7 +87,9 @@ public struct ColorWellView<Label: View>: View {
         _label: @autoclosure () -> L,
         _action: ((C) -> Void)? = Optional<(Color) -> Void>.none
         // TODO: _showsAlpha: Binding<Bool>
-    ) where C.CocoaType == NSColor, C.Converted == C {
+    ) where C.CocoaType == NSColor,
+            C.Converted == C
+    {
         self.init(_color: _color, _label: _label, _action: _action/*, _showsAlpha: _showsAlpha*/)
     }
 }
@@ -165,6 +164,7 @@ extension ColorWellView {
 @available(macOS 10.15, *)
 extension ColorWellView<Never> {
     /// Creates a color well with an initial color value.
+    ///
     /// - Parameter color: The initial value of the color well's color.
     @available(macOS 11.0, *)
     public init(color: Color) {
@@ -172,6 +172,7 @@ extension ColorWellView<Never> {
     }
 
     /// Creates a color well with an initial color value.
+    ///
     /// - Parameter cgColor: The initial value of the color well's color.
     public init(cgColor: CGColor) {
         self.init(_color: NSColor(cgColor: cgColor), _label: NoLabel())
@@ -359,45 +360,47 @@ private struct NoLabel: View {
 /// ** For internal use only **
 @available(macOS 10.15, *)
 private struct LayoutView<Label: View, LabelCandidate: View, Content: View>: View {
-    private let constructor: AnyViewConstructor
+    private let erasedContent: AnyView
 
     var body: some View {
-        constructor
+        erasedContent
     }
 
     init(
         _ labelType: Label.Type,
-        label: @autoclosure () -> LabelCandidate,
-        content: @autoclosure () -> Content
+        @ViewBuilder label: () -> LabelCandidate,
+        @ViewBuilder content: () -> Content
     ) {
         guard
             LabelCandidate.self == Label.self,
             Label.self != NoLabel.self
         else {
-            constructor = AnyViewConstructor(content: content)
+            erasedContent = content().erased()
             return
         }
-        let content = HStack(alignment: .center) {
+        erasedContent = HStack(alignment: .center) {
             label()
             content()
         }
-        constructor = AnyViewConstructor(content: content)
+        .erased()
     }
 }
 
-// MARK: - Environment Keys
+// MARK: - ChangeHandlersKey
 
 @available(macOS 10.15, *)
-private struct ChangeHandlersKey: EnvironmentKey {
+internal struct ChangeHandlersKey: EnvironmentKey {
     static let defaultValue = [ChangeHandler]()
 }
 
+// MARK: - SwatchColorsKey
+
 @available(macOS 11.0, *)
-private struct SwatchColorsKey: EnvironmentKey {
+internal struct SwatchColorsKey: EnvironmentKey {
     static let defaultValue = ColorWell.defaultSwatchColors
 }
 
-// MARK: - Environment Values
+// MARK: - EnvironmentValues Change Handlers
 
 @available(macOS 10.15, *)
 extension EnvironmentValues {
@@ -407,6 +410,8 @@ extension EnvironmentValues {
     }
 }
 
+// MARK: - EnvironmentValues Swatch Colors
+
 @available(macOS 11.0, *)
 extension EnvironmentValues {
     internal var swatchColors: [NSColor] {
@@ -415,10 +420,10 @@ extension EnvironmentValues {
     }
 }
 
-// MARK: - View Modifiers
+// MARK: - OnColorChange
 
 @available(macOS 10.15, *)
-private struct OnColorChange<C: CustomCocoaConvertible>: ViewModifier
+internal struct OnColorChange<C: CustomCocoaConvertible>: ViewModifier
     where C.CocoaType == NSColor,
           C.Converted == C
 {
@@ -442,12 +447,16 @@ private struct OnColorChange<C: CustomCocoaConvertible>: ViewModifier
     }
 }
 
+// MARK: - SwatchColors
+
 @available(macOS 11.0, *)
-private struct SwatchColors: ViewModifier {
+internal struct SwatchColors: ViewModifier {
     let colors: [Color]
 
     var transformedColors: [NSColor] {
-        colors.map { .init($0) }
+        colors.map {
+            NSColor($0)
+        }
     }
 
     func body(content: Content) -> some View {
@@ -455,15 +464,24 @@ private struct SwatchColors: ViewModifier {
     }
 }
 
-// MARK: - View Extensions
+// MARK: - View On Color Change
 
 @available(macOS 10.15, *)
 extension View {
-    /// Adds an action to perform when a color well's color changes.
-    public func onColorChange(perform action: @escaping (Color) -> Void) -> some View {
+    fileprivate func onColorChange<C: CustomCocoaConvertible>(maybePerform action: ((C) -> Void)?) -> some View
+        where C.CocoaType == NSColor,
+              C.Converted == C
+    {
         modifier(OnColorChange(action: action))
     }
+
+    /// Adds an action to perform when a color well's color changes.
+    public func onColorChange(perform action: @escaping (Color) -> Void) -> some View {
+        onColorChange(maybePerform: action)
+    }
 }
+
+// MARK: - View Swatch Colors
 
 @available(macOS 11.0, *)
 extension View {

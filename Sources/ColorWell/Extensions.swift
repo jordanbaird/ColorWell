@@ -5,6 +5,9 @@
 //===----------------------------------------------------------------------===//
 
 import Cocoa
+#if canImport(SwiftUI)
+import SwiftUI
+#endif
 
 // MARK: - Array (Element: Equatable)
 
@@ -118,14 +121,9 @@ extension NSApplication {
 // MARK: - NSColor
 
 extension NSColor {
-    /// The current color, using the `sRGB` color space.
-    internal var sRGB: NSColor? {
-        usingColorSpace(.sRGB)
-    }
-
     /// The `sRGB` color space components of the current color.
     internal var sRGBComponents: (red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat)? {
-        guard let sRGB else {
+        guard let sRGB = usingColorSpace(.sRGB) else {
             return nil
         }
         let r = sRGB.redComponent
@@ -185,7 +183,7 @@ extension NSColor {
     /// Creates a value containing a description of the color, for use with
     /// accessibility features.
     internal func createAccessibilityValue() -> String {
-        ComponentFormatter(color: self).string ?? ""
+        String(describing: ColorComponents(color: self))
     }
 
     /// Returns a Boolean value that indicates whether this color resembles another
@@ -449,3 +447,16 @@ extension NSView {
         superview?.convert(frame, to: nil) ?? frame
     }
 }
+
+#if canImport(SwiftUI)
+
+// MARK: - View
+
+@available(macOS 10.15, *)
+extension View {
+    /// Returns a type-erased version of this view.
+    internal func erased() -> AnyView {
+        AnyView(self)
+    }
+}
+#endif
