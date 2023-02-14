@@ -31,8 +31,8 @@ public struct ColorWellView<Label: View>: View {
     private init<L: View, C: CustomCocoaConvertible>(
         _color: NSColor? = nil,
         _label: () -> L,
-        _action: ((C) -> Void)? = Optional<(Color) -> Void>.none
-        // TODO: _showsAlpha: Binding<Bool>
+        _action: ((C) -> Void)? = Optional<(Color) -> Void>.none,
+        _showsAlpha: Binding<Bool>? = nil
     ) where C.CocoaType == NSColor,
             C.Converted == C
     {
@@ -42,9 +42,7 @@ public struct ColorWellView<Label: View>: View {
                 _label()
             },
             content: {
-                // TODO: Need an API that accepts a Binding<Bool> for showsAlpha.
-                // For now, we'll just pass a constant.
-                Representable(color: _color, showsAlpha: .constant(true))
+                Representable(color: _color, showsAlpha: _showsAlpha)
                     .onColorChange(maybePerform: _action)
                     .fixedSize()
             }
@@ -58,12 +56,17 @@ public struct ColorWellView<Label: View>: View {
     private init<L: View, C: CustomCocoaConvertible>(
         _color: NSColor? = nil,
         _label: @autoclosure () -> L,
-        _action: ((C) -> Void)? = Optional<(Color) -> Void>.none
-        // TODO: _showsAlpha: Binding<Bool>
+        _action: ((C) -> Void)? = Optional<(Color) -> Void>.none,
+        _showsAlpha: Binding<Bool>? = nil
     ) where C.CocoaType == NSColor,
             C.Converted == C
     {
-        self.init(_color: _color, _label: _label, _action: _action/*, _showsAlpha: _showsAlpha*/)
+        self.init(
+            _color: _color,
+            _label: _label,
+            _action: _action,
+            _showsAlpha: _showsAlpha
+        )
     }
 }
 
@@ -76,8 +79,34 @@ extension ColorWellView {
     /// - Parameters:
     ///   - label: A view that describes the purpose of the color well.
     ///   - action: An action to perform when the color well's color changes.
-    public init(@ViewBuilder label: () -> Label, action: @escaping (Color) -> Void) {
-        self.init(_label: label, _action: action)
+    public init(
+        @ViewBuilder label: () -> Label,
+        action: @escaping (Color) -> Void
+    ) {
+        self.init(
+            _label: label,
+            _action: action
+        )
+    }
+
+    /// Creates a color well that uses the provided view as its label,
+    /// and executes the given action when its color changes.
+    ///
+    /// - Parameters:
+    ///   - showsAlpha: A binding to a Boolean value indicating whether the
+    ///     color well's color panel shows alpha values and an opacity slider.
+    ///   - label: A view that describes the purpose of the color well.
+    ///   - action: An action to perform when the color well's color changes.
+    public init(
+        showsAlpha: Binding<Bool>,
+        @ViewBuilder label: () -> Label,
+        action: @escaping (Color) -> Void
+    ) {
+        self.init(
+            _label: label,
+            _action: action,
+            _showsAlpha: showsAlpha
+        )
     }
 
     /// Creates a color well with an initial color value, with the provided
@@ -87,8 +116,35 @@ extension ColorWellView {
     ///   - color: The initial value of the color well's color.
     ///   - label: A view that describes the purpose of the color well.
     @available(macOS 11.0, *)
-    public init(color: Color, @ViewBuilder label: () -> Label) {
-        self.init(_color: NSColor(color), _label: label)
+    public init(
+        color: Color,
+        @ViewBuilder label: () -> Label
+    ) {
+        self.init(
+            _color: NSColor(color),
+            _label: label
+        )
+    }
+
+    /// Creates a color well with an initial color value, with the provided
+    /// view being used as the color well's label.
+    ///
+    /// - Parameters:
+    ///   - showsAlpha: A binding to a Boolean value indicating whether the
+    ///     color well's color panel shows alpha values and an opacity slider.
+    ///   - color: The initial value of the color well's color.
+    ///   - label: A view that describes the purpose of the color well.
+    @available(macOS 11.0, *)
+    public init(
+        showsAlpha: Binding<Bool>,
+        color: Color,
+        @ViewBuilder label: () -> Label
+    ) {
+        self.init(
+            _color: NSColor(color),
+            _label: label,
+            _showsAlpha: showsAlpha
+        )
     }
 
     /// Creates a color well with an initial color value, with the provided
@@ -97,8 +153,34 @@ extension ColorWellView {
     /// - Parameters:
     ///   - cgColor: The initial value of the color well's color.
     ///   - label: A view that describes the purpose of the color well.
-    public init(cgColor: CGColor, @ViewBuilder label: () -> Label) {
-        self.init(_color: NSColor(cgColor: cgColor), _label: label)
+    public init(
+        cgColor: CGColor,
+        @ViewBuilder label: () -> Label
+    ) {
+        self.init(
+            _color: NSColor(cgColor: cgColor),
+            _label: label
+        )
+    }
+
+    /// Creates a color well with an initial color value, with the provided
+    /// view being used as the color well's label.
+    ///
+    /// - Parameters:
+    ///   - showsAlpha: A binding to a Boolean value indicating whether the
+    ///     color well's color panel shows alpha values and an opacity slider.
+    ///   - cgColor: The initial value of the color well's color.
+    ///   - label: A view that describes the purpose of the color well.
+    public init(
+        showsAlpha: Binding<Bool>,
+        cgColor: CGColor,
+        @ViewBuilder label: () -> Label
+    ) {
+        self.init(
+            _color: NSColor(cgColor: cgColor),
+            _label: label,
+            _showsAlpha: showsAlpha
+        )
     }
 
     /// Creates a color well with an initial color value, with the provided view
@@ -110,8 +192,41 @@ extension ColorWellView {
     ///   - label: A view that describes the purpose of the color well.
     ///   - action: An action to perform when the color well's color changes.
     @available(macOS 11.0, *)
-    public init(color: Color, @ViewBuilder label: () -> Label, action: @escaping (Color) -> Void) {
-        self.init(_color: NSColor(color), _label: label, _action: action)
+    public init(
+        color: Color,
+        @ViewBuilder label: () -> Label,
+        action: @escaping (Color) -> Void
+    ) {
+        self.init(
+            _color: NSColor(color),
+            _label: label,
+            _action: action
+        )
+    }
+
+    /// Creates a color well with an initial color value, with the provided view
+    /// being used as the color well's label, and the provided action being executed
+    /// when the color well's color changes.
+    ///
+    /// - Parameters:
+    ///   - showsAlpha: A binding to a Boolean value indicating whether the
+    ///     color well's color panel shows alpha values and an opacity slider.
+    ///   - color: The initial value of the color well's color.
+    ///   - label: A view that describes the purpose of the color well.
+    ///   - action: An action to perform when the color well's color changes.
+    @available(macOS 11.0, *)
+    public init(
+        showsAlpha: Binding<Bool>,
+        color: Color,
+        @ViewBuilder label: () -> Label,
+        action: @escaping (Color) -> Void
+    ) {
+        self.init(
+            _color: NSColor(color),
+            _label: label,
+            _action: action,
+            _showsAlpha: showsAlpha
+        )
     }
 
     /// Creates a color well with an initial color value, with the provided view
@@ -128,8 +243,46 @@ extension ColorWellView {
     ///   - cgColor: The initial value of the color well's color.
     ///   - label: A view that describes the purpose of the color well.
     ///   - action: An action to perform when the color well's color changes.
-    public init(cgColor: CGColor, @ViewBuilder label: () -> Label, action: @escaping (CGColor) -> Void) {
-        self.init(_color: NSColor(cgColor: cgColor), _label: label, _action: action)
+    public init(
+        cgColor: CGColor,
+        @ViewBuilder label: () -> Label,
+        action: @escaping (CGColor) -> Void
+    ) {
+        self.init(
+            _color: NSColor(cgColor: cgColor),
+            _label: label,
+            _action: action
+        )
+    }
+
+    /// Creates a color well with an initial color value, with the provided view
+    /// being used as the color well's label, and the provided action being executed
+    /// when the color well's color changes.
+    ///
+    /// - Note: The color well's color is translated into a `CGColor` from
+    ///   an underlying representation. In some cases, the translation process
+    ///   may be forced to return an approximation, rather than the original
+    ///   color. To receive a color that is guaranteed to be equivalent to the
+    ///   color well's underlying representation, use ``init(showsAlpha:color:label:action:)``.
+    ///
+    /// - Parameters:
+    ///   - showsAlpha: A binding to a Boolean value indicating whether the
+    ///     color well's color panel shows alpha values and an opacity slider.
+    ///   - cgColor: The initial value of the color well's color.
+    ///   - label: A view that describes the purpose of the color well.
+    ///   - action: An action to perform when the color well's color changes.
+    public init(
+        showsAlpha: Binding<Bool>,
+        cgColor: CGColor,
+        @ViewBuilder label: () -> Label,
+        action: @escaping (CGColor) -> Void
+    ) {
+        self.init(
+            _color: NSColor(cgColor: cgColor),
+            _label: label,
+            _action: action,
+            _showsAlpha: showsAlpha
+        )
     }
 }
 
@@ -141,14 +294,55 @@ extension ColorWellView<Never> {
     /// - Parameter color: The initial value of the color well's color.
     @available(macOS 11.0, *)
     public init(color: Color) {
-        self.init(_color: NSColor(color), _label: NoLabel())
+        self.init(
+            _color: NSColor(color),
+            _label: NoLabel()
+        )
+    }
+
+    /// Creates a color well with an initial color value.
+    ///
+    /// - Parameters:
+    ///   - color: The initial value of the color well's color.
+    ///   - showsAlpha: A binding to a Boolean value indicating whether the
+    ///     color well's color panel shows alpha values and an opacity slider.
+    @available(macOS 11.0, *)
+    public init(
+        color: Color,
+        showsAlpha: Binding<Bool>
+    ) {
+        self.init(
+            _color: NSColor(color),
+            _label: NoLabel(),
+            _showsAlpha: showsAlpha
+        )
     }
 
     /// Creates a color well with an initial color value.
     ///
     /// - Parameter cgColor: The initial value of the color well's color.
     public init(cgColor: CGColor) {
-        self.init(_color: NSColor(cgColor: cgColor), _label: NoLabel())
+        self.init(
+            _color: NSColor(cgColor: cgColor),
+            _label: NoLabel()
+        )
+    }
+
+    /// Creates a color well with an initial color value.
+    ///
+    /// - Parameters:
+    ///   - cgColor: The initial value of the color well's color.
+    ///   - showsAlpha: A binding to a Boolean value indicating whether the
+    ///     color well's color panel shows alpha values and an opacity slider.
+    public init(
+        cgColor: CGColor,
+        showsAlpha: Binding<Bool>
+    ) {
+        self.init(
+            _color: NSColor(cgColor: cgColor),
+            _label: NoLabel(),
+            _showsAlpha: showsAlpha
+        )
     }
 
     /// Creates a color well with an initial color value, that executes the
@@ -158,8 +352,37 @@ extension ColorWellView<Never> {
     ///   - color: The initial value of the color well's color.
     ///   - action: An action to perform when the color well's color changes.
     @available(macOS 11.0, *)
-    public init(color: Color, action: @escaping (Color) -> Void) {
-        self.init(_color: NSColor(color), _label: NoLabel(), _action: action)
+    public init(
+        color: Color,
+        action: @escaping (Color) -> Void
+    ) {
+        self.init(
+            _color: NSColor(color),
+            _label: NoLabel(),
+            _action: action
+        )
+    }
+
+    /// Creates a color well with an initial color value, that executes the
+    /// given action when its color changes.
+    ///
+    /// - Parameters:
+    ///   - color: The initial value of the color well's color.
+    ///   - showsAlpha: A binding to a Boolean value indicating whether the
+    ///     color well's color panel shows alpha values and an opacity slider.
+    ///   - action: An action to perform when the color well's color changes.
+    @available(macOS 11.0, *)
+    public init(
+        color: Color,
+        showsAlpha: Binding<Bool>,
+        action: @escaping (Color) -> Void
+    ) {
+        self.init(
+            _color: NSColor(color),
+            _label: NoLabel(),
+            _action: action,
+            _showsAlpha: showsAlpha
+        )
     }
 
     /// Creates a color well with an initial color value, that executes the
@@ -174,8 +397,42 @@ extension ColorWellView<Never> {
     /// - Parameters:
     ///   - cgColor: The initial value of the color well's color.
     ///   - action: An action to perform when the color well's color changes.
-    public init(cgColor: CGColor, action: @escaping (CGColor) -> Void) {
-        self.init(_color: NSColor(cgColor: cgColor), _label: NoLabel(), _action: action)
+    public init(
+        cgColor: CGColor,
+        action: @escaping (CGColor) -> Void
+    ) {
+        self.init(
+            _color: NSColor(cgColor: cgColor),
+            _label: NoLabel(),
+            _action: action
+        )
+    }
+
+    /// Creates a color well with an initial color value, that executes the
+    /// given action when its color changes.
+    ///
+    /// - Note: The color well's color is translated into a `CGColor` from
+    ///   an underlying representation. In some cases, the translation process
+    ///   may be forced to return an approximation, rather than the original
+    ///   color. To receive a color that is guaranteed to be equivalent to the
+    ///   color well's underlying representation, use ``init(color:showsAlpha:action:)``.
+    ///
+    /// - Parameters:
+    ///   - cgColor: The initial value of the color well's color.
+    ///   - showsAlpha: A binding to a Boolean value indicating whether the
+    ///     color well's color panel shows alpha values and an opacity slider.
+    ///   - action: An action to perform when the color well's color changes.
+    public init(
+        cgColor: CGColor,
+        showsAlpha: Binding<Bool>,
+        action: @escaping (CGColor) -> Void
+    ) {
+        self.init(
+            _color: NSColor(cgColor: cgColor),
+            _label: NoLabel(),
+            _action: action,
+            _showsAlpha: showsAlpha
+        )
     }
 }
 
@@ -192,8 +449,35 @@ extension ColorWellView<Text> {
     ///   - title: A string that describes the purpose of the color well.
     ///   - color: The initial value of the color well's color.
     @available(macOS 11.0, *)
-    public init<S: StringProtocol>(_ title: S, color: Color) {
-        self.init(_color: NSColor(color), _label: Text(title))
+    public init<S: StringProtocol>(
+        _ title: S,
+        color: Color
+    ) {
+        self.init(
+            _color: NSColor(color),
+            _label: Text(title)
+        )
+    }
+
+    /// Creates a color well with an initial color value, that generates
+    /// its label from a string.
+    ///
+    /// - Parameters:
+    ///   - title: A string that describes the purpose of the color well.
+    ///   - color: The initial value of the color well's color.
+    ///   - showsAlpha: A binding to a Boolean value indicating whether the
+    ///     color well's color panel shows alpha values and an opacity slider.
+    @available(macOS 11.0, *)
+    public init<S: StringProtocol>(
+        _ title: S,
+        color: Color,
+        showsAlpha: Binding<Bool>
+    ) {
+        self.init(
+            _color: NSColor(color),
+            _label: Text(title),
+            _showsAlpha: showsAlpha
+        )
     }
 
     /// Creates a color well with an initial color value, that generates
@@ -202,8 +486,34 @@ extension ColorWellView<Text> {
     /// - Parameters:
     ///   - title: A string that describes the purpose of the color well.
     ///   - cgColor: The initial value of the color well's color.
-    public init<S: StringProtocol>(_ title: S, cgColor: CGColor) {
-        self.init(_color: NSColor(cgColor: cgColor), _label: Text(title))
+    public init<S: StringProtocol>(
+        _ title: S,
+        cgColor: CGColor
+    ) {
+        self.init(
+            _color: NSColor(cgColor: cgColor),
+            _label: Text(title)
+        )
+    }
+
+    /// Creates a color well with an initial color value, that generates
+    /// its label from a string.
+    ///
+    /// - Parameters:
+    ///   - title: A string that describes the purpose of the color well.
+    ///   - cgColor: The initial value of the color well's color.
+    ///   - showsAlpha: A binding to a Boolean value indicating whether the
+    ///     color well's color panel shows alpha values and an opacity slider.
+    public init<S: StringProtocol>(
+        _ title: S,
+        cgColor: CGColor,
+        showsAlpha: Binding<Bool>
+    ) {
+        self.init(
+            _color: NSColor(cgColor: cgColor),
+            _label: Text(title),
+            _showsAlpha: showsAlpha
+        )
     }
 
     /// Creates a color well that generates its label from a string, and
@@ -212,8 +522,34 @@ extension ColorWellView<Text> {
     /// - Parameters:
     ///   - title: A string that describes the purpose of the color well.
     ///   - action: An action to perform when the color well's color changes.
-    public init<S: StringProtocol>(_ title: S, action: @escaping (Color) -> Void) {
-        self.init(_label: Text(title), _action: action)
+    public init<S: StringProtocol>(
+        _ title: S,
+        action: @escaping (Color) -> Void
+    ) {
+        self.init(
+            _label: Text(title),
+            _action: action
+        )
+    }
+
+    /// Creates a color well that generates its label from a string, and
+    /// performs the given action when its color changes.
+    ///
+    /// - Parameters:
+    ///   - title: A string that describes the purpose of the color well.
+    ///   - showsAlpha: A binding to a Boolean value indicating whether the
+    ///     color well's color panel shows alpha values and an opacity slider.
+    ///   - action: An action to perform when the color well's color changes.
+    public init<S: StringProtocol>(
+        _ title: S,
+        showsAlpha: Binding<Bool>,
+        action: @escaping (Color) -> Void
+    ) {
+        self.init(
+            _label: Text(title),
+            _action: action,
+            _showsAlpha: showsAlpha
+        )
     }
 
     /// Creates a color well with an initial color value that generates
@@ -225,8 +561,41 @@ extension ColorWellView<Text> {
     ///   - color: The initial value of the color well's color.
     ///   - action: An action to perform when the color well's color changes.
     @available(macOS 11.0, *)
-    public init<S: StringProtocol>(_ title: S, color: Color, action: @escaping (Color) -> Void) {
-        self.init(_color: NSColor(color), _label: Text(title), _action: action)
+    public init<S: StringProtocol>(
+        _ title: S,
+        color: Color,
+        action: @escaping (Color) -> Void
+    ) {
+        self.init(
+            _color: NSColor(color),
+            _label: Text(title),
+            _action: action
+        )
+    }
+
+    /// Creates a color well with an initial color value that generates
+    /// its label from a string, and performs the given action when its
+    /// color changes.
+    ///
+    /// - Parameters:
+    ///   - title: A string that describes the purpose of the color well.
+    ///   - color: The initial value of the color well's color.
+    ///   - showsAlpha: A binding to a Boolean value indicating whether the
+    ///     color well's color panel shows alpha values and an opacity slider.
+    ///   - action: An action to perform when the color well's color changes.
+    @available(macOS 11.0, *)
+    public init<S: StringProtocol>(
+        _ title: S,
+        color: Color,
+        showsAlpha: Binding<Bool>,
+        action: @escaping (Color) -> Void
+    ) {
+        self.init(
+            _color: NSColor(color),
+            _label: Text(title),
+            _action: action,
+            _showsAlpha: showsAlpha
+        )
     }
 
     /// Creates a color well with an initial color value that generates
@@ -243,8 +612,46 @@ extension ColorWellView<Text> {
     ///   - title: A string that describes the purpose of the color well.
     ///   - cgColor: The initial value of the color well's color.
     ///   - action: An action to perform when the color well's color changes.
-    public init<S: StringProtocol>(_ title: S, cgColor: CGColor, action: @escaping (CGColor) -> Void) {
-        self.init(_color: NSColor(cgColor: cgColor), _label: Text(title), _action: action)
+    public init<S: StringProtocol>(
+        _ title: S,
+        cgColor: CGColor,
+        action: @escaping (CGColor) -> Void
+    ) {
+        self.init(
+            _color: NSColor(cgColor: cgColor),
+            _label: Text(title),
+            _action: action
+        )
+    }
+
+    /// Creates a color well with an initial color value that generates
+    /// its label from a string, and performs the given action when its
+    /// color changes.
+    ///
+    /// - Note: The color well's color is translated into a `CGColor` from
+    ///   an underlying representation. In some cases, the translation process
+    ///   may be forced to return an approximation, rather than the original
+    ///   color. To receive a color that is guaranteed to be equivalent to the
+    ///   color well's underlying representation, use ``init(_:color:showsAlpha:action:)-68zal``.
+    ///
+    /// - Parameters:
+    ///   - title: A string that describes the purpose of the color well.
+    ///   - cgColor: The initial value of the color well's color.
+    ///   - showsAlpha: A binding to a Boolean value indicating whether the
+    ///     color well's color panel shows alpha values and an opacity slider.
+    ///   - action: An action to perform when the color well's color changes.
+    public init<S: StringProtocol>(
+        _ title: S,
+        cgColor: CGColor,
+        showsAlpha: Binding<Bool>,
+        action: @escaping (CGColor) -> Void
+    ) {
+        self.init(
+            _color: NSColor(cgColor: cgColor),
+            _label: Text(title),
+            _action: action,
+            _showsAlpha: showsAlpha
+        )
     }
 
     // MARK: Generate Label From LocalizedStringKey
@@ -256,8 +663,35 @@ extension ColorWellView<Text> {
     ///   - titleKey: The key for the localized title of the color well.
     ///   - color: The initial value of the color well's color.
     @available(macOS 11.0, *)
-    public init(_ titleKey: LocalizedStringKey, color: Color) {
-        self.init(_color: NSColor(color), _label: Text(titleKey))
+    public init(
+        _ titleKey: LocalizedStringKey,
+        color: Color
+    ) {
+        self.init(
+            _color: NSColor(color),
+            _label: Text(titleKey)
+        )
+    }
+
+    /// Creates a color well with an initial color value, that generates
+    /// its label from a localized string key.
+    ///
+    /// - Parameters:
+    ///   - titleKey: The key for the localized title of the color well.
+    ///   - color: The initial value of the color well's color.
+    ///   - showsAlpha: A binding to a Boolean value indicating whether the
+    ///     color well's color panel shows alpha values and an opacity slider.
+    @available(macOS 11.0, *)
+    public init(
+        _ titleKey: LocalizedStringKey,
+        color: Color,
+        showsAlpha: Binding<Bool>
+    ) {
+        self.init(
+            _color: NSColor(color),
+            _label: Text(titleKey),
+            _showsAlpha: showsAlpha
+        )
     }
 
     /// Creates a color well with an initial color value, that generates
@@ -266,8 +700,34 @@ extension ColorWellView<Text> {
     /// - Parameters:
     ///   - titleKey: The key for the localized title of the color well.
     ///   - cgColor: The initial value of the color well's color.
-    public init(_ titleKey: LocalizedStringKey, cgColor: CGColor) {
-        self.init(_color: NSColor(cgColor: cgColor), _label: Text(titleKey))
+    public init(
+        _ titleKey: LocalizedStringKey,
+        cgColor: CGColor
+    ) {
+        self.init(
+            _color: NSColor(cgColor: cgColor),
+            _label: Text(titleKey)
+        )
+    }
+
+    /// Creates a color well with an initial color value, that generates
+    /// its label from a localized string key.
+    ///
+    /// - Parameters:
+    ///   - titleKey: The key for the localized title of the color well.
+    ///   - cgColor: The initial value of the color well's color.
+    ///   - showsAlpha: A binding to a Boolean value indicating whether the
+    ///     color well's color panel shows alpha values and an opacity slider.
+    public init(
+        _ titleKey: LocalizedStringKey,
+        cgColor: CGColor,
+        showsAlpha: Binding<Bool>
+    ) {
+        self.init(
+            _color: NSColor(cgColor: cgColor),
+            _label: Text(titleKey),
+            _showsAlpha: showsAlpha
+        )
     }
 
     /// Creates a color well that generates its label from a localized
@@ -276,8 +736,34 @@ extension ColorWellView<Text> {
     /// - Parameters:
     ///   - titleKey: The key for the localized title of the color well.
     ///   - action: An action to perform when the color well's color changes.
-    public init(_ titleKey: LocalizedStringKey, action: @escaping (Color) -> Void) {
-        self.init(_label: Text(titleKey), _action: action)
+    public init(
+        _ titleKey: LocalizedStringKey,
+        action: @escaping (Color) -> Void
+    ) {
+        self.init(
+            _label: Text(titleKey),
+            _action: action
+        )
+    }
+
+    /// Creates a color well that generates its label from a localized
+    /// string key, and performs the given action when its color changes.
+    ///
+    /// - Parameters:
+    ///   - titleKey: The key for the localized title of the color well.
+    ///   - showsAlpha: A binding to a Boolean value indicating whether the
+    ///     color well's color panel shows alpha values and an opacity slider.
+    ///   - action: An action to perform when the color well's color changes.
+    public init(
+        _ titleKey: LocalizedStringKey,
+        showsAlpha: Binding<Bool>,
+        action: @escaping (Color) -> Void
+    ) {
+        self.init(
+            _label: Text(titleKey),
+            _action: action,
+            _showsAlpha: showsAlpha
+        )
     }
 
     /// Creates a color well with an initial color value that generates
@@ -289,8 +775,41 @@ extension ColorWellView<Text> {
     ///   - color: The initial value of the color well's color.
     ///   - action: An action to perform when the color well's color changes.
     @available(macOS 11.0, *)
-    public init(_ titleKey: LocalizedStringKey, color: Color, action: @escaping (Color) -> Void) {
-        self.init(_color: NSColor(color), _label: Text(titleKey), _action: action)
+    public init(
+        _ titleKey: LocalizedStringKey,
+        color: Color,
+        action: @escaping (Color) -> Void
+    ) {
+        self.init(
+            _color: NSColor(color),
+            _label: Text(titleKey),
+            _action: action
+        )
+    }
+
+    /// Creates a color well with an initial color value that generates
+    /// its label from a localized string key, and performs the given action
+    /// when its color changes.
+    ///
+    /// - Parameters:
+    ///   - titleKey: The key for the localized title of the color well.
+    ///   - color: The initial value of the color well's color.
+    ///   - showsAlpha: A binding to a Boolean value indicating whether the
+    ///     color well's color panel shows alpha values and an opacity slider.
+    ///   - action: An action to perform when the color well's color changes.
+    @available(macOS 11.0, *)
+    public init(
+        _ titleKey: LocalizedStringKey,
+        color: Color,
+        showsAlpha: Binding<Bool>,
+        action: @escaping (Color) -> Void
+    ) {
+        self.init(
+            _color: NSColor(color),
+            _label: Text(titleKey),
+            _action: action,
+            _showsAlpha: showsAlpha
+        )
     }
 
     /// Creates a color well with an initial color value that generates
@@ -307,8 +826,46 @@ extension ColorWellView<Text> {
     ///   - titleKey: The key for the localized title of the color well.
     ///   - cgColor: The initial value of the color well's color.
     ///   - action: An action to perform when the color well's color changes.
-    public init(_ titleKey: LocalizedStringKey, cgColor: CGColor, action: @escaping (CGColor) -> Void) {
-        self.init(_color: NSColor(cgColor: cgColor), _label: Text(titleKey), _action: action)
+    public init(
+        _ titleKey: LocalizedStringKey,
+        cgColor: CGColor,
+        action: @escaping (CGColor) -> Void
+    ) {
+        self.init(
+            _color: NSColor(cgColor: cgColor),
+            _label: Text(titleKey),
+            _action: action
+        )
+    }
+
+    /// Creates a color well with an initial color value that generates
+    /// its label from a localized string key, and performs the given action
+    /// when its color changes.
+    ///
+    /// - Note: The color well's color is translated into a `CGColor` from
+    ///   an underlying representation. In some cases, the translation process
+    ///   may be forced to return an approximation, rather than the original
+    ///   color. To receive a color that is guaranteed to be equivalent to the
+    ///   color well's underlying representation, use ``init(_:color:showsAlpha:action:)-60wmk``.
+    ///
+    /// - Parameters:
+    ///   - titleKey: The key for the localized title of the color well.
+    ///   - cgColor: The initial value of the color well's color.
+    ///   - showsAlpha: A binding to a Boolean value indicating whether the
+    ///     color well's color panel shows alpha values and an opacity slider.
+    ///   - action: An action to perform when the color well's color changes.
+    public init(
+        _ titleKey: LocalizedStringKey,
+        cgColor: CGColor,
+        showsAlpha: Binding<Bool>,
+        action: @escaping (CGColor) -> Void
+    ) {
+        self.init(
+            _color: NSColor(cgColor: cgColor),
+            _label: Text(titleKey),
+            _action: action,
+            _showsAlpha: showsAlpha
+        )
     }
 }
 
@@ -319,7 +876,20 @@ extension ColorWellView {
     private struct Representable: NSViewRepresentable {
         let color: NSColor?
 
+        let showsAlphaIsEnabled: Bool
+
         @Binding var showsAlpha: Bool
+
+        init(color: NSColor?, showsAlpha: Binding<Bool>?) {
+            self.color = color
+            if let showsAlpha {
+                self.showsAlphaIsEnabled = true
+                self._showsAlpha = showsAlpha
+            } else {
+                self.showsAlphaIsEnabled = false
+                self._showsAlpha = .constant(true)
+            }
+        }
 
         func makeNSView(context: Context) -> ColorWell {
             if let color {
@@ -330,9 +900,12 @@ extension ColorWellView {
         }
 
         func updateNSView(_ nsView: ColorWell, context: Context) {
-            nsView.showsAlpha = showsAlpha
             nsView.changeHandlers.appendUnique(contentsOf: changeHandlers(for: context))
             nsView.isEnabled = context.environment.isEnabled
+
+            if showsAlphaIsEnabled {
+                nsView.showsAlpha = showsAlpha
+            }
 
             if #available(macOS 11.0, *) {
                 nsView.swatchColors = context.environment.swatchColors
