@@ -140,6 +140,17 @@ public class ColorWell: _ColorWellBaseView {
     /// The observations currently associated with the color well.
     private var observations = [ObjectIdentifier: Set<NSKeyValueObservation>]()
 
+    private var shouldSynchronizeShowsAlpha = false
+
+    private lazy var _showsAlpha = colorPanel.showsAlpha {
+        didSet {
+            shouldSynchronizeShowsAlpha = true
+            if isActive {
+                synchronizeColorPanel()
+            }
+        }
+    }
+
     /// The segment that shows the color well's color.
     private var swatchSegment: SwatchSegment {
         layoutView.swatchSegment
@@ -289,8 +300,8 @@ public class ColorWell: _ColorWellBaseView {
     /// A Boolean value indicating whether the color well's color panel
     /// shows alpha values and an opacity slider.
     public var showsAlpha: Bool {
-        get { colorPanel.showsAlpha }
-        set { colorPanel.showsAlpha = newValue }
+        get { _showsAlpha }
+        set { _showsAlpha = newValue }
     }
 
     // MARK: Initializers
@@ -406,12 +417,20 @@ extension ColorWell {
             colorPanel.color = color
             return
         }
-        guard
-            canSynchronizeColorPanel,
-            colorPanel.color != color
-        else {
+
+        guard canSynchronizeColorPanel else {
             return
         }
+
+        if shouldSynchronizeShowsAlpha {
+            colorPanel.showsAlpha = showsAlpha
+            shouldSynchronizeShowsAlpha = false
+        }
+
+        guard colorPanel.color != color else {
+            return
+        }
+
         if colorPanel.activeColorWells == [self] {
             synchronizeColorPanel(force: true)
         } else {
