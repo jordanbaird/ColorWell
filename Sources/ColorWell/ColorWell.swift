@@ -82,7 +82,7 @@ extension _ColorWellBaseView {
     }
 
     public override var intrinsicContentSize: NSSize {
-        Self.defaultFrame.size.applying(alignmentRectInsets)
+        Self.defaultFrame.size.applying(insets: alignmentRectInsets)
     }
 }
 
@@ -140,9 +140,6 @@ public class ColorWell: _ColorWellBaseView {
     /// The observations currently associated with the color well.
     private var observations = [ObjectIdentifier: Set<NSKeyValueObservation>]()
 
-    /// The color well's change handlers.
-    private var changeHandlers = [ChangeHandler]()
-
     /// The segment that shows the color well's color.
     private var swatchSegment: SwatchSegment {
         layoutView.swatchSegment
@@ -188,6 +185,11 @@ public class ColorWell: _ColorWellBaseView {
             }
         }
     }
+
+    // MARK: Internal Properties
+
+    /// The color well's change handlers.
+    internal var changeHandlers = [ChangeHandler]()
 
     // MARK: Public Properties
 
@@ -456,13 +458,6 @@ extension ColorWell {
 
 // MARK: ColorWell Internal Methods
 extension ColorWell {
-    /// Adds the change handlers in the given sequence that are not
-    /// already present to the end of the color well's stored change
-    /// handlers.
-    internal func appendUniqueChangeHandlers<S: Sequence>(_ handlers: S) where S.Element == ChangeHandler {
-        changeHandlers.appendUnique(contentsOf: handlers)
-    }
-
     /// Performs the specified block of code, ensuring that the color
     /// well's stored change handlers are not executed.
     internal func withoutExecutingChangeHandlers<T>(_ body: (ColorWell) throws -> T) rethrows -> T {

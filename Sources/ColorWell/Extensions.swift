@@ -57,7 +57,7 @@ extension CGRect {
 extension CGSize {
     /// Returns the size that is the result of subtracting the specified
     /// edge insets from the current size.
-    internal func applying(_ insets: NSEdgeInsets) -> Self {
+    internal func applying(insets: NSEdgeInsets) -> Self {
         Self(
             width: width - insets.horizontal,
             height: height - insets.vertical
@@ -121,25 +121,13 @@ extension NSApplication {
 // MARK: - NSColor
 
 extension NSColor {
-    /// The `sRGB` color space components of the current color.
-    internal var sRGBComponents: (red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat)? {
-        guard let sRGB = usingColorSpace(.sRGB) else {
-            return nil
-        }
-        let r = sRGB.redComponent
-        let g = sRGB.greenComponent
-        let b = sRGB.blueComponent
-        let a = sRGB.alphaComponent
-        return (r, g, b, a)
-    }
-
     /// Returns the average of this color's red, green, and blue components,
     /// approximating the brightness of the color.
     internal var averageBrightness: CGFloat {
-        guard let sRGBComponents else {
+        guard let sRGB = usingColorSpace(.sRGB) else {
             return 0
         }
-        return (sRGBComponents.red + sRGBComponents.green + sRGBComponents.blue) / 3
+        return (sRGB.redComponent + sRGB.greenComponent + sRGB.blueComponent) / 3
     }
 
     /// Creates a color from a hexadecimal string.
@@ -159,18 +147,16 @@ extension NSColor {
         let rString = hexArray[0..<2].joined()
         let gString = hexArray[2..<4].joined()
         let bString = hexArray[4..<6].joined()
-        let aString = {
-            if count == 6 {
-                return "ff"
-            } else {
-                return hexArray[6..<8].joined()
-            }
-        }()
+        let aString = count == 6 ? "ff" : hexArray[6..<8].joined()
 
-        let rInt = Int(rString, radix: 16)!
-        let gInt = Int(gString, radix: 16)!
-        let bInt = Int(bString, radix: 16)!
-        let aInt = Int(aString, radix: 16)!
+        guard
+            let rInt = Int(rString, radix: 16),
+            let gInt = Int(gString, radix: 16),
+            let bInt = Int(bString, radix: 16),
+            let aInt = Int(aString, radix: 16)
+        else {
+            return nil
+        }
 
         let rFloat = CGFloat(rInt) / 255
         let gFloat = CGFloat(gInt) / 255

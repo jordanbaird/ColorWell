@@ -8,33 +8,6 @@ import Cocoa
 #if canImport(SwiftUI)
 import SwiftUI
 
-// MARK: - RootView
-
-@available(macOS 10.15, *)
-private struct RootView: NSViewRepresentable {
-    let color: NSColor?
-
-    @Binding var showsAlpha: Bool
-
-    func makeNSView(context: Context) -> ColorWell {
-        if let color {
-            return ColorWell(color: color)
-        } else {
-            return ColorWell()
-        }
-    }
-
-    func updateNSView(_ nsView: ColorWell, context: Context) {
-        nsView.showsAlpha = showsAlpha
-        nsView.appendUniqueChangeHandlers(context.environment.changeHandlers.reversed())
-        nsView.isEnabled = context.environment.isEnabled
-
-        if #available(macOS 11.0, *) {
-            nsView.swatchColors = context.environment.swatchColors
-        }
-    }
-}
-
 // MARK: - ColorWellView
 
 /// A SwiftUI view that displays a user-settable color value.
@@ -53,8 +26,7 @@ public struct ColorWellView<Label: View>: View {
         content
     }
 
-    /// A base level initializer for other initializers to
-    /// delegate to.
+    /// A base level initializer for other initializers to delegate to.
     /// ** For internal use only **
     private init<L: View, C: CustomCocoaConvertible>(
         _color: NSColor? = nil,
@@ -72,7 +44,7 @@ public struct ColorWellView<Label: View>: View {
             content: {
                 // TODO: Need an API that accepts a Binding<Bool> for showsAlpha.
                 // For now, we'll just pass a constant.
-                RootView(color: _color, showsAlpha: .constant(true))
+                Representable(color: _color, showsAlpha: .constant(true))
                     .onColorChange(maybePerform: _action)
                     .fixedSize()
             }
@@ -80,8 +52,8 @@ public struct ColorWellView<Label: View>: View {
         .erased()
     }
 
-    /// A base level initializer for other initializers to
-    /// delegate to, whose `_label` parameter is an `@autoclosure`.
+    /// A base level initializer for other initializers to delegate to,
+    /// whose `_label` parameter is an `@autoclosure`.
     /// ** For internal use only **
     private init<L: View, C: CustomCocoaConvertible>(
         _color: NSColor? = nil,
@@ -340,6 +312,41 @@ extension ColorWellView<Text> {
     }
 }
 
+// MARK: ColorWellView Representable
+@available(macOS 10.15, *)
+extension ColorWellView {
+    /// An `NSViewRepresentable` wrapper around a `ColorWell`.
+    private struct Representable: NSViewRepresentable {
+        let color: NSColor?
+
+        @Binding var showsAlpha: Bool
+
+        func makeNSView(context: Context) -> ColorWell {
+            if let color {
+                return ColorWell(color: color)
+            } else {
+                return ColorWell()
+            }
+        }
+
+        func updateNSView(_ nsView: ColorWell, context: Context) {
+            nsView.showsAlpha = showsAlpha
+            nsView.changeHandlers.appendUnique(contentsOf: changeHandlers(for: context))
+            nsView.isEnabled = context.environment.isEnabled
+
+            if #available(macOS 11.0, *) {
+                nsView.swatchColors = context.environment.swatchColors
+            }
+        }
+
+        /// Returns the change handlers for the given context.
+        func changeHandlers(for context: Context) -> [ChangeHandler] {
+            // Reversed to reflect the true order in which they were added.
+            context.environment.changeHandlers.reversed()
+        }
+    }
+}
+
 // MARK: - NoLabel
 
 /// A special view type whose presence indicates that a `ColorWellView`'s
@@ -390,14 +397,14 @@ private struct LayoutView<Label: View, LabelCandidate: View, Content: View>: Vie
 // MARK: - ChangeHandlersKey
 
 @available(macOS 10.15, *)
-internal struct ChangeHandlersKey: EnvironmentKey {
+private struct ChangeHandlersKey: EnvironmentKey {
     static let defaultValue = [ChangeHandler]()
 }
 
 // MARK: - SwatchColorsKey
 
 @available(macOS 11.0, *)
-internal struct SwatchColorsKey: EnvironmentKey {
+private struct SwatchColorsKey: EnvironmentKey {
     static let defaultValue = ColorWell.defaultSwatchColors
 }
 
@@ -424,7 +431,7 @@ extension EnvironmentValues {
 // MARK: - OnColorChange
 
 @available(macOS 10.15, *)
-internal struct OnColorChange<C: CustomCocoaConvertible>: ViewModifier
+private struct OnColorChange<C: CustomCocoaConvertible>: ViewModifier
     where C.CocoaType == NSColor,
           C.Converted == C
 {
@@ -451,7 +458,7 @@ internal struct OnColorChange<C: CustomCocoaConvertible>: ViewModifier
 // MARK: - SwatchColors
 
 @available(macOS 11.0, *)
-internal struct SwatchColors: ViewModifier {
+private struct SwatchColors: ViewModifier {
     let colors: [Color]
 
     var transformedColors: [NSColor] {
@@ -469,6 +476,7 @@ internal struct SwatchColors: ViewModifier {
 
 @available(macOS 10.15, *)
 extension View {
+    /// Adds a generic action to perform when a color well's color changes.
     fileprivate func onColorChange<C: CustomCocoaConvertible>(maybePerform action: ((C) -> Void)?) -> some View
         where C.CocoaType == NSColor,
               C.Converted == C
