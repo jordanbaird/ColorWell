@@ -1230,16 +1230,6 @@ extension SwatchSegment {
         popover = makePopover()
         popover?.show(relativeTo: frame, of: self, preferredEdge: .minY)
     }
-
-    private func setDraggingFrame(for draggingItem: NSDraggingItem) {
-        guard let colorWell else {
-            return
-        }
-        let draggingFrame = NSRect(x: 0, y: 0, width: 12, height: 12)
-        let draggingImage = NSImage(color: colorWell.color, size: draggingFrame.size, radius: 2)
-
-        draggingItem.setDraggingFrame(draggingFrame, contents: draggingImage)
-    }
 }
 
 // MARK: SwatchSegment Overrides
@@ -1317,20 +1307,14 @@ extension SwatchSegment {
 
     override func mouseDragged(with event: NSEvent) {
         super.mouseDragged(with: event)
-
-        guard isValidDrag else {
+        guard
+            isValidDrag,
+            let color = colorWell?.color
+        else {
             return
         }
-
         state = .default
-
-        let pasteboardItem = NSPasteboardItem()
-        pasteboardItem.setDataProvider(self, forTypes: [.color])
-
-        let draggingItem = NSDraggingItem(pasteboardWriter: pasteboardItem)
-        setDraggingFrame(for: draggingItem)
-
-        beginDraggingSession(with: [draggingItem], event: event, source: self)
+        NSColorPanel.dragColor(color, with: event, from: self)
     }
 
     override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
@@ -1344,14 +1328,11 @@ extension SwatchSegment {
     }
 
     override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
-        guard
-            let data = sender.draggingPasteboard.data(forType: .color),
-            let color = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSColor.self, from: data)
-        else {
-            return false
+        if let color = NSColor(from: sender.draggingPasteboard) {
+            colorWell?.color = color
+            return true
         }
-        colorWell?.color = color
-        return true
+        return false
     }
 }
 
@@ -1359,34 +1340,6 @@ extension SwatchSegment {
 extension SwatchSegment {
     override func isAccessibilityElement() -> Bool {
         false
-    }
-}
-
-// MARK: SwatchSegment: NSDraggingSource
-extension SwatchSegment: NSDraggingSource {
-    func draggingSession(
-        _ session: NSDraggingSession,
-        sourceOperationMaskFor context: NSDraggingContext
-    ) -> NSDragOperation {
-        .move
-    }
-}
-
-// MARK: SwatchSegment: NSPasteboardItemDataProvider
-extension SwatchSegment: NSPasteboardItemDataProvider {
-    func pasteboard(
-        _ pasteboard: NSPasteboard?,
-        item: NSPasteboardItem,
-        provideDataForType type: NSPasteboard.PasteboardType
-    ) {
-        guard
-            type == .color,
-            let color = colorWell?.color,
-            let data = try? NSKeyedArchiver.archivedData(withRootObject: color, requiringSecureCoding: true)
-        else {
-            return
-        }
-        item.setData(data, forType: type)
     }
 }
 
