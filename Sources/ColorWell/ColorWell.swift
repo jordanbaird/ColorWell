@@ -47,8 +47,8 @@ extension _ColorWellBaseView {
     ]
 
     /// The default colors shown in the color well's popover.
-    internal static let defaultSwatchColors = defaultHexStrings.compactMap {
-        NSColor(hexString: $0)
+    internal static let defaultSwatchColors = defaultHexStrings.compactMap { string in
+        NSColor(hexString: string)
     }
 }
 
@@ -129,6 +129,9 @@ public class ColorWell: _ColorWellBaseView {
     /// A view that displays the color well's segments, side by side.
     private var layoutView: ColorWellLayoutView!
 
+    /// The observations associated with the color well.
+    private var observations = [ObjectIdentifier: Set<NSKeyValueObservation>]()
+
     /// A Boolean value that indicates whether the color well can
     /// currently perform synchronization with its color panel.
     private var canSynchronizeColorPanel = false
@@ -137,11 +140,52 @@ public class ColorWell: _ColorWellBaseView {
     /// currently execute its change handlers.
     private var canExecuteChangeHandlers = false
 
-    /// The observations currently associated with the color well.
-    private var observations = [ObjectIdentifier: Set<NSKeyValueObservation>]()
-
+    /// A Boolean value that indicates whether the `showsAlpha` value
+    /// should be synchronized the next time `synchronizeColorPanel()`
+    /// is called.
     private var shouldSynchronizeShowsAlpha = false
 
+    // FIXME: Only `NSColorPanel.shared` should be allowed as a value here.
+    //
+    /// The backing value for the public `colorPanel` property.
+    ///
+    /// Even though `NSColorPanel` is _supposed_ to be a singleton, it
+    /// lets you create custom instances using initializers inherited
+    /// from `NSObject`, `NSPanel`, etc. The problem is that `NSColorPanel`
+    /// internally manages its memory, and caches parts of its interface.
+    /// Color panels other than `NSColorPanel.shared` could get released,
+    /// leaving behind a slew of cached objects with no reference of what
+    /// they belong to.
+    ///
+    /// For now, we'll deprecate the public property's setter, but it
+    /// should eventually be made into a get-only property, a la:
+    ///
+    /// ```
+    /// public var colorPanel: NSColorPanel { .shared }
+    /// ```
+    private lazy var _colorPanel = NSColorPanel.shared {
+        willSet {
+            if isActive {
+                newValue.activeColorWells.insert(self)
+            }
+        }
+        didSet {
+            removeColorPanelObservations()
+            if isActive {
+                oldValue.activeColorWells.remove(self)
+                synchronizeColorPanel()
+                setUpColorPanelObservations()
+            }
+        }
+    }
+
+    /// The backing value for the public `showsAlpha` property.
+    ///
+    /// If the color well is active when this property is set, the color
+    /// well's color panel's `showsAlpha` property is set to this value
+    /// in a call to `synchronizeColorPanel()`. If the color well is not
+    /// active when this property is set, the next call to `synchronizeColorPanel()`
+    /// will set its color panel's `showsAlpha` to this value.
     private lazy var _showsAlpha = colorPanel.showsAlpha {
         didSet {
             shouldSynchronizeShowsAlpha = true
@@ -167,36 +211,6 @@ public class ColorWell: _ColorWellBaseView {
         set { swatchSegment.popover = newValue }
     }
 
-    // FIXME: Only `NSColorPanel.shared` should be allowed as a value here.
-    //
-    // Even though NSColorPanel is _supposed_ to be a singleton, it lets you
-    // create custom instances using initializers inherited from NSObject,
-    // NSPanel, etc. The problem is that NSColorPanel internally manages its
-    // memory, and caches parts of its interface. Color panels other than
-    // '.shared' could get released, leaving behind a slew of cached objects
-    // with no reference of what they belong to.
-    //
-    // For now, we'll deprecate the public property's setter, but it should
-    // eventually be made into a get-only property, a la:
-    // ```
-    // public var colorPanel: NSColorPanel { .shared }
-    // ```
-    private lazy var _colorPanel = NSColorPanel.shared {
-        willSet {
-            if isActive {
-                newValue.activeColorWells.insert(self)
-            }
-        }
-        didSet {
-            removeColorPanelObservations()
-            if isActive {
-                oldValue.activeColorWells.remove(self)
-                synchronizeColorPanel()
-                setUpColorPanelObservations()
-            }
-        }
-    }
-
     // MARK: Internal Properties
 
     /// The color well's change handlers.
@@ -205,7 +219,10 @@ public class ColorWell: _ColorWellBaseView {
     // MARK: Public Properties
 
     /// A Boolean value that indicates whether the color well supports being
-    /// included in group selections (using "Shift-click" functionality).
+    /// included in group selections.
+    ///
+    /// The user can select multiple color wells by holding "Shift" while
+    /// selecting.
     ///
     /// Default value is `true`.
     public var allowsMultipleSelection = true
@@ -271,9 +288,16 @@ public class ColorWell: _ColorWellBaseView {
     ///   removed in a future release. Using any other value besides `NSColorPanel.shared`
     ///   will result in memory leaks.
     public var colorPanel: NSColorPanel {
-        get { _colorPanel }
-        @available(*, deprecated, message: "Only the 'shared' instance of NSColorPanel is valid. Creation of additional instances causes memory leaks.")
-        set { _colorPanel = newValue }
+        get {
+            _colorPanel
+        }
+        @available(
+            *, deprecated, message:
+            "Only the 'shared' instance of NSColorPanel is valid. Creation of additional instances causes memory leaks."
+        )
+        set {
+            _colorPanel = newValue
+        }
     }
 
     /// A Boolean value that indicates whether the color well is
@@ -989,7 +1013,7 @@ extension ColorWellSegment {
         if let trackingArea {
             removeTrackingArea(trackingArea)
         }
-        trackingArea = NSTrackingArea(
+        let trackingArea = NSTrackingArea(
             rect: bounds,
             options: [
                 .activeInKeyWindow,
@@ -997,8 +1021,8 @@ extension ColorWellSegment {
             ],
             owner: self
         )
-        // Force unwrap is fine, as we just set this value.
-        addTrackingArea(trackingArea!)
+        addTrackingArea(trackingArea)
+        self.trackingArea = trackingArea
     }
 }
 
@@ -1573,8 +1597,8 @@ internal class ColorWellPopoverLayoutView: NSGridView {
         columnSpacing = 1
 
         let rowCount = Int((Double(swatchCount) / Double(maxItemsPerRow)).rounded(.up))
-        swatches = colorWell.swatchColors.map {
-            ColorSwatch(rowCount: rowCount, color: $0, colorWell: colorWell, layoutView: self)
+        swatches = colorWell.swatchColors.map { color in
+            ColorSwatch(rowCount: rowCount, color: color, colorWell: colorWell, layoutView: self)
         }
 
         for row in makeRows() {
@@ -1612,8 +1636,8 @@ extension ColorWellPopoverLayoutView {
 extension ColorWellPopoverLayoutView {
     override func mouseDragged(with event: NSEvent) {
         super.mouseDragged(with: event)
-        let swatch = swatches.first {
-            $0.frameConvertedToWindow.contains(event.locationInWindow)
+        let swatch = swatches.first { swatch in
+            swatch.frameConvertedToWindow.contains(event.locationInWindow)
         }
         swatch?.select()
     }
@@ -1677,8 +1701,8 @@ internal class ColorSwatch: NSView {
             guard isSelected else {
                 return
             }
-            iterateOtherSwatches(where: [\.isSelected]) {
-                $0.isSelected = false
+            iterateOtherSwatches(where: [\.isSelected]) { swatch in
+                swatch.isSelected = false
             }
         }
     }
@@ -1732,11 +1756,11 @@ extension ColorSwatch {
     /// is passed into it. Bigger row counts result in smaller swatches.
     static func size(forRowCount rowCount: Int) -> NSSize {
         if rowCount < 6 {
-            return .init(width: 37, height: 20)
+            return NSSize(width: 37, height: 20)
         } else if rowCount < 10 {
-            return .init(width: 31, height: 18)
+            return NSSize(width: 31, height: 18)
         }
-        return .init(width: 15, height: 15)
+        return NSSize(width: 15, height: 15)
     }
 }
 

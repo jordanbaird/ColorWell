@@ -27,6 +27,7 @@ public struct ColorWellView<Label: View>: View {
     }
 
     /// A base level initializer for other initializers to delegate to.
+    ///
     /// ** For internal use only **
     private init<L: View, C: CustomCocoaConvertible>(
         _color: NSColor? = nil,
@@ -52,6 +53,7 @@ public struct ColorWellView<Label: View>: View {
 
     /// A base level initializer for other initializers to delegate to,
     /// whose `_label` parameter is an `@autoclosure`.
+    ///
     /// ** For internal use only **
     private init<L: View, C: CustomCocoaConvertible>(
         _color: NSColor? = nil,
@@ -873,6 +875,8 @@ extension ColorWellView<Text> {
 @available(macOS 10.15, *)
 extension ColorWellView {
     /// An `NSViewRepresentable` wrapper around a `ColorWell`.
+    ///
+    /// ** For internal use only **
     private struct Representable: NSViewRepresentable {
         let color: NSColor?
 
@@ -924,6 +928,7 @@ extension ColorWellView {
 
 /// A special view type whose presence indicates that a `ColorWellView`'s
 /// constructor should not modify the constructed view to include a label.
+///
 /// ** For internal use only **
 @available(macOS 10.15, *)
 private struct NoLabel: View {
@@ -938,6 +943,7 @@ private struct NoLabel: View {
 /// the label candidate's type to ensure that it meets the criteria to be
 /// included as part of the constructed view. If the candidate fails
 /// validation, only the content view will be included.
+///
 /// ** For internal use only **
 @available(macOS 10.15, *)
 private struct LayoutView<Label: View, LabelCandidate: View, Content: View>: View {
@@ -1050,6 +1056,8 @@ private struct SwatchColors: ViewModifier {
 @available(macOS 10.15, *)
 extension View {
     /// Adds a generic action to perform when a color well's color changes.
+    ///
+    /// ** For internal use only **
     fileprivate func onColorChange<C: CustomCocoaConvertible>(maybePerform action: ((C) -> Void)?) -> some View
         where C.CocoaType == NSColor,
               C.Converted == C
