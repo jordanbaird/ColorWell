@@ -225,6 +225,7 @@ public class ColorWell: _ColorWellBaseView {
     /// selecting.
     ///
     /// Default value is `true`.
+    @objc dynamic
     public var allowsMultipleSelection = true
 
     /// The colors that will be shown as swatches in the color well's popover.
@@ -262,6 +263,7 @@ public class ColorWell: _ColorWellBaseView {
     ///
     /// - Note: If the array is empty, the color well's ``colorPanel`` will be
     ///   shown instead of a popover.
+    @objc dynamic
     public var swatchColors = defaultSwatchColors
 
     /// The color well's color.
@@ -287,6 +289,7 @@ public class ColorWell: _ColorWellBaseView {
     /// - Important: The setter for this property is deprecated, and will be
     ///   removed in a future release. Using any other value besides `NSColorPanel.shared`
     ///   will result in memory leaks.
+    @objc dynamic
     public var colorPanel: NSColorPanel {
         get {
             _colorPanel
@@ -305,6 +308,7 @@ public class ColorWell: _ColorWellBaseView {
     ///
     /// You can change this value using the ``activate(exclusive:)``
     /// and ``deactivate()`` methods.
+    @objc dynamic
     public var isActive: Bool {
         isEnabled && colorPanel.activeColorWells.contains(self)
     }
@@ -315,6 +319,7 @@ public class ColorWell: _ColorWellBaseView {
     /// its color panel, or show its popover.
     ///
     /// Default value is `true`.
+    @objc dynamic
     public var isEnabled: Bool = true {
         didSet {
             needsDisplay = true
@@ -323,6 +328,7 @@ public class ColorWell: _ColorWellBaseView {
 
     /// A Boolean value indicating whether the color well's color panel
     /// shows alpha values and an opacity slider.
+    @objc dynamic
     public var showsAlpha: Bool {
         get { _showsAlpha }
         set { _showsAlpha = newValue }
@@ -612,6 +618,7 @@ extension ColorWell {
     /// A Boolean value that indicates whether the color well's color panel
     /// allows adjusting the selected color's opacity.
     @available(*, deprecated, message: "Renamed to 'showsAlpha'", renamed: "showsAlpha")
+    @objc dynamic
     public var supportsOpacity: Bool {
         get { showsAlpha }
         set { showsAlpha = newValue }
