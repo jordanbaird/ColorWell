@@ -273,6 +273,7 @@ extension NSColorPanel {
     private static let storage = Storage<Set<ColorWell>>()
 
     /// The color wells that are currently active and share this color panel.
+    @objc dynamic
     internal var activeColorWells: Set<ColorWell> {
         get {
             Self.storage[self] ?? []

@@ -179,6 +179,19 @@ public class ColorWell: _ColorWellBaseView {
         }
     }
 
+    /// The backing value for the public `isActive` property.
+    ///
+    /// This enables key-value observation on the public property, while
+    /// still allowing it to be get-only.
+    private var _isActive = false {
+        willSet {
+            willChangeValue(for: \.isActive)
+        }
+        didSet {
+            didChangeValue(for: \.isActive)
+        }
+    }
+
     /// The backing value for the public `showsAlpha` property.
     ///
     /// If the color well is active when this property is set, the color
@@ -309,9 +322,7 @@ public class ColorWell: _ColorWellBaseView {
     /// You can change this value using the ``activate(exclusive:)``
     /// and ``deactivate()`` methods.
     @objc dynamic
-    public var isActive: Bool {
-        isEnabled && colorPanel.activeColorWells.contains(self)
-    }
+    public var isActive: Bool { _isActive }
 
     /// A Boolean value that indicates whether the color well is enabled.
     ///
@@ -322,6 +333,7 @@ public class ColorWell: _ColorWellBaseView {
     @objc dynamic
     public var isEnabled: Bool = true {
         didSet {
+            updateActiveState()
             needsDisplay = true
         }
     }
@@ -425,6 +437,11 @@ extension ColorWell {
             .store(in: &observations[for: NSApplication.self])
         }
 
+        colorPanel.observe(\.activeColorWells, options: .new) { [weak self] _, _ in
+            self?.updateActiveState()
+        }
+        .store(in: &observations[for: Set<ColorWell>.self])
+
         canSynchronizeColorPanel = true
         canExecuteChangeHandlers = true
     }
@@ -466,6 +483,12 @@ extension ColorWell {
         } else {
             color = colorPanel.color
         }
+    }
+
+    /// Updates the `isActive` property of the color well to the
+    /// current accurate value.
+    private func updateActiveState() {
+        _isActive = isEnabled && colorPanel.activeColorWells.contains(self)
     }
 
     /// Removes all observations for the color panel.
