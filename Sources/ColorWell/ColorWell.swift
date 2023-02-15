@@ -736,10 +736,8 @@ extension ColorWellLayoutView {
         bezelLayer.needsDisplayOnBoundsChange = true
         bezelLayer.frame = layer.bounds
 
-        let bezelFrame = bezelLayer.frame.insetBy(
-            dx: ColorWell.lineWidth / 2,
-            dy: ColorWell.lineWidth / 2
-        )
+        let insetAmount = ColorWell.lineWidth / 2
+        let bezelFrame = bezelLayer.frame.insetBy(dx: insetAmount, dy: insetAmount)
 
         let maskLayer = CAShapeLayer()
         maskLayer.fillColor = .clear
