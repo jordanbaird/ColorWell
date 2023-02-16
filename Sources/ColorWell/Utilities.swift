@@ -65,61 +65,67 @@ extension ChangeHandler: Hashable {
 // MARK: - Storage
 
 /// A type that uses object association to store external values.
-internal class Storage<Value> {
+internal class Storage<Object: AnyObject, Value> {
     private let policy: AssociationPolicy
 
     private var key: UnsafeMutableRawPointer {
         Unmanaged.passUnretained(self).toOpaque()
     }
 
-    /// Creates a storage object that stores values of the
-    /// given type, using the provided association policy.
-    init(
-        _ type: Value.Type = Value.self,
-        policy: @autoclosure () -> AssociationPolicy = .retain(false)
-    ) {
-        self.policy = policy()
+    /// Creates a storage object that stores external values using
+    /// the specified association policy.
+    init(policy: AssociationPolicy = .retainNonatomic) {
+        self.policy = policy
     }
 
-    /// Accesses the value for the given object.
-    subscript<Object: AnyObject>(_ object: Object) -> Value? {
-        get { objc_getAssociatedObject(object, key) as? Value }
-        set { objc_setAssociatedObject(object, key, newValue, policy.objcValue) }
+    /// Accesses the associated value for the specified object.
+    func value(forObject object: Object) -> Value? {
+        objc_getAssociatedObject(object, key) as? Value
+    }
+
+    /// Assigns an associated value to the specified object.
+    func set(_ value: Value?, forObject object: Object) {
+        objc_setAssociatedObject(object, key, value, policy.objcValue)
+    }
+
+    /// Removes the associated value for the specified object.
+    func removeValue(forObject object: Object) {
+        set(nil, forObject: object)
     }
 }
 
 // MARK: - AssociationPolicy
 
-/// A type that specifies the behavior of an object association.
-internal struct AssociationPolicy {
-    fileprivate let objcValue: objc_AssociationPolicy
-
-    private init(_ objcValue: objc_AssociationPolicy) {
-        self.objcValue = objcValue
-    }
-}
-
-// MARK: AssociationPolicy Static Members
-extension AssociationPolicy {
+/// Available policies to use for object association.
+internal enum AssociationPolicy {
     /// A weak reference to the associated object.
-    static var assign: Self {
-        Self(.OBJC_ASSOCIATION_ASSIGN)
-    }
+    case assign
 
-    /// The associated object is copied.
-    static func copy(_ isAtomic: Bool) -> Self {
-        guard isAtomic else {
-            return Self(.OBJC_ASSOCIATION_COPY_NONATOMIC)
-        }
-        return Self(.OBJC_ASSOCIATION_COPY)
-    }
+    /// The associated object is copied atomically.
+    case copy
 
-    /// A strong reference to the associated object.
-    static func retain(_ isAtomic: Bool) -> Self {
-        guard isAtomic else {
-            return Self(.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+    /// The associated object is copied nonatomically.
+    case copyNonatomic
+
+    /// A strong reference to the associated object that is made atomically.
+    case retain
+
+    /// A strong reference to the associated object that is made nonatomically.
+    case retainNonatomic
+
+    fileprivate var objcValue: objc_AssociationPolicy {
+        switch self {
+        case .assign:
+            return .OBJC_ASSOCIATION_ASSIGN
+        case .copy:
+            return .OBJC_ASSOCIATION_COPY
+        case .copyNonatomic:
+            return .OBJC_ASSOCIATION_COPY_NONATOMIC
+        case .retain:
+            return .OBJC_ASSOCIATION_RETAIN
+        case .retainNonatomic:
+            return .OBJC_ASSOCIATION_RETAIN_NONATOMIC
         }
-        return Self(.OBJC_ASSOCIATION_RETAIN)
     }
 }
 
