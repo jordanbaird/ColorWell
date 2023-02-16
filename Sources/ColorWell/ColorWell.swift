@@ -805,11 +805,6 @@ internal class ColorWellSegment: NSView {
     /// The side of the color well that this segment is on.
     var side: Side { .null }
 
-    /// The color well's current height.
-    var colorWellHeight: CGFloat {
-        colorWell?.frame.height ?? ColorWell.defaultHeight
-    }
-
     /// A Boolean value that indicates whether the color well is enabled.
     var colorWellIsEnabled: Bool {
         colorWell?.isEnabled ?? false

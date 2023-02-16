@@ -411,13 +411,6 @@ extension NSImage {
 // MARK: - NSKeyValueObservation
 
 extension NSKeyValueObservation {
-    /// Stores this key-value observation in the specified collection.
-    ///
-    /// - Parameter collection: The collection in which to store this observation.
-    internal func store<C: RangeReplaceableCollection>(in collection: inout C) where C.Element == NSKeyValueObservation {
-        collection.append(self)
-    }
-
     /// Stores this key-value observation in the specified set.
     ///
     /// - Parameter set: The set in which to store this observation.

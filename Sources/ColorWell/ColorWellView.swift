@@ -911,8 +911,11 @@ extension ColorWellView {
                 nsView.showsAlpha = showsAlpha
             }
 
-            if #available(macOS 11.0, *) {
-                nsView.swatchColors = context.environment.swatchColors
+            if
+                #available(macOS 11.0, *),
+                let swatchColors = context.environment.swatchColors
+            {
+                nsView.swatchColors = swatchColors
             }
         }
 
@@ -954,7 +957,7 @@ private struct LayoutView<Label: View, LabelCandidate: View, Content: View>: Vie
     }
 
     init(
-        _ labelType: Label.Type,
+        _: Label.Type,
         @ViewBuilder label: () -> LabelCandidate,
         @ViewBuilder content: () -> Content
     ) {
@@ -984,7 +987,7 @@ private struct ChangeHandlersKey: EnvironmentKey {
 
 @available(macOS 11.0, *)
 private struct SwatchColorsKey: EnvironmentKey {
-    static let defaultValue = ColorWell.defaultSwatchColors
+    static let defaultValue: [NSColor]? = nil
 }
 
 // MARK: - EnvironmentValues Change Handlers
@@ -1001,7 +1004,7 @@ extension EnvironmentValues {
 
 @available(macOS 11.0, *)
 extension EnvironmentValues {
-    internal var swatchColors: [NSColor] {
+    internal var swatchColors: [NSColor]? {
         get { self[SwatchColorsKey.self] }
         set { self[SwatchColorsKey.self] = newValue }
     }
@@ -1017,37 +1020,17 @@ private struct OnColorChange<C: CustomCocoaConvertible>: ViewModifier
     let id = UUID()
     let action: ((C) -> Void)?
 
-    var transformedAction: ChangeHandler? {
-        action.map { action in
-            ChangeHandler(id: id) {
-                action(C.converted(from: $0))
-            }
-        }
-    }
-
     func body(content: Content) -> some View {
         content.transformEnvironment(\.changeHandlers) { changeHandlers in
-            if let transformedAction {
-                changeHandlers.appendUnique(transformedAction)
+            let changeHandler = action.map { action in
+                ChangeHandler(id: id) { color in
+                    action(.converted(from: color))
+                }
+            }
+            if let changeHandler {
+                changeHandlers.appendUnique(changeHandler)
             }
         }
-    }
-}
-
-// MARK: - SwatchColors
-
-@available(macOS 11.0, *)
-private struct SwatchColors: ViewModifier {
-    let colors: [Color]
-
-    var transformedColors: [NSColor] {
-        colors.map {
-            NSColor($0)
-        }
-    }
-
-    func body(content: Content) -> some View {
-        content.environment(\.swatchColors, transformedColors)
     }
 }
 
@@ -1087,7 +1070,7 @@ extension View {
     ///
     /// - Parameter colors: The swatch colors to use.
     public func swatchColors(_ colors: [Color]) -> some View {
-        modifier(SwatchColors(colors: colors))
+        environment(\.swatchColors, colors.map { NSColor($0) })
     }
 }
 #endif
