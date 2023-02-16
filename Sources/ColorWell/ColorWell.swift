@@ -1174,9 +1174,9 @@ extension ToggleSegment {
 // MARK: - SwatchSegment
 
 internal class SwatchSegment: ColorWellSegment {
-    private var caretView: CaretView?
-
     fileprivate var popover: ColorWellPopover?
+
+    private var caretView: CaretView?
 
     private var canShowPopover = false
 
@@ -1185,13 +1185,9 @@ internal class SwatchSegment: ColorWellSegment {
     }
 
     private var borderColor: NSColor {
-        let alpha = min(
-            min(
-                displayColor.averageBrightness,
-                displayColor.alphaComponent
-            ),
-            0.2
-        )
+        let displayColor = displayColor // Reduce number of calculations
+        let normalizedBrightness = min(displayColor.averageBrightness, displayColor.alphaComponent)
+        let alpha = min(normalizedBrightness, 0.2)
         return NSColor(white: 1 - alpha, alpha: alpha)
     }
 
