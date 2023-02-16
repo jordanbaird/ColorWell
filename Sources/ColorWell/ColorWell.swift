@@ -1263,7 +1263,7 @@ extension SwatchSegment {
         let caretView = CaretView()
         addSubview(caretView)
 
-        caretView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -2.5).isActive = true
+        caretView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -4).isActive = true
         caretView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
 
         self.caretView = caretView
@@ -1350,55 +1350,50 @@ extension SwatchSegment {
     /// circle. This view appears when the mouse hovers over a swatch segment.
     private class CaretView: NSImageView {
         /// An image of a downward-facing caret inside of a translucent circle.
-        private var caretImage: NSImage {
-            let sizeConstant: CGFloat = 12
-            return NSImage(
-                size: .init(width: sizeConstant, height: sizeConstant),
-                flipped: false
-            ) { bounds in
-                let circlePath = NSBezierPath(ovalIn: bounds)
-                NSColor(
-                    srgbRed: 0.235,
-                    green: 0.235,
-                    blue: 0.235,
-                    alpha: 0.4
-                ).setFill()
-                circlePath.fill()
+        private let caretImage = NSImage(size: NSSize(width: 12, height: 12), flipped: false) { bounds in
+            NSColor(white: 0, alpha: 0.25).setFill()
+            NSBezierPath(ovalIn: bounds).fill()
 
-                let caretPathBounds = NSRect(
-                    x: 0,
-                    y: 0,
-                    width: sizeConstant / 2,
-                    height: sizeConstant / 4
-                ).centered(in: bounds)
+            let lineWidth = 1.5
+            let caretPathBounds = NSRect(
+                x: 0,
+                y: 0,
+                width: (bounds.width - lineWidth) / 2,
+                height: (bounds.height - lineWidth) / 4
+            ).centered(
+                in: bounds
+            ).offsetBy(
+                dx: 0,
+                dy: -lineWidth / 4
+            )
 
-                let caretPath = NSBezierPath()
-                caretPath.lineWidth = 1.5
-                caretPath.lineCapStyle = .round
-                caretPath.move(
-                    to: .init(
-                        x: caretPathBounds.minX,
-                        y: caretPathBounds.maxY - (caretPath.lineWidth / 4)
-                    )
+            let caretPath = NSBezierPath()
+            caretPath.move(
+                to: NSPoint(
+                    x: caretPathBounds.minX,
+                    y: caretPathBounds.maxY
                 )
-                caretPath.line(
-                    to: .init(
-                        x: caretPathBounds.midX,
-                        y: caretPathBounds.minY - (caretPath.lineWidth / 4)
-                    )
+            )
+            caretPath.line(
+                to: NSPoint(
+                    x: caretPathBounds.midX,
+                    y: caretPathBounds.minY
                 )
-                caretPath.line(
-                    to: .init(
-                        x: caretPathBounds.maxX,
-                        y: caretPathBounds.maxY - (caretPath.lineWidth / 4)
-                    )
+            )
+            caretPath.line(
+                to: NSPoint(
+                    x: caretPathBounds.maxX,
+                    y: caretPathBounds.maxY
                 )
+            )
 
-                NSColor.white.setStroke()
-                caretPath.stroke()
+            NSColor.white.setStroke()
 
-                return true
-            }
+            caretPath.lineWidth = lineWidth
+            caretPath.lineCapStyle = .round
+            caretPath.stroke()
+
+            return true
         }
 
         init() {
