@@ -217,7 +217,7 @@ extension NSColor {
     /// Returns a Boolean value that indicates whether this color resembles another
     /// color, with the given tolerance.
     ///
-    /// This method checks all typical color spaces.
+    /// This method checks all typical, non-grayscale color spaces.
     ///
     /// - Parameters:
     ///   - other: A color to compare this color to.
@@ -229,40 +229,25 @@ extension NSColor {
             return true
         }
 
-        let standardColorSpaces: [NSColorSpace] = [
+        let colorSpaces: [NSColorSpace] = [
+            // Standard
             .sRGB,
             .extendedSRGB,
             .adobeRGB1998,
             .displayP3,
-        ]
 
-        for colorSpace in standardColorSpaces where resembles(other, using: colorSpace, tolerance: tolerance) {
-            return true
-        }
-
-        let genericColorSpaces: [NSColorSpace] = [
+            // Generic
             .genericRGB,
             .genericCMYK,
-            .genericGray,
-            .genericGamma22Gray,
-            .extendedGenericGamma22Gray,
-        ]
 
-        for colorSpace in genericColorSpaces where resembles(other, using: colorSpace, tolerance: tolerance) {
-            return true
-        }
-
-        let deviceColorSpaces: [NSColorSpace] = [
+            // Device
             .deviceRGB,
             .deviceCMYK,
-            .deviceGray,
         ]
 
-        for colorSpace in deviceColorSpaces where resembles(other, using: colorSpace, tolerance: tolerance) {
-            return true
+        return colorSpaces.contains { colorSpace in
+            resembles(other, using: colorSpace, tolerance: tolerance)
         }
-
-        return false
     }
 }
 
