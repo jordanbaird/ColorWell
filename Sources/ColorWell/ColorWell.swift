@@ -767,6 +767,8 @@ internal class ColorWellSegment: NSView {
     /// The accumulated offset of the current series of dragging events.
     private var draggingOffset = CGSize()
 
+    var cachedDefaultPath = CachedPath()
+
     var isActive: Bool {
         colorWell?.isActive ?? false
     }
@@ -913,8 +915,11 @@ extension ColorWellSegment {
 // MARK: ColorWellSegment Internal Methods
 extension ColorWellSegment {
     /// Returns the default path that will be used to draw the segment.
-    func defaultPath(for rect: NSRect) -> NSBezierPath {
-        .colorWellSegment(rect: rect, side: side)
+    func defaultPath(for rect: NSRect, cached: inout CachedPath) -> NSBezierPath {
+        if cached.rect != rect {
+            cached = CachedPath(rect: rect, side: side)
+        }
+        return cached.path
     }
 
     func addShadowLayer(for rect: NSRect) {
@@ -964,7 +969,7 @@ extension ColorWellSegment {
 extension ColorWellSegment {
     override func draw(_ dirtyRect: NSRect) {
         displayColor.setFill()
-        defaultPath(for: dirtyRect).fill()
+        defaultPath(for: dirtyRect, cached: &cachedDefaultPath).fill()
         addShadowLayer(for: dirtyRect)
     }
 
@@ -1066,6 +1071,39 @@ extension ColorWellSegment {
 
     override func isAccessibilityElement() -> Bool {
         true
+    }
+}
+
+// MARK: - ColorWellSegment CachedPath
+
+extension ColorWellSegment {
+    /// A type that contains a cached bezier path, along
+    /// with the rectangle that was used to create it.
+    struct CachedPath {
+        /// The rectangle used to create the path.
+        let rect: NSRect
+
+        /// The cached bezier path of this instance.
+        let path: NSBezierPath
+
+        /// Creates an instance with the given rectangle and
+        /// bezier path.
+        init(rect: NSRect, path: NSBezierPath) {
+            self.rect = rect
+            self.path = path
+        }
+
+        /// Creates an instance, constructing its bezier path
+        /// from the given rectangle and side.
+        init(rect: NSRect, side: Side) {
+            self.init(rect: rect, path: .colorWellSegment(rect: rect, side: side))
+        }
+
+        /// Creates an instance whose rectangle and bezier path
+        /// are both equivalent to `zero`.
+        init() {
+            self.init(rect: .zero, path: NSBezierPath())
+        }
     }
 }
 
@@ -1173,6 +1211,8 @@ internal class SwatchSegment: ColorWellSegment {
 
     private var caretView: CaretView?
 
+    private var cachedBorderPath = CachedPath()
+
     private var canShowPopover = false
 
     private var overrideShowPopover: Bool {
@@ -1234,13 +1274,16 @@ extension SwatchSegment {
         NSImage.drawSwatch(
             with: displayColor,
             in: dirtyRect,
-            clippingTo: defaultPath(for: dirtyRect)
+            clippingTo: defaultPath(for: dirtyRect, cached: &cachedDefaultPath)
         )
 
         borderColor.setStroke()
 
         let lineWidth = ColorWell.lineWidth
-        let borderPath = defaultPath(for: dirtyRect.insetBy(dx: lineWidth / 4, dy: lineWidth / 2))
+        let borderPath = defaultPath(
+            for: dirtyRect.insetBy(dx: lineWidth / 4, dy: lineWidth / 2),
+            cached: &cachedBorderPath
+        )
         borderPath.lineWidth = lineWidth
         borderPath.stroke()
 
