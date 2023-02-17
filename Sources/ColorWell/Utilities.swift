@@ -266,13 +266,9 @@ extension ColorComponents {
 // MARK: ColorComponents: CustomStringConvertible
 extension ColorComponents: CustomStringConvertible {
     var description: String {
-        colorSpaceName
-        + " "
-        + extractedComponentStrings.joined(separator: " ")
+        ([colorSpaceName] + extractedComponentStrings).joined(separator: " ")
     }
 }
-
-#if canImport(SwiftUI)
 
 // MARK: - CustomCocoaConvertible
 
@@ -294,18 +290,19 @@ internal protocol CustomCocoaConvertible {
     static func converted(from source: CocoaType) -> Converted
 }
 
+// MARK: CGColor: CustomCocoaConvertible
+extension CGColor: CustomCocoaConvertible {
+    internal static func converted(from source: NSColor) -> CGColor {
+        source.cgColor
+    }
+}
+
+#if canImport(SwiftUI)
 // MARK: Color: CustomCocoaConvertible
 @available(macOS 10.15, *)
 extension Color: CustomCocoaConvertible {
     internal static func converted(from source: NSColor) -> Self {
         Self(source)
-    }
-}
-
-// MARK: CGColor: CustomCocoaConvertible
-extension CGColor: CustomCocoaConvertible {
-    internal static func converted(from source: NSColor) -> CGColor {
-        source.cgColor
     }
 }
 #endif
