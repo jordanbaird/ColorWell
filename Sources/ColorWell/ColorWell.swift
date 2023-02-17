@@ -418,7 +418,7 @@ public class ColorWell: _ColorWellBaseView {
 extension ColorWell {
     /// Shared code to execute on a color well's initialization.
     private func sharedInit(color: NSColor) {
-        layoutView = .init(colorWell: self)
+        layoutView = ColorWellLayoutView(colorWell: self)
 
         addSubview(layoutView)
 
@@ -428,6 +428,7 @@ extension ColorWell {
         layoutView.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
         layoutView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
 
+        // IMPORTANT: Color should only be set AFTER the layout view is added.
         self.color = color
 
         if #available(macOS 10.14, *) {
@@ -698,8 +699,8 @@ internal class ColorWellLayoutView: NSGridView {
 
     /// Creates a grid view with the given color well.
     init(colorWell: ColorWell) {
-        swatchSegment = .init(colorWell: colorWell)
-        toggleSegment = .init(colorWell: colorWell)
+        swatchSegment = SwatchSegment(colorWell: colorWell)
+        toggleSegment = ToggleSegment(colorWell: colorWell)
 
         super.init(frame: .zero)
 
@@ -707,6 +708,7 @@ internal class ColorWellLayoutView: NSGridView {
         columnSpacing = 0
         xPlacement = .fill
         yPlacement = .fill
+
         addRow(with: [swatchSegment, toggleSegment])
     }
 
@@ -720,6 +722,7 @@ internal class ColorWellLayoutView: NSGridView {
 extension ColorWellLayoutView {
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
+
         bezelLayer?.removeFromSuperlayer()
 
         guard let layer else {
@@ -751,6 +754,7 @@ extension ColorWellLayoutView {
 
         layer.addSublayer(bezelLayer)
         bezelLayer.zPosition += 1
+
         self.bezelLayer = bezelLayer
     }
 }
@@ -932,7 +936,7 @@ extension ColorWellSegment {
 
         let shadowLayer = CALayer()
 
-        let shadowOffset = CGSize(width: 0, height: 0)
+        let shadowOffset = NSSize(width: 0, height: 0)
         let shadowRadius = ColorWell.lineWidth * 0.75
         let shadowPath = CGPath.colorWellSegment(rect: rect, side: side)
 
@@ -1164,6 +1168,7 @@ extension ToggleSegment {
             width: dimension,
             height: dimension
         ).centered(in: layer.bounds)
+
         imageLayer.contents = clip ? image.clippedToCircle() : image
 
         if !colorWellIsEnabled {
@@ -1220,7 +1225,7 @@ internal class SwatchSegment: ColorWellSegment {
     }
 
     private var borderColor: NSColor {
-        let displayColor = displayColor // Reduce number of calculations
+        let displayColor = displayColor // Avoid repeated access to reduce computation overhead
         let normalizedBrightness = min(displayColor.averageBrightness, displayColor.alphaComponent)
         let alpha = min(normalizedBrightness, 0.2)
         return NSColor(white: 1 - alpha, alpha: alpha)
@@ -1249,7 +1254,7 @@ extension SwatchSegment {
 
     private func makePopover() -> ColorWellPopover? {
         if let colorWell {
-            return .init(colorWell: colorWell)
+            return ColorWellPopover(colorWell: colorWell)
         }
         return nil
     }
@@ -1257,7 +1262,6 @@ extension SwatchSegment {
     private func makeAndShowPopover() {
         // The popover should be nil no matter what here.
         assert(popover == nil, "Popover should not exist yet")
-
         popover = makePopover()
         popover?.show(relativeTo: frame, of: self, preferredEdge: .minY)
     }
@@ -1459,7 +1463,7 @@ internal class ColorWellPopover: NSPopover {
 
     /// Creates a popover for the given color well.
     init(colorWell: ColorWell) {
-        popoverViewController = .init(colorWell: colorWell)
+        popoverViewController = ColorWellPopoverViewController(colorWell: colorWell)
         super.init()
         self.colorWell = colorWell
         contentViewController = popoverViewController
@@ -1506,7 +1510,7 @@ internal class ColorWellPopoverViewController: NSViewController {
     }
 
     init(colorWell: ColorWell) {
-        self.containerView = .init(colorWell: colorWell)
+        self.containerView = ColorWellPopoverContainerView(colorWell: colorWell)
         super.init(nibName: nil, bundle: nil)
         self.view = containerView
         self.colorWell = colorWell
@@ -1746,7 +1750,7 @@ internal class ColorSwatch: NSView {
 
         let size = Self.size(forRowCount: rowCount)
 
-        super.init(frame: .init(origin: .zero, size: size))
+        super.init(frame: NSRect(origin: .zero, size: size))
 
         wantsLayer = true
         translatesAutoresizingMaskIntoConstraints = false
