@@ -11,45 +11,20 @@ import SwiftUI
 
 // MARK: - _ColorWellBaseView
 
-/// A base view class that contains some default properties and methods
-/// for use in the main `ColorWell` class.
+/// A base view class that contains some default functionality for use in the
+/// main ``ColorWell`` class.
+///
+/// The public ``ColorWell`` class inherits from this class. The underscore
+/// at the front of its name indicates that this is a private API, and subject
+/// to change. The main reason this class exists is to allow a number of
+/// properties and methods to be overridden without polluting the package's
+/// documentation.
 public class _ColorWellBaseView: NSView { }
 
 // MARK: _ColorWellBaseView Static Properties
 extension _ColorWellBaseView {
-    /// The default width for a color well's frame.
-    internal static let defaultWidth: CGFloat = 64
-
-    /// The default height for a color well's frame.
-    internal static let defaultHeight: CGFloat = 28
-
     /// The default frame for a color well.
-    internal static let defaultFrame = NSRect(x: 0, y: 0, width: defaultWidth, height: defaultHeight)
-
-    /// A base value to use when computing the width of lines drawn as
-    /// part of a color well or its elements.
-    internal static let lineWidth: CGFloat = 1
-
-    /// The color shown by color wells that were not initialized with
-    /// an initial value.
-    ///
-    /// Currently, this color is an RGBA white.
-    internal static let defaultColor = NSColor(red: 1, green: 1, blue: 1, alpha: 1)
-
-    /// Hexadecimal strings used to construct the default colors shown
-    /// in the color well's popover.
-    internal static let defaultHexStrings = [
-        "56C1FF", "72FDEA", "88FA4F", "FFF056", "FF968D", "FF95CA",
-        "00A1FF", "15E6CF", "60D937", "FFDA31", "FF644E", "FF42A1",
-        "0076BA", "00AC8E", "1FB100", "FEAE00", "ED220D", "D31876",
-        "004D80", "006C65", "017101", "F27200", "B51800", "970E53",
-        "FFFFFF", "D5D5D5", "929292", "5E5E5E", "000000",
-    ]
-
-    /// The default colors shown in the color well's popover.
-    internal static let defaultSwatchColors = defaultHexStrings.compactMap { string in
-        NSColor(hexString: string)
-    }
+    internal static let defaultFrame = NSRect(x: 0, y: 0, width: 64, height: 28)
 }
 
 // MARK: _ColorWellBaseView Methods
@@ -123,6 +98,33 @@ extension _ColorWellBaseView {
 /// selected color, and interactions with the color well display interfaces
 /// for selecting new colors.
 public class ColorWell: _ColorWellBaseView {
+
+    // MARK: Static Properties
+
+    /// A base value to use when computing the width of lines drawn as
+    /// part of a color well or its elements.
+    internal static let lineWidth: CGFloat = 1
+
+    /// The color shown by color wells that were not initialized with
+    /// an initial value.
+    ///
+    /// Currently, this color is an RGBA white.
+    private static let defaultColor = NSColor(red: 1, green: 1, blue: 1, alpha: 1)
+
+    /// Hexadecimal strings used to construct the default colors shown
+    /// in the color well's popover.
+    private static let defaultHexStrings = [
+        "56C1FF", "72FDEA", "88FA4F", "FFF056", "FF968D", "FF95CA",
+        "00A1FF", "15E6CF", "60D937", "FFDA31", "FF644E", "FF42A1",
+        "0076BA", "00AC8E", "1FB100", "FEAE00", "ED220D", "D31876",
+        "004D80", "006C65", "017101", "F27200", "B51800", "970E53",
+        "FFFFFF", "D5D5D5", "929292", "5E5E5E", "000000",
+    ]
+
+    /// The default colors shown in the color well's popover.
+    private static let defaultSwatchColors = defaultHexStrings.compactMap { string in
+        NSColor(hexString: string)
+    }
 
     // MARK: Private Properties
 
@@ -1068,6 +1070,7 @@ extension ColorWellSegment {
 // MARK: - ColorWellSegment State
 
 extension ColorWellSegment {
+    /// A type that represents the state of a color well segment.
     enum State {
         case hover
         case highlight
