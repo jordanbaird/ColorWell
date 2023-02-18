@@ -9,25 +9,39 @@ import Cocoa
 import SwiftUI
 #endif
 
-// MARK: - _ColorWellBaseView
+// MARK: - ColorWellBaseView
 
-/// A base view class that contains some default functionality for use in the
-/// main ``ColorWell`` class.
+// FIXME: Remove this when @_documentation(visibility:) becomes official.
+//
+/// A base view class that contains some default functionality for use in
+/// the main ``ColorWell`` class.
 ///
 /// The public ``ColorWell`` class inherits from this class. The underscore
-/// at the front of its name indicates that this is a private API, and subject
-/// to change. The main reason this class exists is to allow a number of
-/// properties and methods to be overridden without polluting the package's
-/// documentation.
+/// in front of its name indicates that this is a private API, and subject
+/// to change. This class exists to enable public properties and methods to
+/// be overridden without polluting the package's documentation.
 public class _ColorWellBaseView: NSView { }
 
-// MARK: _ColorWellBaseView Static Properties
+// MARK: ColorWellBaseView Instance Properties
 extension _ColorWellBaseView {
-    /// The default frame for a color well.
-    internal static let defaultFrame = NSRect(x: 0, y: 0, width: 64, height: 28)
+    /// A custom value for the color well's alignment rect insets.
+    ///
+    /// To be overridden by the main ``ColorWell`` class.
+    @objc dynamic
+    internal var customAlignmentRectInsets: NSEdgeInsets {
+        super.alignmentRectInsets
+    }
+
+    /// A custom value for the color well's intrinsic content size.
+    ///
+    /// To be overridden by the main ``ColorWell`` class.
+    @objc dynamic
+    internal var customIntrinsicContentSize: NSSize {
+        super.intrinsicContentSize
+    }
 }
 
-// MARK: _ColorWellBaseView Methods
+// MARK: ColorWellBaseView Instance Methods
 extension _ColorWellBaseView {
     /// Returns a value for the given accessibility attribute.
     ///
@@ -50,41 +64,82 @@ extension _ColorWellBaseView {
     }
 }
 
-// MARK: _ColorWellBaseView Overrides
+// MARK: ColorWellBaseView Overrides
 extension _ColorWellBaseView {
+    //@_documentation(visibility: internal)
     public override var alignmentRectInsets: NSEdgeInsets {
-        NSEdgeInsets(top: 2, left: 3, bottom: 2, right: 3)
+        customAlignmentRectInsets
     }
 
+    //@_documentation(visibility: internal)
     public override var intrinsicContentSize: NSSize {
-        Self.defaultFrame.size.applying(insets: alignmentRectInsets)
+        customIntrinsicContentSize
     }
 }
 
-// MARK: _ColorWellBaseView Accessibility
+// MARK: ColorWellBaseView Accessibility
 extension _ColorWellBaseView {
+    //@_documentation(visibility: internal)
     public override func accessibilityChildren() -> [Any]? {
         provideValue(forAttribute: .children)
     }
 
+    //@_documentation(visibility: internal)
     public override func accessibilityPerformPress() -> Bool {
         performAction(forType: .press)
     }
 
+    //@_documentation(visibility: internal)
     public override func accessibilityRole() -> NSAccessibility.Role? {
         .colorWell
     }
 
+    //@_documentation(visibility: internal)
     public override func accessibilityValue() -> Any? {
         provideValue(forAttribute: .value)
     }
 
+    //@_documentation(visibility: internal)
     public override func isAccessibilityElement() -> Bool {
         true
     }
 
+    //@_documentation(visibility: internal)
     public override func isAccessibilityEnabled() -> Bool {
         provideValue(forAttribute: .enabled) ?? true
+    }
+}
+
+// MARK: - Constants
+
+/// A namespace for constants shared by all instances of ``ColorWell``.
+private enum Constants {
+    /// A base value to use when computing the width of lines drawn as
+    /// part of a color well or its elements.
+    static let lineWidth: CGFloat = 1
+
+    /// The default frame for a color well.
+    static let defaultFrame = NSRect(x: 0, y: 0, width: 64, height: 28)
+
+    /// The color shown by color wells that were not initialized with
+    /// an initial value.
+    ///
+    /// Currently, this color is an RGBA white.
+    static let defaultColor = NSColor(red: 1, green: 1, blue: 1, alpha: 1)
+
+    /// Hexadecimal strings used to construct the default colors shown
+    /// in a color well's popover.
+    static let defaultHexStrings = [
+        "56C1FF", "72FDEA", "88FA4F", "FFF056", "FF968D", "FF95CA",
+        "00A1FF", "15E6CF", "60D937", "FFDA31", "FF644E", "FF42A1",
+        "0076BA", "00AC8E", "1FB100", "FEAE00", "ED220D", "D31876",
+        "004D80", "006C65", "017101", "F27200", "B51800", "970E53",
+        "FFFFFF", "D5D5D5", "929292", "5E5E5E", "000000",
+    ]
+
+    /// The default colors shown in a color well's popover.
+    static let defaultSwatchColors = defaultHexStrings.compactMap { string in
+        NSColor(hexString: string)
     }
 }
 
@@ -98,33 +153,6 @@ extension _ColorWellBaseView {
 /// selected color, and interactions with the color well display interfaces
 /// for selecting new colors.
 public class ColorWell: _ColorWellBaseView {
-
-    // MARK: Static Properties
-
-    /// A base value to use when computing the width of lines drawn as
-    /// part of a color well or its elements.
-    internal static let lineWidth: CGFloat = 1
-
-    /// The color shown by color wells that were not initialized with
-    /// an initial value.
-    ///
-    /// Currently, this color is an RGBA white.
-    private static let defaultColor = NSColor(red: 1, green: 1, blue: 1, alpha: 1)
-
-    /// Hexadecimal strings used to construct the default colors shown
-    /// in the color well's popover.
-    private static let defaultHexStrings = [
-        "56C1FF", "72FDEA", "88FA4F", "FFF056", "FF968D", "FF95CA",
-        "00A1FF", "15E6CF", "60D937", "FFDA31", "FF644E", "FF42A1",
-        "0076BA", "00AC8E", "1FB100", "FEAE00", "ED220D", "D31876",
-        "004D80", "006C65", "017101", "F27200", "B51800", "970E53",
-        "FFFFFF", "D5D5D5", "929292", "5E5E5E", "000000",
-    ]
-
-    /// The default colors shown in the color well's popover.
-    private static let defaultSwatchColors = defaultHexStrings.compactMap { string in
-        NSColor(hexString: string)
-    }
 
     // MARK: Private Properties
 
@@ -279,7 +307,7 @@ public class ColorWell: _ColorWellBaseView {
     /// - Note: If the array is empty, the color well's ``colorPanel`` will be
     ///   shown instead of a popover.
     @objc dynamic
-    public var swatchColors = defaultSwatchColors
+    public var swatchColors = Constants.defaultSwatchColors
 
     /// The color well's color.
     ///
@@ -287,7 +315,7 @@ public class ColorWell: _ColorWellBaseView {
     /// the color well and its color panel, and executes all change
     /// handlers stored by the color well.
     @objc dynamic
-    public var color = ColorWell.defaultColor {
+    public var color = Constants.defaultColor {
         didSet {
             if isActive {
                 synchronizeColorPanel()
@@ -363,19 +391,19 @@ public class ColorWell: _ColorWellBaseView {
     ///
     /// - Parameter frameRect: The frame rectangle for the created color panel.
     public override convenience init(frame frameRect: NSRect) {
-        self.init(frame: frameRect, color: Self.defaultColor)
+        self.init(frame: frameRect, color: Constants.defaultColor)
     }
 
     /// Creates a color well initialized to a default color and frame.
     public convenience init() {
-        self.init(frame: Self.defaultFrame)
+        self.init(frame: Constants.defaultFrame)
     }
 
     /// Creates a color well with the given color.
     ///
     /// - Parameter color: The initial value of the color well's color.
     public convenience init(color: NSColor) {
-        self.init(frame: Self.defaultFrame, color: color)
+        self.init(frame: Constants.defaultFrame, color: color)
     }
 
     /// Creates a color well with the given `CoreGraphics` color.
@@ -411,7 +439,7 @@ public class ColorWell: _ColorWellBaseView {
     ///   well's configuration details.
     public required init?(coder: NSCoder) {
         super.init(coder: coder)
-        sharedInit(color: Self.defaultColor)
+        sharedInit(color: Constants.defaultColor)
     }
 }
 
@@ -614,6 +642,14 @@ extension ColorWell {
 
 // MARK: ColorWell Overrides
 extension ColorWell {
+    internal override var customAlignmentRectInsets: NSEdgeInsets {
+        NSEdgeInsets(top: 2, left: 3, bottom: 2, right: 3)
+    }
+
+    internal override var customIntrinsicContentSize: NSSize {
+        Constants.defaultFrame.size.applying(insets: alignmentRectInsets)
+    }
+
     internal override func provideValue(forAttribute attribute: NSAccessibility.Attribute) -> Any? {
         switch attribute {
         case .children:
@@ -695,13 +731,13 @@ extension ColorWellLayoutView {
         bezelLayer.needsDisplayOnBoundsChange = true
         bezelLayer.frame = layer.bounds
 
-        let insetAmount = ColorWell.lineWidth / 2
+        let insetAmount = Constants.lineWidth / 2
         let bezelFrame = bezelLayer.frame.insetBy(dx: insetAmount, dy: insetAmount)
 
         let maskLayer = CAShapeLayer()
         maskLayer.fillColor = .clear
         maskLayer.strokeColor = .black
-        maskLayer.lineWidth = ColorWell.lineWidth
+        maskLayer.lineWidth = Constants.lineWidth
         maskLayer.needsDisplayOnBoundsChange = true
         maskLayer.frame = bezelLayer.frame
         maskLayer.path = .colorWellPath(rect: bezelFrame)
@@ -893,7 +929,7 @@ extension ColorWellSegment {
         let shadowLayer = CALayer()
 
         let shadowOffset = NSSize(width: 0, height: 0)
-        let shadowRadius = ColorWell.lineWidth * 0.75
+        let shadowRadius = Constants.lineWidth * 0.75
         let shadowPath = CGPath.colorWellSegment(rect: rect, side: side)
 
         shadowLayer.shadowOffset = shadowOffset
@@ -1240,7 +1276,7 @@ extension SwatchSegment {
 
         borderColor.setStroke()
 
-        let lineWidth = ColorWell.lineWidth
+        let lineWidth = Constants.lineWidth
         let borderPath = defaultPath(
             for: dirtyRect.insetBy(dx: lineWidth / 4, dy: lineWidth / 2),
             cached: &cachedBorderPath
