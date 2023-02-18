@@ -1049,6 +1049,53 @@ extension View {
     }
 
     /// Adds an action to perform when a color well's color changes.
+    ///
+    /// The following example creates a `VStack` containing a text view
+    /// and a color well, both of which utilize the same `@State` value
+    /// during their construction. The `onColorChange(perform:)` modifier
+    /// is applied to the color well. Every time the user selects a new
+    /// color using the color well, the `@State` value is updated to match
+    /// the new color. This causes the text view to be redrawn to match
+    /// the new state.
+    ///
+    /// ```swift
+    /// struct ContentView: View {
+    ///     @State private var color = Color.green
+    ///
+    ///     var body: some View {
+    ///         VStack {
+    ///             Text("Colored Text")
+    ///                 .foregroundColor(color)
+    ///
+    ///             ColorWellView(color: color)
+    ///                 .onColorChange { newColor in
+    ///                     self.color = newColor
+    ///                 }
+    ///         }
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// Let's say we have a view with multiple color wells, and simply
+    /// want to log the new color when any of their colors change. We can
+    /// do so like this:
+    ///
+    /// ```swift
+    /// struct ContentView: View {
+    ///     var body: some View {
+    ///         VStack {
+    ///             ColorWellView(color: .red)
+    ///             ColorWellView(color: .green)
+    ///             ColorWellView(color: .blue)
+    ///         }
+    ///         .onColorChange { newColor in
+    ///             print(newColor)
+    ///         }
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// - Parameter action: An action to perform when a color well's color changes.
     public func onColorChange(perform action: @escaping (Color) -> Void) -> some View {
         onColorChange(maybePerform: action)
     }
