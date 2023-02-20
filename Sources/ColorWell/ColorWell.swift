@@ -879,6 +879,7 @@ internal class ColorWellSegment: NSView {
             case .default:
                 break
             }
+            needsDisplay = true
         }
     }
 
@@ -930,12 +931,16 @@ internal class ColorWellSegment: NSView {
     /// Invoked to update the segment to indicate that it is
     /// being hovered over.
     @objc dynamic
-    func drawHoverIndicator() { }
+    func drawHoverIndicator() {
+        needsDisplay = true
+    }
 
     /// Invoked to update the segment to indicate that is is
     /// not being hovered over.
     @objc dynamic
-    func removeHoverIndicator() { }
+    func removeHoverIndicator() {
+        needsDisplay = true
+    }
 
     /// Invoked to update the segment to indicate that it is
     /// being highlighted.
@@ -1292,8 +1297,6 @@ extension ToggleSegment {
 internal class SwatchSegment: ColorWellSegment {
     fileprivate var popover: ColorWellPopover?
 
-    private var caretView: CaretView?
-
     private var cachedBorderPath = CachedPath<NSBezierPath>()
 
     private var canShowPopover = false
@@ -1343,6 +1346,88 @@ extension SwatchSegment {
         popover = makePopover()
         popover?.show(relativeTo: frame, of: self, preferredEdge: .minY)
     }
+
+    private func drawSwatch(in dirtyRect: NSRect) {
+        NSGraphicsContext.withCachedGraphicsState {
+            updateCachedPath(for: dirtyRect, cached: &cachedDefaultPath)
+            NSImage.drawSwatch(
+                with: displayColor,
+                in: dirtyRect,
+                clippingTo: cachedDefaultPath.path
+            )
+        }
+    }
+
+    private func drawBorder(in dirtyRect: NSRect) {
+        NSGraphicsContext.withCachedGraphicsState {
+            let lineWidth = Constants.lineWidth
+
+            updateCachedPath(
+                for: dirtyRect.insetBy(dx: lineWidth / 4, dy: lineWidth / 2),
+                cached: &cachedBorderPath
+            )
+
+            borderColor.setStroke()
+
+            cachedBorderPath.path.lineWidth = lineWidth
+            cachedBorderPath.path.stroke()
+        }
+    }
+
+    private func drawCaret(in dirtyRect: NSRect) {
+        NSGraphicsContext.withCachedGraphicsState {
+            let caretSize = NSSize(width: 12, height: 12)
+            let caretBounds = NSRect(
+                origin: NSPoint(
+                    x: dirtyRect.maxX - caretSize.width - 4,
+                    y: dirtyRect.midY - (caretSize.height / 2)
+                ),
+                size: caretSize
+            )
+
+            NSColor(white: 0, alpha: 0.25).setFill()
+            NSBezierPath(ovalIn: caretBounds).fill()
+
+            let lineWidth = 1.5
+            let caretPathBounds = NSRect(
+                x: 0,
+                y: 0,
+                width: (caretBounds.width - lineWidth) / 2,
+                height: (caretBounds.height - lineWidth) / 4
+            ).centered(
+                in: caretBounds
+            ).offsetBy(
+                dx: 0,
+                dy: -lineWidth / 4
+            )
+
+            let caretPath = NSBezierPath()
+            caretPath.move(
+                to: NSPoint(
+                    x: caretPathBounds.minX,
+                    y: caretPathBounds.maxY
+                )
+            )
+            caretPath.line(
+                to: NSPoint(
+                    x: caretPathBounds.midX,
+                    y: caretPathBounds.minY
+                )
+            )
+            caretPath.line(
+                to: NSPoint(
+                    x: caretPathBounds.maxX,
+                    y: caretPathBounds.maxY
+                )
+            )
+
+            NSColor.white.setStroke()
+
+            caretPath.lineWidth = lineWidth
+            caretPath.lineCapStyle = .round
+            caretPath.stroke()
+        }
+    }
 }
 
 // MARK: SwatchSegment Overrides
@@ -1353,47 +1438,23 @@ extension SwatchSegment {
             return
         }
 
-        updateCachedPath(for: dirtyRect, cached: &cachedDefaultPath)
+        drawSwatch(in: dirtyRect)
 
-        NSImage.drawSwatch(
-            with: displayColor,
-            in: dirtyRect,
-            clippingTo: cachedDefaultPath.path
-        )
+        if state == .hover {
+            drawCaret(in: dirtyRect)
+        }
 
-        borderColor.setStroke()
-
-        let lineWidth = Constants.lineWidth
-
-        updateCachedPath(
-            for: dirtyRect.insetBy(dx: lineWidth / 4, dy: lineWidth / 2),
-            cached: &cachedBorderPath
-        )
-
-        cachedBorderPath.path.lineWidth = lineWidth
-        cachedBorderPath.path.stroke()
-
+        drawBorder(in: dirtyRect)
+        
         addShadowLayer(for: dirtyRect)
     }
 
     override func drawHoverIndicator() {
-        guard !overrideShowPopover else {
-            return
-        }
-        let caretView = CaretView()
-        addSubview(caretView)
-
-        caretView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -4).isActive = true
-        caretView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-
-        self.caretView = caretView
+        needsDisplay = true
     }
 
     override func removeHoverIndicator() {
-        // Ensure the caret view is removed, regardless
-        // of whether `overrideShowPopover` is true.
-        caretView?.removeFromSuperview()
-        caretView = nil
+        needsDisplay = true
     }
 
     override func drawHighlightIndicator() { }
@@ -1463,76 +1524,11 @@ extension SwatchSegment {
     }
 }
 
-// MARK: - SwatchSegment CaretView
-
-extension SwatchSegment {
-    /// A view that contains a downward-facing caret inside of a translucent
-    /// circle. This view appears when the mouse hovers over a swatch segment.
-    private class CaretView: NSImageView {
-        /// An image of a downward-facing caret inside of a translucent circle.
-        private let caretImage = NSImage(size: NSSize(width: 12, height: 12), flipped: false) { bounds in
-            NSColor(white: 0, alpha: 0.25).setFill()
-            NSBezierPath(ovalIn: bounds).fill()
-
-            let lineWidth = 1.5
-            let caretPathBounds = NSRect(
-                x: 0,
-                y: 0,
-                width: (bounds.width - lineWidth) / 2,
-                height: (bounds.height - lineWidth) / 4
-            ).centered(
-                in: bounds
-            ).offsetBy(
-                dx: 0,
-                dy: -lineWidth / 4
-            )
-
-            let caretPath = NSBezierPath()
-            caretPath.move(
-                to: NSPoint(
-                    x: caretPathBounds.minX,
-                    y: caretPathBounds.maxY
-                )
-            )
-            caretPath.line(
-                to: NSPoint(
-                    x: caretPathBounds.midX,
-                    y: caretPathBounds.minY
-                )
-            )
-            caretPath.line(
-                to: NSPoint(
-                    x: caretPathBounds.maxX,
-                    y: caretPathBounds.maxY
-                )
-            )
-
-            NSColor.white.setStroke()
-
-            caretPath.lineWidth = lineWidth
-            caretPath.lineCapStyle = .round
-            caretPath.stroke()
-
-            return true
-        }
-
-        init() {
-            super.init(frame: .zero)
-            image = caretImage
-            translatesAutoresizingMaskIntoConstraints = false
-        }
-
-        @available(*, unavailable)
-        required init?(coder: NSCoder) {
-            fatalError("init(coder:) has not been implemented")
-        }
-    }
-}
-
 // MARK: - ColorWellPopover
 
 /// A popover that contains a grid of selectable color swatches.
 internal class ColorWellPopover: NSPopover {
+    /// The color well that the popover is attached to.
     weak var colorWell: ColorWell?
 
     /// The popover's content view controller.
