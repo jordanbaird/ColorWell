@@ -615,6 +615,13 @@ extension ColorWell {
         }
         return try body(self)
     }
+
+    /// Activates the color well, automatically verifying whether it
+    /// should be activated in an exclusive state.
+    internal func activateAutoVerifyingExclusive() {
+        let exclusive = !(NSEvent.modifierFlags.contains(.shift) && allowsMultipleSelection)
+        activate(exclusive: exclusive)
+    }
 }
 
 // MARK: ColorWell Public Methods
@@ -1267,8 +1274,7 @@ extension ToggleSegment {
             colorWell.deactivate()
             state = .default
         } else {
-            let exclusive = !(NSEvent.modifierFlags.contains(.shift) && colorWell.allowsMultipleSelection)
-            colorWell.activate(exclusive: exclusive)
+            colorWell.activateAutoVerifyingExclusive()
             state = .pressed
         }
     }
@@ -1684,7 +1690,7 @@ internal class ColorWellPopoverLayoutView: NSGridView {
 
     var swatchView: ColorWellPopoverSwatchView?
 
-    var colorPanelButton: NSButton?
+    var activateButton: ColorWellPopoverActivateButton?
 
     var swatches: [ColorSwatch] {
         swatchView?.swatches ?? []
@@ -1709,20 +1715,11 @@ internal class ColorWellPopoverLayoutView: NSGridView {
 
         switch colorWell.style {
         case .swatches:
-            let colorPanelButton = NSButton(
-                title: "Show More Colors…",
-                target: self,
-                action: #selector(activateColorWell)
-            )
-            self.colorPanelButton = colorPanelButton
+            let activateButton = ColorWellPopoverActivateButton(colorWell: colorWell, layoutView: self)
+            self.activateButton = activateButton
 
-            colorPanelButton.bezelStyle = .recessed
-            colorPanelButton.controlSize = .small
-            colorPanelButton.setAccessibilityParent(self)
-
-            addRow(with: [colorPanelButton])
-
-            cell(for: colorPanelButton)?.xPlacement = .fill
+            addRow(with: [activateButton])
+            cell(for: activateButton)?.xPlacement = .fill
         default:
             break
         }
@@ -1730,19 +1727,6 @@ internal class ColorWellPopoverLayoutView: NSGridView {
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-}
-
-// MARK: ColorWellPopoverLayoutView Instance Methods
-extension ColorWellPopoverLayoutView {
-    @objc dynamic
-    func activateColorWell() {
-        guard let colorWell else {
-            return
-        }
-        let exclusive = !(NSEvent.modifierFlags.contains(.shift) && colorWell.allowsMultipleSelection)
-        colorWell.activate(exclusive: exclusive)
-        colorWell.popover?.close()
     }
 }
 
@@ -1757,14 +1741,60 @@ extension ColorWellPopoverLayoutView {
         if let swatchView {
             result.append(swatchView)
         }
-        if let colorPanelButton {
-            result.append(colorPanelButton)
+        if let activateButton {
+            result.append(activateButton)
         }
         return result.isEmpty ? nil : result
     }
 
     override func accessibilityRole() -> NSAccessibility.Role? {
         .layoutArea
+    }
+}
+
+// - MARK: ColorWellPopoverActivateButton
+
+internal class ColorWellPopoverActivateButton: NSButton {
+    weak var colorWell: ColorWell?
+
+    weak var layoutView: ColorWellPopoverLayoutView?
+
+    weak var popover: ColorWellPopover? {
+        colorWell?.popover
+    }
+
+    init(colorWell: ColorWell, layoutView: ColorWellPopoverLayoutView) {
+        self.colorWell = colorWell
+        self.layoutView = layoutView
+
+        super.init(frame: .zero)
+
+        title = "Show More Colors…"
+        target = self
+        action = #selector(performAction)
+        bezelStyle = .recessed
+        controlSize = .small
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+// MARK: ColorWellPopoverActivateButton Instance Methods
+extension ColorWellPopoverActivateButton {
+    @objc dynamic
+    func performAction() {
+        colorWell?.activateAutoVerifyingExclusive()
+        popover?.close()
+    }
+}
+
+// MARK: ColorWellPopoverActivateButton Accessibility
+extension ColorWellPopoverActivateButton {
+    override func accessibilityParent() -> Any? {
+        layoutView
     }
 }
 
