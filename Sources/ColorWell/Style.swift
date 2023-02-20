@@ -28,3 +28,17 @@ extension ColorWell {
         case colorPanel = 2
     }
 }
+
+
+extension ColorWell.Style: CustomStringConvertible {
+    public var description: String {
+        switch self {
+        case .expanded:
+            return "expanded"
+        case .swatches:
+            return "swatches"
+        case .colorPanel:
+            return "colorPanel"
+        }
+    }
+}
