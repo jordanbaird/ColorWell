@@ -127,6 +127,9 @@ private enum Constants {
     /// Currently, this color is an RGBA white.
     static let defaultColor = NSColor(red: 1, green: 1, blue: 1, alpha: 1)
 
+    /// The default style for a color well.
+    static let defaultStyle = ColorWell.Style.expanded
+
     /// Hexadecimal strings used to construct the default colors shown
     /// in a color well's popover.
     static let defaultHexStrings = [
@@ -375,28 +378,58 @@ public class ColorWell: _ColorWellBaseView {
         set { _showsAlpha = newValue }
     }
 
+    /// The appearance and behavior style to apply to the color well.
+    ///
+    /// The value of this property determines how the color well is
+    /// displayed, and specifies how it should respond when the user
+    /// interacts with it. For details, see ``Style-swift.enum``.
+    @objc dynamic
+    public var style: Style {
+        didSet {
+            needsDisplay = true
+        }
+    }
+
     // MARK: Initializers
 
-    /// Creates a color well with the given frame rectangle and color.
+    /// Creates a color well with the given frame, color, and style.
     ///
     /// - Parameters:
     ///   - frameRect: The frame rectangle for the created color panel.
     ///   - color: The initial value of the color well's color.
-    public init(frame frameRect: NSRect, color: NSColor) {
+    ///   - style: The style to use to display the color well.
+    public init(frame frameRect: NSRect, color: NSColor, style: Style) {
+        self.style = style
         super.init(frame: frameRect)
         sharedInit(color: color)
     }
 
-    /// Creates a color well with the given frame rectangle.
+    /// Creates a color well with the given frame and color.
+    ///
+    /// - Parameters:
+    ///   - frameRect: The frame rectangle for the created color panel.
+    ///   - color: The initial value of the color well's color.
+    public convenience init(frame frameRect: NSRect, color: NSColor) {
+        self.init(frame: frameRect, color: color, style: Constants.defaultStyle)
+    }
+
+    /// Creates a color well with the given frame.
     ///
     /// - Parameter frameRect: The frame rectangle for the created color panel.
     public override convenience init(frame frameRect: NSRect) {
         self.init(frame: frameRect, color: Constants.defaultColor)
     }
 
-    /// Creates a color well initialized to a default color and frame.
+    /// Creates a color well with the default frame, color, and style.
     public convenience init() {
         self.init(frame: Constants.defaultFrame)
+    }
+
+    /// Creates a color well with the given style.
+    ///
+    /// - Parameter style: The style to use to display the color well.
+    public convenience init(style: Style) {
+        self.init(frame: Constants.defaultFrame, color: Constants.defaultColor, style: style)
     }
 
     /// Creates a color well with the given color.
@@ -438,6 +471,7 @@ public class ColorWell: _ColorWellBaseView {
     /// - Parameter coder: The coder object that contains the color
     ///   well's configuration details.
     public required init?(coder: NSCoder) {
+        style = Constants.defaultStyle
         super.init(coder: coder)
         sharedInit(color: Constants.defaultColor)
     }
@@ -647,7 +681,19 @@ extension ColorWell {
     }
 
     internal override var customIntrinsicContentSize: NSSize {
-        Constants.defaultFrame.size.applying(insets: alignmentRectInsets)
+        let result: NSSize
+
+        switch style {
+        case .expanded:
+            result = Constants.defaultFrame.size
+        case .swatches, .colorPanel:
+            result = NSSize(
+                width: Constants.defaultFrame.width - 20,
+                height: Constants.defaultFrame.height
+            )
+        }
+
+        return result.applying(insets: alignmentRectInsets)
     }
 
     internal override func provideValue(forAttribute attribute: NSAccessibility.Attribute) -> Any? {
@@ -689,6 +735,8 @@ internal class ColorWellLayoutView: NSGridView {
     /// macOS UI element by drawing a small bezel around the edge of the view.
     private var bezelLayer: CAGradientLayer?
 
+    private var observations = Set<NSKeyValueObservation>()
+
     /// Creates a grid view with the given color well.
     init(colorWell: ColorWell) {
         swatchSegment = SwatchSegment(colorWell: colorWell)
@@ -701,12 +749,37 @@ internal class ColorWellLayoutView: NSGridView {
         xPlacement = .fill
         yPlacement = .fill
 
-        addRow(with: [swatchSegment, toggleSegment])
+        setRows(for: colorWell.style)
+
+        colorWell.observe(\.style, options: [.initial, .new]) { [weak self] colorWell, change in
+            guard let newValue = change.newValue else {
+                return
+            }
+            self?.setRows(for: newValue)
+        }
+        .store(in: &observations)
     }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+}
+
+// MARK: ColorWellLayoutView Methods
+extension ColorWellLayoutView {
+    func setRows(for style: ColorWell.Style) {
+        for row in 0..<numberOfRows {
+            removeRow(at: row)
+        }
+        switch style {
+        case .expanded:
+            addRow(with: [swatchSegment, toggleSegment])
+        case .colorPanel:
+            addRow(with: [swatchSegment, toggleSegment])
+        case .swatches:
+            addRow(with: [swatchSegment])
+        }
     }
 }
 
@@ -913,7 +986,12 @@ extension ColorWellSegment {
     /// Returns the default path that will be used to draw the segment.
     func defaultPath(for rect: NSRect, cached: inout CachedPath) -> NSBezierPath {
         if cached.rect != rect {
-            cached = CachedPath(rect: rect, side: side)
+            switch colorWell?.style {
+            case .swatches, .colorPanel:
+                cached = CachedPath(rect: rect, side: nil)
+            default:
+                cached = CachedPath(rect: rect, side: side)
+            }
         }
         return cached.path
     }
@@ -930,7 +1008,14 @@ extension ColorWellSegment {
 
         let shadowOffset = NSSize(width: 0, height: 0)
         let shadowRadius = Constants.lineWidth * 0.75
-        let shadowPath = CGPath.colorWellSegment(rect: rect, side: side)
+
+        let shadowPath: CGPath
+        switch colorWell?.style {
+        case .swatches, .colorPanel:
+            shadowPath = CGPath.colorWellSegment(rect: rect, side: nil)
+        default:
+            shadowPath = CGPath.colorWellSegment(rect: rect, side: side)
+        }
 
         shadowLayer.shadowOffset = shadowOffset
         shadowLayer.shadowOpacity = NSApp.effectiveAppearanceIsDarkAppearance ? 0.5 : 0.6
@@ -1091,7 +1176,7 @@ extension ColorWellSegment {
 
         /// Creates an instance, constructing its bezier path
         /// from the given rectangle and side.
-        init(rect: NSRect, side: Side) {
+        init(rect: NSRect, side: Side?) {
             self.init(rect: rect, path: .colorWellSegment(rect: rect, side: side))
         }
 
@@ -1454,11 +1539,16 @@ internal class ColorWellPopover: NSPopover {
         popoverViewController.swatches
     }
 
+    /// The popover's window object.
+    var window: NSWindow? {
+        popoverViewController.view.window
+    }
+
     /// Creates a popover for the given color well.
     init(colorWell: ColorWell) {
-        popoverViewController = ColorWellPopoverViewController(colorWell: colorWell)
-        super.init()
         self.colorWell = colorWell
+        self.popoverViewController = ColorWellPopoverViewController(colorWell: colorWell)
+        super.init()
         contentViewController = popoverViewController
         behavior = .transient
         delegate = popoverViewController
@@ -1468,7 +1558,10 @@ internal class ColorWellPopover: NSPopover {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+}
 
+// MARK: ColorWellPopover Overrides
+extension ColorWellPopover {
     override func show(
         relativeTo positioningRect: NSRect,
         of positioningView: NSView,
@@ -1479,12 +1572,16 @@ internal class ColorWellPopover: NSPopover {
             of: positioningView,
             preferredEdge: preferredEdge
         )
+
+        window?.makeFirstResponder(nil)
+
         guard
             let color = colorWell?.color,
             let swatch = swatches.first(where: { $0.color.resembles(color) })
         else {
             return
         }
+
         swatch.select()
     }
 }
@@ -1503,10 +1600,10 @@ internal class ColorWellPopoverViewController: NSViewController {
     }
 
     init(colorWell: ColorWell) {
+        self.colorWell = colorWell
         self.containerView = ColorWellPopoverContainerView(colorWell: colorWell)
         super.init(nibName: nil, bundle: nil)
         self.view = containerView
-        self.colorWell = colorWell
     }
 
     @available(*, unavailable)
@@ -1539,7 +1636,9 @@ internal class ColorWellPopoverContainerView: NSView {
     init(colorWell: ColorWell) {
         super.init(frame: .zero)
 
-        let layoutView = ColorWellPopoverLayoutView(containerView: self, colorWell: colorWell)
+        let layoutView = ColorWellPopoverLayoutView(colorWell: colorWell, containerView: self)
+        self.layoutView = layoutView
+
         addSubview(layoutView)
 
         // Center the layout view inside the container.
@@ -1551,8 +1650,6 @@ internal class ColorWellPopoverContainerView: NSView {
         translatesAutoresizingMaskIntoConstraints = false
         widthAnchor.constraint(equalTo: layoutView.widthAnchor, constant: 20).isActive = true
         heightAnchor.constraint(equalTo: layoutView.heightAnchor, constant: 20).isActive = true
-
-        self.layoutView = layoutView
     }
 
     @available(*, unavailable)
@@ -1576,7 +1673,101 @@ extension ColorWellPopoverContainerView {
 
 /// A view that provides the layout for a popover's color swatches.
 internal class ColorWellPopoverLayoutView: NSGridView {
+    weak var colorWell: ColorWell?
+
     weak var containerView: ColorWellPopoverContainerView?
+
+    var swatchView: ColorWellPopoverSwatchView?
+
+    var colorPanelButton: NSButton?
+
+    var swatches: [ColorSwatch] {
+        swatchView?.swatches ?? []
+    }
+
+    /// Creates a layout view with the given container view and color well,
+    /// using the color well's `swatchColors` property to construct a grid
+    /// of swatches.
+    init(
+        colorWell: ColorWell,
+        containerView: ColorWellPopoverContainerView
+    ) {
+        self.colorWell = colorWell
+        self.containerView = containerView
+
+        super.init(frame: .zero)
+
+        let swatchView = ColorWellPopoverSwatchView(colorWell: colorWell, layoutView: self)
+        self.swatchView = swatchView
+
+        addRow(with: [swatchView])
+
+        switch colorWell.style {
+        case .swatches:
+            let colorPanelButton = NSButton(
+                title: "Show More Colors…",
+                target: self,
+                action: #selector(activateColorWell)
+            )
+            self.colorPanelButton = colorPanelButton
+
+            colorPanelButton.bezelStyle = .recessed
+            colorPanelButton.controlSize = .small
+            colorPanelButton.setAccessibilityParent(self)
+
+            addRow(with: [colorPanelButton])
+
+            cell(for: colorPanelButton)?.xPlacement = .fill
+        default:
+            break
+        }
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+// MARK: ColorWellPopoverLayoutView Instance Methods
+extension ColorWellPopoverLayoutView {
+    @objc dynamic
+    func activateColorWell() {
+        guard let colorWell else {
+            return
+        }
+        let exclusive = !(NSEvent.modifierFlags.contains(.shift) && colorWell.allowsMultipleSelection)
+        colorWell.activate(exclusive: exclusive)
+        colorWell.popover?.close()
+    }
+}
+
+// MARK: ColorWellPopoverLayoutView Accessibility
+extension ColorWellPopoverLayoutView {
+    override func accessibilityParent() -> Any? {
+        containerView
+    }
+
+    override func accessibilityChildren() -> [Any]? {
+        var result = [Any]()
+        if let swatchView {
+            result.append(swatchView)
+        }
+        if let colorPanelButton {
+            result.append(colorPanelButton)
+        }
+        return result.isEmpty ? nil : result
+    }
+
+    override func accessibilityRole() -> NSAccessibility.Role? {
+        .layoutArea
+    }
+}
+
+// MARK: - ColorWellPopoverSwatchView
+
+/// A view that provides the layout for a popover's color swatches.
+internal class ColorWellPopoverSwatchView: NSGridView {
+    weak var layoutView: ColorWellPopoverLayoutView?
 
     private(set) var swatches = [ColorSwatch]()
 
@@ -1590,11 +1781,10 @@ internal class ColorWellPopoverLayoutView: NSGridView {
     /// using the color well's `swatchColors` property to construct a grid
     /// of swatches.
     init(
-        containerView: ColorWellPopoverContainerView,
-        colorWell: ColorWell
+        colorWell: ColorWell,
+        layoutView: ColorWellPopoverLayoutView
     ) {
-        self.containerView = containerView
-
+        self.layoutView = layoutView
         let swatchCount = colorWell.swatchColors.count
         maxItemsPerRow = max(4, Int(sqrt(Double(swatchCount)).rounded(.up)))
 
@@ -1605,7 +1795,7 @@ internal class ColorWellPopoverLayoutView: NSGridView {
 
         let rowCount = Int((Double(swatchCount) / Double(maxItemsPerRow)).rounded(.up))
         swatches = colorWell.swatchColors.map { color in
-            ColorSwatch(rowCount: rowCount, color: color, colorWell: colorWell, layoutView: self)
+            ColorSwatch(rowCount: rowCount, color: color, colorWell: colorWell, swatchView: self)
         }
 
         for row in makeRows() {
@@ -1619,8 +1809,8 @@ internal class ColorWellPopoverLayoutView: NSGridView {
     }
 }
 
-// MARK: ColorWellPopoverLayoutView Methods
-extension ColorWellPopoverLayoutView {
+// MARK: ColorWellPopoverSwatchView Methods
+extension ColorWellPopoverSwatchView {
     /// Converts the view's swatches into rows.
     private func makeRows() -> [[ColorSwatch]] {
         var currentRow = [ColorSwatch]()
@@ -1639,8 +1829,8 @@ extension ColorWellPopoverLayoutView {
     }
 }
 
-// MARK: ColorWellPopoverLayoutView Overrides
-extension ColorWellPopoverLayoutView {
+// MARK: ColorWellPopoverSwatchView Overrides
+extension ColorWellPopoverSwatchView {
     override func mouseDragged(with event: NSEvent) {
         super.mouseDragged(with: event)
         let swatch = swatches.first { swatch in
@@ -1655,10 +1845,10 @@ extension ColorWellPopoverLayoutView {
     }
 }
 
-// MARK: ColorWellPopoverLayoutView Accessibility
-extension ColorWellPopoverLayoutView {
+// MARK: ColorWellPopoverSwatchView Accessibility
+extension ColorWellPopoverSwatchView {
     override func accessibilityParent() -> Any? {
-        containerView
+        layoutView
     }
 
     override func accessibilityChildren() -> [Any]? {
@@ -1678,7 +1868,7 @@ extension ColorWellPopoverLayoutView {
 /// When a swatch is clicked, the color well's color value is set
 /// to the color value of the swatch.
 internal class ColorSwatch: NSView {
-    weak var layoutView: ColorWellPopoverLayoutView?
+    weak var swatchView: ColorWellPopoverSwatchView?
 
     let colorWell: ColorWell
 
@@ -1735,11 +1925,11 @@ internal class ColorSwatch: NSView {
         rowCount: Int,
         color: NSColor,
         colorWell: ColorWell,
-        layoutView: ColorWellPopoverLayoutView
+        swatchView: ColorWellPopoverSwatchView
     ) {
         self.color = color
         self.colorWell = colorWell
-        self.layoutView = layoutView
+        self.swatchView = swatchView
 
         let size = Self.size(forRowCount: rowCount)
 
@@ -1775,10 +1965,10 @@ extension ColorSwatch {
 extension ColorSwatch {
     /// Returns all swatches in the layout view that match the given conditions.
     private func swatches(matching conditions: [(ColorSwatch) -> Bool]) -> [ColorSwatch] {
-        guard let layoutView else {
+        guard let swatchView else {
             return []
         }
-        return layoutView.swatches.filter { swatch in
+        return swatchView.swatches.filter { swatch in
             conditions.allSatisfy { condition in
                 condition(swatch)
             }
@@ -1905,7 +2095,7 @@ extension ColorSwatch {
     }
 
     override func accessibilityParent() -> Any? {
-        layoutView
+        swatchView
     }
 
     override func accessibilityPerformPress() -> Bool {

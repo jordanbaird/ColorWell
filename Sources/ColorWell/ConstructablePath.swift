@@ -258,8 +258,8 @@ extension ConstructablePath {
     ///   - side: The side of `rect` that the path should be drawn in.
     ///     > Note: This parameter implies which corners should be rounded
     ///       and which corners should be drawn with sharp right angles.
-    internal static func colorWellSegment(rect: CGRect, side: Side) -> Constructed {
-        colorWellPath(rect: rect, squaredCorners: side.opposite.corners)
+    internal static func colorWellSegment(rect: CGRect, side: Side?) -> Constructed {
+        colorWellPath(rect: rect, squaredCorners: side?.opposite.corners ?? [])
     }
 }
 
