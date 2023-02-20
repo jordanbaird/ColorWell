@@ -738,6 +738,8 @@ internal class ColorWellLayoutView: NSGridView {
     /// A segment that, when pressed, opens the color well's color panel.
     let toggleSegment: ToggleSegment
 
+    private var row: NSGridRow?
+
     /// This layer helps the color well mimic the appearance of a native
     /// macOS UI element by drawing a small bezel around the edge of the view.
     private var bezelLayer: CAGradientLayer?
@@ -756,13 +758,8 @@ internal class ColorWellLayoutView: NSGridView {
         xPlacement = .fill
         yPlacement = .fill
 
-        setRows(for: colorWell.style)
-
-        colorWell.observe(\.style, options: [.initial, .new]) { [weak self] colorWell, change in
-            guard let newValue = change.newValue else {
-                return
-            }
-            self?.setRows(for: newValue)
+        colorWell.observe(\.style, options: [.initial, .new]) { [weak self] colorWell, _ in
+            self?.setRow(for: colorWell.style)
         }
         .store(in: &observations)
     }
@@ -775,17 +772,25 @@ internal class ColorWellLayoutView: NSGridView {
 
 // MARK: ColorWellLayoutView Methods
 extension ColorWellLayoutView {
-    func setRows(for style: ColorWell.Style) {
-        for row in 0..<numberOfRows {
-            removeRow(at: row)
+    func removeRow(_ row: NSGridRow) {
+        for n in 0..<row.numberOfCells {
+            row.cell(at: n).contentView?.removeFromSuperview()
         }
+        removeRow(at: index(of: row))
+    }
+
+    func setRow(for style: ColorWell.Style) {
+        if let row {
+            removeRow(row)
+        }
+
         switch style {
         case .expanded:
-            addRow(with: [swatchSegment, toggleSegment])
+            row = addRow(with: [swatchSegment, toggleSegment])
         case .colorPanel:
-            addRow(with: [swatchSegment, toggleSegment])
+            row = addRow(with: [swatchSegment])
         case .swatches:
-            addRow(with: [swatchSegment])
+            row = addRow(with: [swatchSegment])
         }
     }
 }
