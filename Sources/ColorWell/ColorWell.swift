@@ -836,7 +836,9 @@ internal class ColorWellSegment: NSView {
     /// The accumulated offset of the current series of dragging events.
     private var draggingOffset = CGSize()
 
-    var cachedDefaultPath = CachedPath()
+    var cachedDefaultPath = CachedPath<NSBezierPath>()
+
+    var cachedShadowPath = CachedPath<CGPath>()
 
     var isActive: Bool {
         colorWell?.isActive ?? false
@@ -984,7 +986,7 @@ extension ColorWellSegment {
 // MARK: ColorWellSegment Internal Methods
 extension ColorWellSegment {
     /// Returns the default path that will be used to draw the segment.
-    func defaultPath(for rect: NSRect, cached: inout CachedPath) -> NSBezierPath {
+    func updateCachedPath<Path: ConstructablePath>(for rect: NSRect, cached: inout CachedPath<Path>) {
         if cached.rect != rect {
             switch colorWell?.style {
             case .swatches, .colorPanel:
@@ -993,7 +995,6 @@ extension ColorWellSegment {
                 cached = CachedPath(rect: rect, side: side)
             }
         }
-        return cached.path
     }
 
     func addShadowLayer(for rect: NSRect) {
@@ -1009,18 +1010,12 @@ extension ColorWellSegment {
         let shadowOffset = NSSize(width: 0, height: 0)
         let shadowRadius = Constants.lineWidth * 0.75
 
-        let shadowPath: CGPath
-        switch colorWell?.style {
-        case .swatches, .colorPanel:
-            shadowPath = CGPath.colorWellSegment(rect: rect, side: nil)
-        default:
-            shadowPath = CGPath.colorWellSegment(rect: rect, side: side)
-        }
+        updateCachedPath(for: rect, cached: &cachedShadowPath)
 
         shadowLayer.shadowOffset = shadowOffset
         shadowLayer.shadowOpacity = NSApp.effectiveAppearanceIsDarkAppearance ? 0.5 : 0.6
         shadowLayer.shadowRadius = shadowRadius
-        shadowLayer.shadowPath = shadowPath
+        shadowLayer.shadowPath = cachedShadowPath.path
         shadowLayer.shadowColor = NSColor.shadowColor.cgColor
 
         let mutablePath = CGMutablePath()
@@ -1030,7 +1025,7 @@ extension ColorWellSegment {
                 dy: -(shadowRadius * 2) + shadowOffset.height
             )
         )
-        mutablePath.addPath(shadowPath)
+        mutablePath.addPath(cachedShadowPath.path)
         mutablePath.closeSubpath()
 
         let maskLayer = CAShapeLayer()
@@ -1049,8 +1044,9 @@ extension ColorWellSegment {
 // MARK: ColorWellSegment Overrides
 extension ColorWellSegment {
     override func draw(_ dirtyRect: NSRect) {
+        updateCachedPath(for: dirtyRect, cached: &cachedDefaultPath)
         displayColor.setFill()
-        defaultPath(for: dirtyRect, cached: &cachedDefaultPath).fill()
+        cachedDefaultPath.path.fill()
         addShadowLayer(for: dirtyRect)
     }
 
@@ -1158,32 +1154,30 @@ extension ColorWellSegment {
 // MARK: - ColorWellSegment CachedPath
 
 extension ColorWellSegment {
-    /// A type that contains a cached bezier path, along
-    /// with the rectangle that was used to create it.
-    struct CachedPath {
-        /// The rectangle used to create the path.
+    /// A type that contains a cached graphics path, along with
+    /// the rectangle that was used to create it.
+    struct CachedPath<Path: ConstructablePath> where Path.Constructed == Path {
+        /// The rectangle used to create this instance's path.
         let rect: NSRect
 
-        /// The cached bezier path of this instance.
-        let path: NSBezierPath
+        /// The cached path of this instance.
+        let path: Path
 
-        /// Creates an instance with the given rectangle and
-        /// bezier path.
-        init(rect: NSRect, path: NSBezierPath) {
+        /// Creates an instance with the given rectangle and path.
+        init(rect: NSRect, path: Path) {
             self.rect = rect
             self.path = path
         }
 
-        /// Creates an instance, constructing its bezier path
-        /// from the given rectangle and side.
+        /// Creates an instance, constructing its path from the
+        /// given rectangle and side.
         init(rect: NSRect, side: Side?) {
             self.init(rect: rect, path: .colorWellSegment(rect: rect, side: side))
         }
 
-        /// Creates an instance whose rectangle and bezier path
-        /// are both equivalent to `zero`.
+        /// Creates an instance with an empty rectangle and path.
         init() {
-            self.init(rect: .zero, path: NSBezierPath())
+            self.init(rect: .zero, path: Path.MutablePath().asConstructedType)
         }
     }
 }
@@ -1294,7 +1288,7 @@ internal class SwatchSegment: ColorWellSegment {
 
     private var caretView: CaretView?
 
-    private var cachedBorderPath = CachedPath()
+    private var cachedBorderPath = CachedPath<NSBezierPath>()
 
     private var canShowPopover = false
 
@@ -1353,21 +1347,25 @@ extension SwatchSegment {
             return
         }
 
+        updateCachedPath(for: dirtyRect, cached: &cachedDefaultPath)
+
         NSImage.drawSwatch(
             with: displayColor,
             in: dirtyRect,
-            clippingTo: defaultPath(for: dirtyRect, cached: &cachedDefaultPath)
+            clippingTo: cachedDefaultPath.path
         )
 
         borderColor.setStroke()
 
         let lineWidth = Constants.lineWidth
-        let borderPath = defaultPath(
+
+        updateCachedPath(
             for: dirtyRect.insetBy(dx: lineWidth / 4, dy: lineWidth / 2),
             cached: &cachedBorderPath
         )
-        borderPath.lineWidth = lineWidth
-        borderPath.stroke()
+
+        cachedBorderPath.path.lineWidth = lineWidth
+        cachedBorderPath.path.stroke()
 
         addShadowLayer(for: dirtyRect)
     }
@@ -1646,10 +1644,17 @@ internal class ColorWellPopoverContainerView: NSView {
         layoutView.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
         layoutView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
 
-        // Give the container a 20px padding.
+        // Padding should vary based on the style.
+        let constant: CGFloat
+        switch colorWell.style {
+        case .swatches:
+            constant = 15
+        default:
+            constant = 20
+        }
         translatesAutoresizingMaskIntoConstraints = false
-        widthAnchor.constraint(equalTo: layoutView.widthAnchor, constant: 20).isActive = true
-        heightAnchor.constraint(equalTo: layoutView.heightAnchor, constant: 20).isActive = true
+        widthAnchor.constraint(equalTo: layoutView.widthAnchor, constant: constant).isActive = true
+        heightAnchor.constraint(equalTo: layoutView.heightAnchor, constant: constant).isActive = true
     }
 
     @available(*, unavailable)
