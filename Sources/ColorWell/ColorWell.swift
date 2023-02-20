@@ -657,6 +657,7 @@ extension ColorWell {
     /// panel will not affect its state.
     public func deactivate() {
         colorPanel.activeColorWells.remove(self)
+        swatchSegment.state = .default
         toggleSegment.state = .default
         removeColorPanelObservations()
     }
@@ -898,6 +899,15 @@ internal class ColorWellSegment: NSView {
 
     /// The default fill color of the segment.
     var defaultFillColor: NSColor { .controlColor }
+
+    var defaultDisplayColor: NSColor {
+        if colorWellIsEnabled {
+            return defaultFillColor
+        } else {
+            let disabledAlpha = max(defaultFillColor.alphaComponent - 0.5, 0.1)
+            return defaultFillColor.withAlphaComponent(disabledAlpha)
+        }
+    }
 
     /// The unaltered fill color of the segment. Setting this value
     /// automatically redraws the segment.
@@ -1306,8 +1316,16 @@ internal class SwatchSegment: ColorWellSegment {
 
     private var canShowPopover = false
 
-    private var overrideShowPopover: Bool {
-        colorWell?.swatchColors.isEmpty ?? false
+    private var shouldOverrideShowPopover: Bool {
+        guard let colorWell else {
+            return false
+        }
+        switch colorWell.style {
+        case .expanded, .swatches:
+            return colorWell.swatchColors.isEmpty
+        case .colorPanel:
+            return true
+        }
     }
 
     private var borderColor: NSColor {
@@ -1332,7 +1350,7 @@ internal class SwatchSegment: ColorWellSegment {
 // MARK: SwatchSegment Methods
 extension SwatchSegment {
     private func prepareForPopover() {
-        guard !overrideShowPopover else {
+        guard !shouldOverrideShowPopover else {
             return
         }
         canShowPopover = popover == nil
@@ -1353,13 +1371,50 @@ extension SwatchSegment {
     }
 
     private func drawSwatch(in dirtyRect: NSRect) {
+        guard let colorWell else {
+            return
+        }
+
         NSGraphicsContext.withCachedGraphicsState {
             updateCachedPath(for: dirtyRect, cached: &cachedDefaultPath)
-            NSImage.drawSwatch(
-                with: displayColor,
-                in: dirtyRect,
-                clippingTo: cachedDefaultPath.path
-            )
+            switch colorWell.style {
+            case .expanded, .swatches:
+                NSImage.drawSwatch(
+                    with: displayColor,
+                    in: dirtyRect,
+                    clippingTo: cachedDefaultPath.path
+                )
+            case .colorPanel:
+                var backgroundColor = defaultDisplayColor
+
+                switch state {
+                case .highlight:
+                    if NSApp.effectiveAppearanceIsDarkAppearance {
+                        backgroundColor = defaultDisplayColor.withAlphaComponent(defaultDisplayColor.alphaComponent + 0.1)
+                    } else if let blended = defaultDisplayColor.blended(withFraction: 0.5, of: .selectedControlColor) {
+                        backgroundColor = blended
+                    } else {
+                        backgroundColor = .selectedControlColor
+                    }
+                case .pressed:
+                    if NSApp.effectiveAppearanceIsDarkAppearance {
+                        backgroundColor = defaultDisplayColor.withAlphaComponent(defaultDisplayColor.alphaComponent + 0.25)
+                    } else {
+                        backgroundColor = .selectedControlColor
+                    }
+                default:
+                    break
+                }
+
+                backgroundColor.setFill()
+                cachedDefaultPath.path.fill()
+
+                NSImage.drawSwatch(
+                    with: displayColor,
+                    in: dirtyRect,
+                    clippingTo: NSBezierPath(roundedRect: dirtyRect.insetBy(dx: 3, dy: 3), xRadius: 2, yRadius: 2)
+                )
+            }
         }
     }
 
@@ -1380,6 +1435,10 @@ extension SwatchSegment {
     }
 
     private func drawCaret(in dirtyRect: NSRect) {
+        guard !shouldOverrideShowPopover else {
+            return
+        }
+
         NSGraphicsContext.withCachedGraphicsState {
             let caretSize = NSSize(width: 12, height: 12)
             let caretBounds = NSRect(
@@ -1462,19 +1521,36 @@ extension SwatchSegment {
         needsDisplay = true
     }
 
-    override func drawHighlightIndicator() { }
+    override func drawHighlightIndicator() {
+        needsDisplay = true
+    }
 
-    override func removeHighlightIndicator() { }
+    override func removeHighlightIndicator() {
+        needsDisplay = true
+    }
 
-    override func drawPressedIndicator() { }
+    override func drawPressedIndicator() {
+        needsDisplay = true
+    }
 
-    override func removePressedIndicator() { }
+    override func removePressedIndicator() {
+        needsDisplay = true
+    }
 
     override func performAction() {
         prepareForPopover()
-        if overrideShowPopover {
-            colorWell?.toggleSegment.state = .pressed
-            colorWell?.toggleSegment.performAction()
+        if shouldOverrideShowPopover {
+            guard let colorWell else {
+                return
+            }
+            switch colorWell.style {
+            case .swatches, .expanded:
+                colorWell.toggleSegment.state = .pressed
+                colorWell.toggleSegment.performAction()
+            case .colorPanel:
+                state = .pressed
+                colorWell.toggleSegment.performAction()
+            }
         } else if canShowPopover {
             makeAndShowPopover()
         }
@@ -1488,7 +1564,15 @@ extension SwatchSegment {
 
     override func mouseDown(with event: NSEvent) {
         super.mouseDown(with: event)
-        state = .hover
+        guard let colorWell else {
+            return
+        }
+        switch colorWell.style {
+        case .expanded, .swatches:
+            state = .hover
+        case .colorPanel:
+            break
+        }
     }
 
     override func mouseDragged(with event: NSEvent) {
