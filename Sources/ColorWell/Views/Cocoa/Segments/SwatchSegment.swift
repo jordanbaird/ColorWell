@@ -88,23 +88,15 @@ extension SwatchSegment {
             case .colorPanel:
                 var backgroundColor = defaultDisplayColor
 
-                switch state {
-                case .highlight:
-                    if NSApp.effectiveAppearanceIsDarkAppearance {
-                        backgroundColor = defaultDisplayColor.withAlphaComponent(defaultDisplayColor.alphaComponent + 0.1)
-                    } else if let blended = defaultDisplayColor.blended(withFraction: 0.5, of: .selectedControlColor) {
-                        backgroundColor = blended
-                    } else {
-                        backgroundColor = .selectedControlColor
+                if colorWellIsEnabled {
+                    switch state {
+                    case .highlight:
+                        backgroundColor = .highlightedColorWellSegmentColor
+                    case .pressed:
+                        backgroundColor = .selectedColorWellSegmentColor
+                    default:
+                        break
                     }
-                case .pressed:
-                    if NSApp.effectiveAppearanceIsDarkAppearance {
-                        backgroundColor = defaultDisplayColor.withAlphaComponent(defaultDisplayColor.alphaComponent + 0.25)
-                    } else {
-                        backgroundColor = .selectedControlColor
-                    }
-                default:
-                    break
                 }
 
                 backgroundColor.setFill()

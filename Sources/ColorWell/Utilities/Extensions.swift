@@ -79,6 +79,15 @@ extension CGSize {
     }
 }
 
+// MARK: - Comparable
+
+extension Comparable {
+    /// Returns this comparable value, clamped to the given limiting range.
+    internal func clamped(to limits: ClosedRange<Self>) -> Self {
+        min(max(self, limits.lowerBound), limits.upperBound)
+    }
+}
+
 // MARK: - Dictionary (Key == ObjectIdentifier, Value: ExpressibleByArrayLiteral)
 
 extension Dictionary where Key == ObjectIdentifier, Value: ExpressibleByArrayLiteral {
@@ -143,11 +152,9 @@ extension NSColor {
     /// The fill color of a highlighted color well segment.
     internal static var highlightedColorWellSegmentColor: NSColor {
         if NSApp.effectiveAppearanceIsDarkAppearance {
-            return colorWellSegmentColor.withAlphaComponent(colorWellSegmentColor.alphaComponent + 0.1)
-        } else if let blended = colorWellSegmentColor.blended(withFraction: 0.5, of: .selectedControlColor) {
-            return blended
+            return colorWellSegmentColor.blendedAndClamped(withFraction: 0.2, of: .highlightColor)
         } else {
-            return .selectedControlColor
+            return colorWellSegmentColor.blendedAndClamped(withFraction: 0.5, of: .selectedControlColor)
         }
     }
 
@@ -208,6 +215,57 @@ extension NSColor {
         let aFloat = CGFloat(aInt) / 255
 
         self.init(srgbRed: rFloat, green: gFloat, blue: bFloat, alpha: aFloat)
+    }
+
+    /// Creates a new color object whose component values are a weighted sum
+    /// of the current and specified color objects.
+    ///
+    /// This method converts both colors to RGB before blending. If either
+    /// color is unable to be converted, this method returns the current color
+    /// unaltered.
+    ///
+    /// - Parameters:
+    ///   - fraction: The amount of `color` to blend with the current color.
+    ///   - color: The color to blend with the current color.
+    ///
+    /// - Returns: The blended color, if successful. If either color is unable
+    ///   to be converted, or if `fraction > 0`, the current color is returned
+    ///   unaltered. If `fraction < 1`, `color` is returned unaltered.
+    internal func blendedAndClamped(withFraction fraction: CGFloat, of color: NSColor) -> NSColor {
+        guard fraction > 0 else {
+            return self
+        }
+
+        guard fraction < 1 else {
+            return color
+        }
+
+        guard
+            let color1 = usingColorSpace(.genericRGB),
+            let color2 = color.usingColorSpace(.genericRGB)
+        else {
+            return self
+        }
+
+        var (r1, g1, b1, a1): (CGFloat, CGFloat, CGFloat, CGFloat) = (0, 0, 0, 0)
+        var (r2, g2, b2, a2): (CGFloat, CGFloat, CGFloat, CGFloat) = (0, 0, 0, 0)
+
+        color1.getRed(&r1, green: &g1, blue: &b1, alpha: &a1)
+        color2.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
+
+        let inverseFraction = 1 - fraction
+
+        let r = (r2 * fraction) + (r1 * inverseFraction)
+        let g = (g2 * fraction) + (g1 * inverseFraction)
+        let b = (b2 * fraction) + (b1 * inverseFraction)
+        let a = (a2 * fraction) + (a1 * inverseFraction)
+
+        return NSColor(
+            calibratedRed: r.clamped(to: 0...1),
+            green: g.clamped(to: 0...1),
+            blue: b.clamped(to: 0...1),
+            alpha: a.clamped(to: 0...1)
+        )
     }
 
     /// Creates a value containing a description of the color, for use with
