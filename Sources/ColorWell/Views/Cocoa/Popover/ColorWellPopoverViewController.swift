@@ -29,7 +29,7 @@ internal class ColorWellPopoverViewController: NSViewController {
 extension ColorWellPopoverViewController: NSPopoverDelegate {
     func popoverDidClose(_ notification: Notification) {
         // Async so that ColorWellSegment's mouseDown method
-        // has a chance to run before the popover becomes nil.
+        // has a chance to run before the context becomes nil.
         DispatchQueue.main.async { [weak context] in
             context?.removeStrongReference()
         }

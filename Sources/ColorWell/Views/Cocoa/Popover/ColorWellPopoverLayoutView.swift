@@ -16,9 +16,8 @@ internal class ColorWellPopoverLayoutView: NSGridView {
         }
     }
 
-    /// Creates a layout view with the given container view and color well,
-    /// using the color well's `swatchColors` property to construct a grid
-    /// of swatches.
+    /// Creates a layout view with the specified context, using the `swatchColors`
+    /// property of the context's color well to construct a grid of swatches.
     init(context: ColorWellPopoverContext) {
         self.context = context
 

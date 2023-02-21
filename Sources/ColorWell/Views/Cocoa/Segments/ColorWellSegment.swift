@@ -8,20 +8,27 @@ import Cocoa
 
 // MARK: - ColorWellSegment
 
+/// A view used to draw a portion of a color well.
 internal class ColorWellSegment: NSView {
+    /// The segment's color well.
     weak var colorWell: ColorWell?
 
+    /// The layer that displays the segment's shadow.
     private var shadowLayer: CALayer?
 
+    /// A tracking area for tracking mouse enter/exit events.
     private var trackingArea: NSTrackingArea?
 
     /// The accumulated offset of the current series of dragging events.
     private var draggingOffset = CGSize()
 
+    /// The cached default drawing path of the segment.
     var cachedDefaultPath = CachedPath<NSBezierPath>()
 
+    /// The cached drawing path of the segment's shadow.
     var cachedShadowPath = CachedPath<CGPath>()
 
+    /// Whether the segment's color well is currently active.
     var isActive: Bool {
         colorWell?.isActive ?? false
     }
@@ -32,6 +39,7 @@ internal class ColorWellSegment: NSView {
         max(abs(draggingOffset.width), abs(draggingOffset.height)) >= 2
     }
 
+    /// The segment's current state.
     var state = State.default {
         didSet {
             switch oldValue {
@@ -69,6 +77,8 @@ internal class ColorWellSegment: NSView {
     /// The default fill color of the segment.
     var defaultFillColor: NSColor { .controlColor }
 
+    /// A color that is altered from `defaultFillColor` to reflect whether
+    /// the color well is currently enabled or disabled.
     var defaultDisplayColor: NSColor {
         if colorWellIsEnabled {
             return defaultFillColor
@@ -193,6 +203,7 @@ extension ColorWellSegment {
         }
     }
 
+    /// Creates and adds a shadow layer for the given rectangle.
     func addShadowLayer(for rect: NSRect) {
         shadowLayer?.removeFromSuperlayer()
         shadowLayer = nil
@@ -352,9 +363,16 @@ extension ColorWellSegment {
 extension ColorWellSegment {
     /// A type that represents the state of a color well segment.
     enum State {
+        /// The segment is being hovered over.
         case hover
+
+        /// The segment is highlighted.
         case highlight
+
+        /// The segment is pressed.
         case pressed
+
+        /// The default, idle state of a segment.
         case `default`
     }
 }

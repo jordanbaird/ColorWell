@@ -150,7 +150,7 @@ internal class ColorSwatch: NSView {
     /// - Note: Currently, this color is always white.
     private var bezelColor: CGColor { .white }
 
-    /// Creates a swatch with the given color, color well, and layout view.
+    /// Creates a swatch with the given color and context.
     init(
         color: NSColor,
         context: ColorWellPopoverContext
