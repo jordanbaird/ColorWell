@@ -920,7 +920,7 @@ extension ColorWellView {
         }
 
         /// Returns the change handlers for the given context.
-        func changeHandlers(for context: Context) -> [ChangeHandler] {
+        func changeHandlers(for context: Context) -> [IdentifiableAction<NSColor>] {
             // Reversed to reflect the true order in which they were added.
             context.environment.changeHandlers.reversed()
         }
@@ -980,7 +980,7 @@ private struct LayoutView<Label: View, LabelCandidate: View, Content: View>: Vie
 
 @available(macOS 10.15, *)
 private struct ChangeHandlersKey: EnvironmentKey {
-    static let defaultValue = [ChangeHandler]()
+    static let defaultValue = [IdentifiableAction<NSColor>]()
 }
 
 // MARK: - SwatchColorsKey
@@ -994,7 +994,7 @@ private struct SwatchColorsKey: EnvironmentKey {
 
 @available(macOS 10.15, *)
 extension EnvironmentValues {
-    internal var changeHandlers: [ChangeHandler] {
+    internal var changeHandlers: [IdentifiableAction<NSColor>] {
         get { self[ChangeHandlersKey.self] }
         set { self[ChangeHandlersKey.self] = newValue }
     }
@@ -1023,7 +1023,7 @@ private struct OnColorChange<C: CustomCocoaConvertible>: ViewModifier
     func body(content: Content) -> some View {
         content.transformEnvironment(\.changeHandlers) { changeHandlers in
             let changeHandler = action.map { action in
-                ChangeHandler(id: id) { color in
+                IdentifiableAction(id: id) { color in
                     action(.converted(from: color))
                 }
             }

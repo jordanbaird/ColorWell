@@ -275,6 +275,35 @@ internal protocol MutableConstructablePath: ConstructablePath {
     func apply(_ component: ConstructablePathComponent)
 }
 
+// MARK: - CachedPath
+
+/// A type that contains a cached graphics path, along with
+/// the rectangle that was used to create it.
+struct CachedPath<Path: ConstructablePath> where Path.Constructed == Path {
+    /// The rectangle used to create this instance's path.
+    let rect: CGRect
+
+    /// The cached path of this instance.
+    let path: Path
+
+    /// Creates an instance with the given rectangle and path.
+    init(rect: CGRect, path: Path) {
+        self.rect = rect
+        self.path = path
+    }
+
+    /// Creates an instance, constructing its path from the
+    /// given rectangle and side.
+    init(rect: CGRect, side: Side?) {
+        self.init(rect: rect, path: .colorWellSegment(rect: rect, side: side))
+    }
+
+    /// Creates an instance with an empty rectangle and path.
+    init() {
+        self.init(rect: .zero, path: Path.MutablePath().asConstructedType)
+    }
+}
+
 // MARK: - Implementations
 
 // MARK: NSBezierPath: MutableConstructablePath

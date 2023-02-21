@@ -29,6 +29,20 @@ extension Array where Element: Equatable {
     }
 }
 
+// MARK: - Array (Element == ColorSwatch)
+
+extension Array where Element == ColorSwatch {
+    internal init(context: ColorWellPopoverContext) {
+        guard let colorWell = context.colorWell else {
+            self = []
+            return
+        }
+        self = colorWell.swatchColors.map { color in
+            ColorSwatch(color: color, context: context)
+        }
+    }
+}
+
 // MARK: - CGPoint
 
 extension CGPoint {
