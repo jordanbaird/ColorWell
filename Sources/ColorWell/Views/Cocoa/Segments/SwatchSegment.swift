@@ -56,24 +56,18 @@ extension SwatchSegment {
             return
         }
 
-        canShowPopover = colorWell.popover == nil
-    }
-
-    private func makePopoverContext() -> ColorWellPopoverContext? {
-        if let colorWell {
-            return ColorWellPopoverContext(colorWell: colorWell)
-        }
-        return nil
+        canShowPopover = colorWell.popoverContext == nil
     }
 
     private func makeAndShowPopover() {
         guard let colorWell else {
             return
         }
-        // The popover should be nil no matter what here.
-        assert(colorWell.popover == nil, "Popover should not exist yet")
-        colorWell.popoverContext = makePopoverContext()
-        colorWell.popover?.show(relativeTo: frame, of: self, preferredEdge: .minY)
+        // Context should be nil no matter what here.
+        assert(colorWell.popoverContext == nil, "Popover context should not exist yet")
+        let popoverContext = ColorWellPopoverContext(colorWell: colorWell)
+        colorWell.popoverContext = popoverContext
+        popoverContext.popover.show(relativeTo: frame, of: self, preferredEdge: .minY)
     }
 
     private func drawSwatch(in dirtyRect: NSRect) {

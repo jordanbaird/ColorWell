@@ -30,7 +30,7 @@ internal class ColorWellPopoverLayoutView: NSGridView {
         case .swatches:
             let activateButton = CustomButton(title: "Show More Colors…") { [weak context] in
                 context?.colorWell?.activateAutoVerifyingExclusive()
-                context?.colorWell?.popover?.close()
+                context?.popover.close()
             }
             self.activateButton = activateButton
 

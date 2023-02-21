@@ -12,10 +12,6 @@ import Cocoa
 internal class ColorWellPopover: NSPopover {
     weak var context: ColorWellPopoverContext?
 
-    var window: NSWindow? {
-        context?.containerView.window
-    }
-
     init(context: ColorWellPopoverContext) {
         self.context = context
         super.init()
@@ -40,11 +36,15 @@ internal class ColorWellPopover: NSPopover {
             preferredEdge: preferredEdge
         )
 
-        window?.makeFirstResponder(nil)
+        guard let context else {
+            return
+        }
+
+        context.containerView.window?.makeFirstResponder(nil)
 
         guard
-            let color = context?.colorWell?.color,
-            let swatch = context?.swatches.first(where: { $0.color.resembles(color) })
+            let color = context.colorWell?.color,
+            let swatch = context.swatches.first(where: { $0.color.resembles(color) })
         else {
             return
         }

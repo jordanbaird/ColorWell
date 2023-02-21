@@ -30,4 +30,8 @@ internal class ColorWellPopoverContext {
         }
         colorWell?.popoverContext = nil
     }
+
+    deinit {
+        removeStrongReference()
+    }
 }

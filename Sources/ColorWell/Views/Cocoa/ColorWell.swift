@@ -109,12 +109,8 @@ public class ColorWell: _ColorWellBaseView {
     /// The color well's change handlers.
     internal var changeHandlers = [IdentifiableAction<NSColor>]()
 
+    /// The popover context associated with the color well.
     internal var popoverContext: ColorWellPopoverContext?
-
-    /// The popover associated with the color well.
-    internal var popover: ColorWellPopover? {
-        popoverContext?.popover
-    }
 
     /// The segment that shows the color well's color.
     internal var swatchSegment: SwatchSegment {

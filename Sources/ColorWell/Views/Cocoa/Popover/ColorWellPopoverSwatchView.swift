@@ -45,11 +45,10 @@ extension ColorWellPopoverSwatchView {
         guard let context else {
             return []
         }
-        let maxItemsPerRow = context.maxItemsPerRow
         var currentRow = [ColorSwatch]()
         var rows = [[ColorSwatch]]()
         for swatch in context.swatches {
-            if currentRow.count >= maxItemsPerRow {
+            if currentRow.count >= context.maxItemsPerRow {
                 rows.append(currentRow)
                 currentRow.removeAll()
             }
@@ -156,8 +155,8 @@ internal class ColorSwatch: NSView {
         color: NSColor,
         context: ColorWellPopoverContext
     ) {
-        self.context = context
         self.color = color
+        self.context = context
 
         let size = Self.size(forRowCount: context.rowCount)
 
@@ -289,9 +288,13 @@ extension ColorSwatch {
     /// Performs the swatch's action, setting the color well's color to
     /// that of the swatch, and closing the popover.
     func performAction() {
-        guard let colorWell = context?.colorWell else {
+        guard
+            let context,
+            let colorWell = context.colorWell
+        else {
             return
         }
+
         if colorWell.isActive {
             colorWell.withoutSynchronizingColorPanel { colorWell in
                 colorWell.color = color
@@ -302,7 +305,8 @@ extension ColorSwatch {
         } else {
             colorWell.color = color
         }
-        colorWell.popover?.close()
+
+        context.popover.close()
     }
 }
 
