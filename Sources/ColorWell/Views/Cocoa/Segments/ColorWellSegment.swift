@@ -74,23 +74,15 @@ internal class ColorWellSegment: NSView {
         colorWell?.isEnabled ?? false
     }
 
-    /// The default fill color of the segment.
-    var defaultFillColor: NSColor { .controlColor }
-
     /// A color that is altered from `defaultFillColor` to reflect whether
     /// the color well is currently enabled or disabled.
     var defaultDisplayColor: NSColor {
-        if colorWellIsEnabled {
-            return defaultFillColor
-        } else {
-            let disabledAlpha = max(defaultFillColor.alphaComponent - 0.5, 0.1)
-            return defaultFillColor.withAlphaComponent(disabledAlpha)
-        }
+        colorWellIsEnabled ? .colorWellSegmentColor : .colorWellSegmentColor.disabled
     }
 
     /// The unaltered fill color of the segment. Setting this value
     /// automatically redraws the segment.
-    lazy var fillColor = defaultFillColor {
+    var fillColor: NSColor {
         didSet {
             needsDisplay = true
         }
@@ -100,16 +92,12 @@ internal class ColorWellSegment: NSView {
     /// from `fillColor` to reflect whether the color well is currently
     /// enabled or disabled.
     var displayColor: NSColor {
-        if colorWellIsEnabled {
-            return fillColor
-        } else {
-            let disabledAlpha = max(fillColor.alphaComponent - 0.5, 0.1)
-            return fillColor.withAlphaComponent(disabledAlpha)
-        }
+        colorWellIsEnabled ? fillColor : fillColor.disabled
     }
 
     /// Creates a segment for the given color well.
     init(colorWell: ColorWell) {
+        self.fillColor = .colorWellSegmentColor
         super.init(frame: .zero)
         self.colorWell = colorWell
         wantsLayer = true
@@ -140,38 +128,28 @@ internal class ColorWellSegment: NSView {
     /// being highlighted.
     @objc dynamic
     func drawHighlightIndicator() {
-        if NSApp.effectiveAppearanceIsDarkAppearance {
-            fillColor = defaultFillColor.withAlphaComponent(defaultFillColor.alphaComponent + 0.1)
-        } else if let blended = defaultFillColor.blended(withFraction: 0.5, of: .selectedControlColor) {
-            fillColor = blended
-        } else {
-            fillColor = .selectedControlColor
-        }
+        fillColor = .highlightedColorWellSegmentColor
     }
 
     /// Invoked to update the segment to indicate that it is
     /// not being highlighted.
     @objc dynamic
     func removeHighlightIndicator() {
-        fillColor = defaultFillColor
+        fillColor = .colorWellSegmentColor
     }
 
     /// Invoked to update the segment to indicate that it is
     /// being pressed.
     @objc dynamic
     func drawPressedIndicator() {
-        if NSApp.effectiveAppearanceIsDarkAppearance {
-            fillColor = defaultFillColor.withAlphaComponent(defaultFillColor.alphaComponent + 0.25)
-        } else {
-            fillColor = .selectedControlColor
-        }
+        fillColor = .selectedColorWellSegmentColor
     }
 
     /// Invoked to update the segment to indicate that it is
     /// not being pressed.
     @objc dynamic
     func removePressedIndicator() {
-        fillColor = defaultFillColor
+        fillColor = .colorWellSegmentColor
     }
 
     /// Invoked to perform the segment's action.
@@ -215,7 +193,7 @@ extension ColorWellSegment {
         let shadowLayer = CALayer()
 
         let shadowOffset = NSSize(width: 0, height: 0)
-        let shadowRadius = Constants.lineWidth * 0.75
+        let shadowRadius = ColorWell.lineWidth * 0.75
 
         updateCachedPath(for: rect, cached: &cachedShadowPath)
 

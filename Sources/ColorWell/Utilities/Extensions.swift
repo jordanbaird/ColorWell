@@ -135,6 +135,36 @@ extension NSApplication {
 // MARK: - NSColor
 
 extension NSColor {
+    /// The default fill color of a color well segment.
+    internal static var colorWellSegmentColor: NSColor {
+        .controlColor
+    }
+
+    /// The fill color of a highlighted color well segment.
+    internal static var highlightedColorWellSegmentColor: NSColor {
+        if NSApp.effectiveAppearanceIsDarkAppearance {
+            return colorWellSegmentColor.withAlphaComponent(colorWellSegmentColor.alphaComponent + 0.1)
+        } else if let blended = colorWellSegmentColor.blended(withFraction: 0.5, of: .selectedControlColor) {
+            return blended
+        } else {
+            return .selectedControlColor
+        }
+    }
+
+    /// The fill color of a selected color well segment.
+    internal static var selectedColorWellSegmentColor: NSColor {
+        if NSApp.effectiveAppearanceIsDarkAppearance {
+            return colorWellSegmentColor.withAlphaComponent(colorWellSegmentColor.alphaComponent + 0.25)
+        } else {
+            return .selectedControlColor
+        }
+    }
+
+    /// A version of this color that is suitable for disabled controls.
+    internal var disabled: NSColor {
+        withAlphaComponent(max(alphaComponent - 0.5, 0.1))
+    }
+
     /// Returns the average of this color's red, green, and blue components,
     /// approximating the brightness of the color.
     internal var averageBrightness: CGFloat {

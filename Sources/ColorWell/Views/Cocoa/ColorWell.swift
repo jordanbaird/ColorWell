@@ -20,6 +20,37 @@ import SwiftUI
 /// for selecting new colors.
 public class ColorWell: _ColorWellBaseView {
 
+    /// A base value to use when computing the width of lines drawn as
+    /// part of a color well or its elements.
+    internal static let lineWidth: CGFloat = 1
+
+    /// The default frame for a color well.
+    internal static let defaultFrame = NSRect(x: 0, y: 0, width: 64, height: 28)
+
+    /// The color shown by color wells that were not initialized with
+    /// an initial value.
+    ///
+    /// Currently, this color is an RGBA white.
+    internal static let defaultColor = NSColor(red: 1, green: 1, blue: 1, alpha: 1)
+
+    /// The default style for a color well.
+    internal static let defaultStyle = ColorWell.Style.expanded
+
+    /// Hexadecimal strings used to construct the default colors shown
+    /// in a color well's popover.
+    internal static let defaultHexStrings = [
+        "56C1FF", "72FDEA", "88FA4F", "FFF056", "FF968D", "FF95CA",
+        "00A1FF", "15E6CF", "60D937", "FFDA31", "FF644E", "FF42A1",
+        "0076BA", "00AC8E", "1FB100", "FEAE00", "ED220D", "D31876",
+        "004D80", "006C65", "017101", "F27200", "B51800", "970E53",
+        "FFFFFF", "D5D5D5", "929292", "5E5E5E", "000000",
+    ]
+
+    /// The default colors shown in a color well's popover.
+    internal static let defaultSwatchColors = defaultHexStrings.compactMap { string in
+        NSColor(hexString: string)
+    }
+
     // MARK: Private Properties
 
     /// A view that displays the color well's segments, side by side.
@@ -170,7 +201,7 @@ public class ColorWell: _ColorWellBaseView {
     /// - Note: If the array is empty, the color well's ``colorPanel`` will be
     ///   shown instead of a popover.
     @objc dynamic
-    public var swatchColors = Constants.defaultSwatchColors
+    public var swatchColors = defaultSwatchColors
 
     /// The color well's color.
     ///
@@ -178,7 +209,7 @@ public class ColorWell: _ColorWellBaseView {
     /// the color well and its color panel, and executes all change
     /// handlers stored by the color well.
     @objc dynamic
-    public var color = Constants.defaultColor {
+    public var color: NSColor {
         didSet {
             if isActive {
                 synchronizeColorPanel()
@@ -259,9 +290,10 @@ public class ColorWell: _ColorWellBaseView {
     ///   - color: The initial value of the color well's color.
     ///   - style: The style to use to display the color well.
     public init(frame frameRect: NSRect, color: NSColor, style: Style) {
+        self.color = color
         self.style = style
         super.init(frame: frameRect)
-        sharedInit(color: color)
+        sharedInit()
     }
 
     /// Creates a color well with the given frame and color.
@@ -270,33 +302,33 @@ public class ColorWell: _ColorWellBaseView {
     ///   - frameRect: The frame rectangle for the created color panel.
     ///   - color: The initial value of the color well's color.
     public convenience init(frame frameRect: NSRect, color: NSColor) {
-        self.init(frame: frameRect, color: color, style: Constants.defaultStyle)
+        self.init(frame: frameRect, color: color, style: Self.defaultStyle)
     }
 
     /// Creates a color well with the given frame.
     ///
     /// - Parameter frameRect: The frame rectangle for the created color panel.
     public override convenience init(frame frameRect: NSRect) {
-        self.init(frame: frameRect, color: Constants.defaultColor)
+        self.init(frame: frameRect, color: Self.defaultColor)
     }
 
     /// Creates a color well with the default frame, color, and style.
     public convenience init() {
-        self.init(frame: Constants.defaultFrame)
+        self.init(frame: Self.defaultFrame)
     }
 
     /// Creates a color well with the given style.
     ///
     /// - Parameter style: The style to use to display the color well.
     public convenience init(style: Style) {
-        self.init(frame: Constants.defaultFrame, color: Constants.defaultColor, style: style)
+        self.init(frame: Self.defaultFrame, color: Self.defaultColor, style: style)
     }
 
     /// Creates a color well with the given color.
     ///
     /// - Parameter color: The initial value of the color well's color.
     public convenience init(color: NSColor) {
-        self.init(frame: Constants.defaultFrame, color: color)
+        self.init(frame: Self.defaultFrame, color: color)
     }
 
     /// Creates a color well with the given `CoreGraphics` color.
@@ -331,16 +363,17 @@ public class ColorWell: _ColorWellBaseView {
     /// - Parameter coder: The coder object that contains the color
     ///   well's configuration details.
     public required init?(coder: NSCoder) {
-        style = Constants.defaultStyle
+        color = Self.defaultColor
+        style = Self.defaultStyle
         super.init(coder: coder)
-        sharedInit(color: Constants.defaultColor)
+        sharedInit()
     }
 }
 
 // MARK: ColorWell Private Methods
 extension ColorWell {
     /// Shared code to execute on a color well's initialization.
-    private func sharedInit(color: NSColor) {
+    private func sharedInit() {
         layoutView = ColorWellLayoutView(colorWell: self)
 
         addSubview(layoutView)
@@ -350,9 +383,6 @@ extension ColorWell {
         layoutView.heightAnchor.constraint(equalTo: heightAnchor).isActive = true
         layoutView.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
         layoutView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-
-        // IMPORTANT: Color should only be set AFTER the layout view is added.
-        self.color = color
 
         if #available(macOS 10.14, *) {
             NSApp.observe(\.effectiveAppearance) { [weak self] _, _ in
@@ -553,11 +583,11 @@ extension ColorWell {
 
         switch style {
         case .expanded:
-            result = Constants.defaultFrame.size
+            result = Self.defaultFrame.size
         case .swatches, .colorPanel:
             result = NSSize(
-                width: Constants.defaultFrame.width - 20,
-                height: Constants.defaultFrame.height
+                width: Self.defaultFrame.width - 20,
+                height: Self.defaultFrame.height
             )
         }
 

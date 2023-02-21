@@ -40,6 +40,7 @@ internal class SwatchSegment: ColorWellSegment {
 
     override init(colorWell: ColorWell) {
         super.init(colorWell: colorWell)
+        self.fillColor = colorWell.color
         registerForDraggedTypes([.color])
     }
 }
@@ -120,7 +121,7 @@ extension SwatchSegment {
 
     private func drawBorder(in dirtyRect: NSRect) {
         NSGraphicsContext.withCachedGraphicsState {
-            let lineWidth = Constants.lineWidth
+            let lineWidth = ColorWell.lineWidth
 
             updateCachedPath(
                 for: dirtyRect.insetBy(dx: lineWidth / 4, dy: lineWidth / 2),
