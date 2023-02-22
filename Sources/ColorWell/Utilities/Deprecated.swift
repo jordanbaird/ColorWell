@@ -6,8 +6,6 @@
 
 import Cocoa
 
-// MARK: - ColorWell
-
 extension ColorWell {
     /// A Boolean value that indicates whether the color well's color panel
     /// allows adjusting the selected color's opacity.

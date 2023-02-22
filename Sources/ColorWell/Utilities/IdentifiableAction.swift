@@ -6,8 +6,6 @@
 
 import Cocoa
 
-// MARK: - IdentifiableAction
-
 /// An identifiable, hashable wrapper for an executable closure.
 internal struct IdentifiableAction<Value> {
     /// A unique identifier for this action.
@@ -62,7 +60,7 @@ internal struct IdentifiableAction<Value> {
     }
 }
 
-// MARK: IdentifiableAction (Value == Void)
+// MARK: where Value == Void
 extension IdentifiableAction where Value == Void {
     /// Creates an action with the given identifier and closure.
     ///
@@ -104,14 +102,14 @@ extension IdentifiableAction where Value == Void {
     }
 }
 
-// MARK: IdentifiableAction: Equatable
+// MARK: Equatable
 extension IdentifiableAction: Equatable {
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.id == rhs.id
     }
 }
 
-// MARK: IdentifiableAction: Hashable
+// MARK: Hashable
 extension IdentifiableAction: Hashable {
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)

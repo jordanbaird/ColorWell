@@ -6,8 +6,6 @@
 
 import Cocoa
 
-// MARK: - ColorWellLayoutView
-
 /// A grid view that displays color well segments side by side.
 internal class ColorWellLayoutView: NSGridView {
     /// A segment that displays a color swatch with the color well's
@@ -49,7 +47,7 @@ internal class ColorWellLayoutView: NSGridView {
     }
 }
 
-// MARK: ColorWellLayoutView Methods
+// MARK: Instance Methods
 extension ColorWellLayoutView {
     func removeRow(_ row: NSGridRow) {
         for n in 0..<row.numberOfCells {
@@ -74,7 +72,7 @@ extension ColorWellLayoutView {
     }
 }
 
-// MARK: ColorWellLayoutView Overrides
+// MARK: Overrides
 extension ColorWellLayoutView {
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)

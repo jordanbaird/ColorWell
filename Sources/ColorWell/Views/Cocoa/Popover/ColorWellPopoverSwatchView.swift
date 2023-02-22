@@ -12,13 +12,13 @@ import Cocoa
 internal class ColorWellPopoverSwatchView: NSGridView {
     weak var context: ColorWellPopoverContext?
 
+    /// The swatch that is currently selected, if any.
     var selectedSwatch: ColorSwatch? {
         context?.swatches.first { $0.isSelected }
     }
 
-    /// Creates a layout view with the given container view and color well,
-    /// using the color well's `swatchColors` property to construct a grid
-    /// of swatches.
+    /// Creates a swatch view with the specified context, using the `swatchColors`
+    /// property of the context's color well to construct a grid of swatches.
     init(context: ColorWellPopoverContext) {
         self.context = context
 
@@ -38,7 +38,7 @@ internal class ColorWellPopoverSwatchView: NSGridView {
     }
 }
 
-// MARK: ColorWellPopoverSwatchView Methods
+// MARK: ColorWellPopoverSwatchView Instance Methods
 extension ColorWellPopoverSwatchView {
     /// Converts the view's swatches into rows.
     private func makeRows() -> [[ColorSwatch]] {
@@ -140,13 +140,13 @@ internal class ColorSwatch: NSView {
         color.usingColorSpace(.sRGB) ?? color
     }
 
-    /// The computed border color of the swatch, created based on its
-    /// current color.
+    /// The computed border color of the swatch, created based on its color.
     private var borderColor: CGColor {
         CGColor(gray: (1 - color.averageBrightness) / 4, alpha: 0.15)
     }
 
     /// The computed bezel color of the swatch.
+    ///
     /// - Note: Currently, this color is always white.
     private var bezelColor: CGColor { .white }
 
@@ -188,9 +188,9 @@ extension ColorSwatch {
     }
 }
 
-// MARK: ColorSwatch Methods
+// MARK: ColorSwatch Instance Methods
 extension ColorSwatch {
-    /// Returns all swatches in the layout view that match the given conditions.
+    /// Returns all swatches in the swatch view that match the given conditions.
     private func swatches(matching conditions: [(ColorSwatch) -> Bool]) -> [ColorSwatch] {
         guard let context else {
             return []
@@ -202,7 +202,7 @@ extension ColorSwatch {
         }
     }
 
-    /// Iterates through all other swatches in the layout view and executes
+    /// Iterates through all other swatches in the swatch view and executes
     /// the given block of code, provided a set of conditions are met.
     private func iterateOtherSwatches(where conditions: [(ColorSwatch) -> Bool], block: (ColorSwatch) -> Void) {
         let conditions = conditions + [{ $0 !== self }]
@@ -278,7 +278,7 @@ extension ColorSwatch {
     }
 
     /// Selects the swatch, drawing a bezel around its edges and ensuring
-    /// that all other swatches in the layout view are deselected.
+    /// that all other swatches in the swatch view are deselected.
     func select() {
         // Setting the `isSelected` property automatically highlights the
         // swatch and unhighlights all other swatches in the layout view.

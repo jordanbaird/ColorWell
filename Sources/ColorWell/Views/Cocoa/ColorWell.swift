@@ -9,8 +9,6 @@ import Cocoa
 import SwiftUI
 #endif
 
-// MARK: - ColorWell
-
 /// A view that displays a user-settable color value.
 ///
 /// Color wells enable the user to select custom colors from within an app's
@@ -370,7 +368,7 @@ public class ColorWell: _ColorWellBaseView {
     }
 }
 
-// MARK: ColorWell Private Methods
+// MARK: Private Instance Methods
 extension ColorWell {
     /// Shared code to execute on a color well's initialization.
     private func sharedInit() {
@@ -454,7 +452,7 @@ extension ColorWell {
     }
 }
 
-// MARK: ColorWell Internal Methods
+// MARK: Internal Instance Methods
 extension ColorWell {
     /// Performs the specified block of code, ensuring that the color
     /// well's stored change handlers are not executed.
@@ -514,7 +512,7 @@ extension ColorWell {
     }
 }
 
-// MARK: ColorWell Public Methods
+// MARK: Public Instance Methods
 extension ColorWell {
     /// Activates the color well and displays its color panel.
     ///
@@ -572,7 +570,7 @@ extension ColorWell {
     }
 }
 
-// MARK: ColorWell Overrides
+// MARK: Overrides
 extension ColorWell {
     internal override var customAlignmentRectInsets: NSEdgeInsets {
         NSEdgeInsets(top: 2, left: 3, bottom: 2, right: 3)

@@ -6,9 +6,11 @@
 
 import Cocoa
 
+/// A button that takes a closure for its action.
 internal class CustomButton: NSButton {
     private let customAction: IdentifiableAction<Void>
 
+    /// Creates a button with the given title and action.
     init(title: String, action: @escaping () -> Void) {
         self.customAction = IdentifiableAction(body: action)
         super.init(frame: .zero)
@@ -23,7 +25,7 @@ internal class CustomButton: NSButton {
     }
 
     @objc dynamic
-    func performAction() {
+    private func performAction() {
         customAction()
     }
 }

@@ -213,15 +213,14 @@ internal protocol ConstructablePath
     static func construct(with components: [ConstructablePathComponent]) -> Constructed
 }
 
-// MARK: - ConstructablePath Default Implementations
-
 // MARK: ConstructablePath (Constructed == Self)
 extension ConstructablePath where Constructed == Self {
     internal var asConstructedType: Constructed { self }
 }
 
-// MARK: ConstructablePath Construct
+// MARK: ConstructablePath Static Methods
 extension ConstructablePath {
+    // Documented in protocol definition.
     internal static func construct(with components: [ConstructablePathComponent]) -> Constructed {
         let path = MutablePath()
         for component in components {
@@ -229,10 +228,7 @@ extension ConstructablePath {
         }
         return path.asConstructedType
     }
-}
 
-// MARK: ConstructablePath Helpers
-extension ConstructablePath {
     /// Produces a path for a part of a color well.
     ///
     /// - Parameters:
@@ -279,7 +275,7 @@ internal protocol MutableConstructablePath: ConstructablePath {
 
 /// A type that contains a cached graphics path, along with
 /// the rectangle that was used to create it.
-struct CachedPath<Path: ConstructablePath> where Path.Constructed == Path {
+internal struct CachedPath<Path: ConstructablePath> where Path.Constructed == Path {
     /// The rectangle used to create this instance's path.
     let rect: CGRect
 
@@ -303,8 +299,6 @@ struct CachedPath<Path: ConstructablePath> where Path.Constructed == Path {
         self.init(rect: .zero, path: Path.MutablePath().asConstructedType)
     }
 }
-
-// MARK: - Implementations
 
 // MARK: NSBezierPath: MutableConstructablePath
 extension NSBezierPath: MutableConstructablePath {

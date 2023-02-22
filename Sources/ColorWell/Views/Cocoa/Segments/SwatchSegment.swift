@@ -6,8 +6,6 @@
 
 import Cocoa
 
-// MARK: - SwatchSegment
-
 internal class SwatchSegment: ColorWellSegment {
     private var cachedBorderPath = CachedPath<NSBezierPath>()
 
@@ -45,7 +43,7 @@ internal class SwatchSegment: ColorWellSegment {
     }
 }
 
-// MARK: SwatchSegment Methods
+// MARK: Instance Methods
 extension SwatchSegment {
     private func prepareForPopover() {
         guard let colorWell else {
@@ -187,7 +185,7 @@ extension SwatchSegment {
     }
 }
 
-// MARK: SwatchSegment Overrides
+// MARK: Overrides
 extension SwatchSegment {
     override func draw(_ dirtyRect: NSRect) {
         guard colorWellIsEnabled else {
@@ -299,7 +297,7 @@ extension SwatchSegment {
     }
 }
 
-// MARK: SwatchSegment Accessibility
+// MARK: Accessibility
 extension SwatchSegment {
     override func isAccessibilityElement() -> Bool {
         false

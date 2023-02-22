@@ -4,6 +4,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+/// A central context for the elements of a color well's popover.
 internal class ColorWellPopoverContext {
     private(set) weak var colorWell: ColorWell?
 

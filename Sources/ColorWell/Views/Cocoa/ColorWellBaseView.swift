@@ -6,8 +6,6 @@
 
 import Cocoa
 
-// MARK: - ColorWellBaseView
-
 // FIXME: Remove this when @_documentation(visibility:) becomes official.
 //
 /// A base view class that contains some default functionality for use in
@@ -19,7 +17,7 @@ import Cocoa
 /// be overridden without polluting the package's documentation.
 public class _ColorWellBaseView: NSView { }
 
-// MARK: ColorWellBaseView Instance Properties
+// MARK: Instance Properties
 extension _ColorWellBaseView {
     /// A custom value for the color well's alignment rect insets.
     ///
@@ -38,7 +36,7 @@ extension _ColorWellBaseView {
     }
 }
 
-// MARK: ColorWellBaseView Instance Methods
+// MARK: Instance Methods
 extension _ColorWellBaseView {
     /// Returns a value for the given accessibility attribute.
     ///
@@ -61,7 +59,7 @@ extension _ColorWellBaseView {
     }
 }
 
-// MARK: ColorWellBaseView Overrides
+// MARK: Overrides
 extension _ColorWellBaseView {
     //@_documentation(visibility: internal)
     public override var alignmentRectInsets: NSEdgeInsets {
@@ -74,7 +72,7 @@ extension _ColorWellBaseView {
     }
 }
 
-// MARK: ColorWellBaseView Accessibility
+// MARK: Accessibility
 extension _ColorWellBaseView {
     //@_documentation(visibility: internal)
     public override func accessibilityChildren() -> [Any]? {

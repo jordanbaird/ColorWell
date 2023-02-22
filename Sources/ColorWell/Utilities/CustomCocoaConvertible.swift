@@ -9,8 +9,6 @@ import Cocoa
 import SwiftUI
 #endif
 
-// MARK: - CustomCocoaConvertible
-
 /// A type that can be converted from an equivalent type
 /// in the `Cocoa` framework.
 internal protocol CustomCocoaConvertible {

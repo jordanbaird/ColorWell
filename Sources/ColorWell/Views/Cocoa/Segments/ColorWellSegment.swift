@@ -6,8 +6,6 @@
 
 import Cocoa
 
-// MARK: - ColorWellSegment
-
 /// A view used to draw a portion of a color well.
 internal class ColorWellSegment: NSView {
     /// The segment's color well.
@@ -108,7 +106,7 @@ internal class ColorWellSegment: NSView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    // MARK: ColorWellSegment Dynamic Methods
+    // MARK: Dynamic Instance Methods
 
     /// Invoked to update the segment to indicate that it is
     /// being hovered over.
@@ -157,7 +155,7 @@ internal class ColorWellSegment: NSView {
     func performAction() { }
 }
 
-// MARK: ColorWellSegment Private Methods
+// MARK: Private Instance Methods
 extension ColorWellSegment {
     /// Updates the segment's dragging offset according to the x and y
     /// deltas of the given event.
@@ -167,7 +165,7 @@ extension ColorWellSegment {
     }
 }
 
-// MARK: ColorWellSegment Internal Methods
+// MARK: Internal Instance Methods
 extension ColorWellSegment {
     /// Returns the default path that will be used to draw the segment.
     func updateCachedPath<Path: ConstructablePath>(for rect: NSRect, cached: inout CachedPath<Path>) {
@@ -226,7 +224,7 @@ extension ColorWellSegment {
     }
 }
 
-// MARK: ColorWellSegment Overrides
+// MARK: Overrides
 extension ColorWellSegment {
     override func draw(_ dirtyRect: NSRect) {
         updateCachedPath(for: dirtyRect, cached: &cachedDefaultPath)
@@ -316,7 +314,7 @@ extension ColorWellSegment {
     }
 }
 
-// MARK: ColorWellSegment Accessibility
+// MARK: Accessibility
 extension ColorWellSegment {
     override func accessibilityParent() -> Any? {
         colorWell
@@ -336,7 +334,7 @@ extension ColorWellSegment {
     }
 }
 
-// MARK: - ColorWellSegment State
+// MARK: - State
 
 extension ColorWellSegment {
     /// A type that represents the state of a color well segment.

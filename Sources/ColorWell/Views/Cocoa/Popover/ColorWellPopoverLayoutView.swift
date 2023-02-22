@@ -6,7 +6,7 @@
 
 import Cocoa
 
-/// A view that provides the layout for a popover's color swatches.
+/// A view that provides the layout for a color well's popover.
 internal class ColorWellPopoverLayoutView: NSGridView {
     weak var context: ColorWellPopoverContext?
 
@@ -16,8 +16,7 @@ internal class ColorWellPopoverLayoutView: NSGridView {
         }
     }
 
-    /// Creates a layout view with the specified context, using the `swatchColors`
-    /// property of the context's color well to construct a grid of swatches.
+    /// Creates a layout view with the specified context.
     init(context: ColorWellPopoverContext) {
         self.context = context
 

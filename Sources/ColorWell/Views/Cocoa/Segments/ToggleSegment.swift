@@ -6,8 +6,6 @@
 
 import Cocoa
 
-// MARK: - ToggleSegment
-
 internal class ToggleSegment: ColorWellSegment {
     private var imageLayer: CALayer?
 
@@ -22,7 +20,7 @@ internal class ToggleSegment: ColorWellSegment {
     }
 }
 
-// MARK: ToggleSegment Methods
+// MARK: Instance Methods
 extension ToggleSegment {
     /// Adds a layer that contains an image indicating that the
     /// segment opens the color panel.
@@ -64,7 +62,7 @@ extension ToggleSegment {
     }
 }
 
-// MARK: ToggleSegment Overrides
+// MARK: Overrides
 extension ToggleSegment {
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
@@ -85,7 +83,7 @@ extension ToggleSegment {
     }
 }
 
-// MARK: ToggleSegment Accessibility
+// MARK: Accessibility
 extension ToggleSegment {
     override func accessibilityLabel() -> String? {
         "color picker"

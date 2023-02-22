@@ -6,13 +6,13 @@
 
 import Cocoa
 
-// MARK: - ColorWellPopoverViewController
-
 /// A view controller that controls a view that contains a grid
 /// of selectable color swatches.
 internal class ColorWellPopoverViewController: NSViewController {
     weak var context: ColorWellPopoverContext?
 
+    /// Creates a popover view controller that controls
+    /// the `containerView` found in the given context.
     init(context: ColorWellPopoverContext) {
         self.context = context
         super.init(nibName: nil, bundle: nil)
@@ -25,7 +25,7 @@ internal class ColorWellPopoverViewController: NSViewController {
     }
 }
 
-// MARK: ColorWellPopoverViewController: NSPopoverDelegate
+// MARK: NSPopoverDelegate
 extension ColorWellPopoverViewController: NSPopoverDelegate {
     func popoverDidClose(_ notification: Notification) {
         // Async so that ColorWellSegment's mouseDown method
