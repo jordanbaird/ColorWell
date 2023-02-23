@@ -201,7 +201,7 @@ extension ColorWellSegment {
         updateCachedPath(for: rect, cached: &cachedShadowPath)
 
         shadowLayer.shadowOffset = shadowOffset
-        shadowLayer.shadowOpacity = NSApp.effectiveAppearanceIsDarkAppearance ? 0.5 : 0.6
+        shadowLayer.shadowOpacity = 0.25
         shadowLayer.shadowRadius = shadowRadius
         shadowLayer.shadowPath = cachedShadowPath.path
         shadowLayer.shadowColor = NSColor.shadowColor.cgColor
