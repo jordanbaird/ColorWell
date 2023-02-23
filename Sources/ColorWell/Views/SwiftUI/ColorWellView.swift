@@ -935,7 +935,7 @@ extension ColorWellView {
 /// ** For internal use only **
 @available(macOS 10.15, *)
 private struct NoLabel: View {
-    var body: Never { fatalError() }
+    var body: Never { return fatalError() }
 }
 
 // MARK: - LayoutView
