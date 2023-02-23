@@ -146,7 +146,11 @@ extension NSApplication {
 extension NSColor {
     /// The default fill color of a color well segment.
     internal static var colorWellSegmentColor: NSColor {
-        .controlColor
+        if NSApp.effectiveAppearanceIsDarkAppearance {
+            return .selectedControlColor
+        } else {
+            return .controlColor
+        }
     }
 
     /// The fill color of a highlighted color well segment.

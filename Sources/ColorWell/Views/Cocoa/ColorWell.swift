@@ -209,13 +209,16 @@ public class ColorWell: _ColorWellBaseView {
     @objc dynamic
     public var color: NSColor {
         didSet {
+            defer {
+                executeChangeHandlers()
+            }
+            guard oldValue != color else {
+                return
+            }
             if isActive {
                 synchronizeColorPanel()
             }
-            if swatchSegment.fillColor != color {
-                swatchSegment.fillColor = color
-            }
-            executeChangeHandlers()
+            swatchSegment.needsDisplay = true
         }
     }
 

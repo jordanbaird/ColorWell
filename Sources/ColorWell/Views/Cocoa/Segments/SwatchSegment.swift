@@ -32,13 +32,16 @@ internal class SwatchSegment: ColorWellSegment {
 
     override var side: Side { .left }
 
+    override var fillColor: NSColor {
+        colorWell?.color ?? super.fillColor
+    }
+
     override var displayColor: NSColor {
         super.displayColor.usingColorSpace(.sRGB) ?? super.displayColor
     }
 
     override init(colorWell: ColorWell) {
         super.init(colorWell: colorWell)
-        self.fillColor = colorWell.color
         registerForDraggedTypes([.color])
     }
 }

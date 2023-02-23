@@ -78,12 +78,16 @@ internal class ColorWellSegment: NSView {
         colorWellIsEnabled ? .colorWellSegmentColor : .colorWellSegmentColor.disabled
     }
 
-    /// The unaltered fill color of the segment. Setting this value
-    /// automatically redraws the segment.
-    var fillColor: NSColor {
+    private var fillColorGetter: () -> NSColor {
         didSet {
             needsDisplay = true
         }
+    }
+
+    /// The unaltered fill color of the segment. Setting this value
+    /// automatically redraws the segment.
+    var fillColor: NSColor {
+        fillColorGetter()
     }
 
     /// The color that is displayed directly in the segment, altered
@@ -95,7 +99,7 @@ internal class ColorWellSegment: NSView {
 
     /// Creates a segment for the given color well.
     init(colorWell: ColorWell) {
-        self.fillColor = .colorWellSegmentColor
+        self.fillColorGetter = { .colorWellSegmentColor }
         super.init(frame: .zero)
         self.colorWell = colorWell
         wantsLayer = true
@@ -126,28 +130,28 @@ internal class ColorWellSegment: NSView {
     /// being highlighted.
     @objc dynamic
     func drawHighlightIndicator() {
-        fillColor = .highlightedColorWellSegmentColor
+        fillColorGetter = { .highlightedColorWellSegmentColor }
     }
 
     /// Invoked to update the segment to indicate that it is
     /// not being highlighted.
     @objc dynamic
     func removeHighlightIndicator() {
-        fillColor = .colorWellSegmentColor
+        fillColorGetter = { .colorWellSegmentColor }
     }
 
     /// Invoked to update the segment to indicate that it is
     /// being pressed.
     @objc dynamic
     func drawPressedIndicator() {
-        fillColor = .selectedColorWellSegmentColor
+        fillColorGetter = { .selectedColorWellSegmentColor }
     }
 
     /// Invoked to update the segment to indicate that it is
     /// not being pressed.
     @objc dynamic
     func removePressedIndicator() {
-        fillColor = .colorWellSegmentColor
+        fillColorGetter = { .colorWellSegmentColor }
     }
 
     /// Invoked to perform the segment's action.
