@@ -78,14 +78,15 @@ internal class ColorWellSegment: NSView {
         colorWellIsEnabled ? .colorWellSegmentColor : .colorWellSegmentColor.disabled
     }
 
+    /// A closure that provides a value for the `fillColor` property.
+    /// Setting this value automatically redraws the segment.
     private var fillColorGetter: () -> NSColor {
         didSet {
             needsDisplay = true
         }
     }
 
-    /// The unaltered fill color of the segment. Setting this value
-    /// automatically redraws the segment.
+    /// The unaltered fill color of the segment.
     var fillColor: NSColor {
         fillColorGetter()
     }
