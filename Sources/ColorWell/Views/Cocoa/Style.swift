@@ -1,13 +1,14 @@
 //===----------------------------------------------------------------------===//
 //
-// ColorWell.Style.swift
+// Style.swift
 //
 //===----------------------------------------------------------------------===//
 
+import Foundation
+
 extension ColorWell {
     /// Constants that specify the appearance and behavior of a color well.
-    @objc
-    public enum Style: Int {
+    @objc public enum Style: Int {
         /// The color well is displayed as a segmented control that displays
         /// the selected color alongside a dedicated button to show the system
         /// color panel.
@@ -28,7 +29,6 @@ extension ColorWell {
         case colorPanel = 2
     }
 }
-
 
 extension ColorWell.Style: CustomStringConvertible {
     public var description: String {

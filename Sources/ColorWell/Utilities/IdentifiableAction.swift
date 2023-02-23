@@ -4,7 +4,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Cocoa
+import Foundation
 
 /// An identifiable, hashable wrapper for an executable closure.
 internal struct IdentifiableAction<Value> {

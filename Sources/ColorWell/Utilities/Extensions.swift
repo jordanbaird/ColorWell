@@ -72,10 +72,7 @@ extension CGSize {
     /// Returns the size that is the result of subtracting the specified
     /// edge insets from the current size.
     internal func applying(insets: NSEdgeInsets) -> Self {
-        Self(
-            width: width - insets.horizontal,
-            height: height - insets.vertical
-        )
+        Self(width: width - insets.horizontal, height: height - insets.vertical)
     }
 }
 
@@ -399,20 +396,18 @@ extension NSGraphicsContext {
     /// Executes a block of code on the current graphics context, restoring
     /// the graphics state after the block returns.
     internal static func withCachedGraphicsState<T>(_ body: (NSGraphicsContext?) throws -> T) rethrows -> T {
-        let context = current
-        context?.saveGraphicsState()
+        let current = current
+        current?.saveGraphicsState()
         defer {
-            context?.restoreGraphicsState()
+            current?.restoreGraphicsState()
         }
-        return try body(context)
+        return try body(current)
     }
 
     /// Executes a block of code on the current graphics context, restoring
     /// the graphics state after the block returns.
     internal static func withCachedGraphicsState<T>(_ body: () throws -> T) rethrows -> T {
-        try withCachedGraphicsState { _ in
-            try body()
-        }
+        try withCachedGraphicsState { _ in try body() }
     }
 }
 
