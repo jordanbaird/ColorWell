@@ -5,8 +5,6 @@
 
 import Cocoa
 
-// FIXME: Remove this when @_documentation(visibility:) becomes official.
-//
 /// A base view class that contains some default functionality for use in
 /// the main ``ColorWell`` class.
 ///
@@ -33,39 +31,47 @@ extension _ColorWellBaseView {
     internal var customIntrinsicContentSize: NSSize {
         super.intrinsicContentSize
     }
-}
 
-// MARK: Instance Methods
-extension _ColorWellBaseView {
-    /// Returns a value for the given accessibility attribute.
+    /// A custom value for the color well's accessibility children.
     ///
     /// To be overridden by the main ``ColorWell`` class.
     @objc dynamic
-    internal func provideValue(forAttribute attribute: NSAccessibility.Attribute) -> Any? { nil }
+    internal var customAccessibilityChildren: [Any]? {
+        super.accessibilityChildren()
+    }
 
-    /// Performs code for the given accessibility action.
+    /// A custom value that returns whether the color well is enabled,
+    /// from an accessibility perspective.
     ///
     /// To be overridden by the main ``ColorWell`` class.
     @objc dynamic
-    internal func performAction(forType type: NSAccessibility.Action) -> Bool { false }
+    internal var customAccessibilityEnabled: Bool {
+        super.isAccessibilityEnabled()
+    }
 
-    /// Returns a value for the given accessibility attribute, performing
-    /// dynamic casting to type `T`, based on the context of the callee.
+    /// A custom value for the color well's accessibility value.
     ///
-    /// ** Non-overrideable **
-    private final func provideValue<T>(forAttribute attribute: NSAccessibility.Attribute) -> T? {
-        provideValue(forAttribute: attribute) as? T
+    /// To be overridden by the main ``ColorWell`` class.
+    @objc dynamic
+    internal var customAccessibilityValue: Any? {
+        super.accessibilityValue()
+    }
+
+    /// A custom value for the color well's accessibility press action.
+    ///
+    /// To be overridden by the main ``ColorWell`` class.
+    @objc dynamic
+    internal var customAccessibilityPerformPress: () -> Bool {
+        super.accessibilityPerformPress
     }
 }
 
 // MARK: Overrides
 extension _ColorWellBaseView {
-    //@_documentation(visibility: internal)
     public override var alignmentRectInsets: NSEdgeInsets {
         customAlignmentRectInsets
     }
 
-    //@_documentation(visibility: internal)
     public override var intrinsicContentSize: NSSize {
         customIntrinsicContentSize
     }
@@ -73,33 +79,34 @@ extension _ColorWellBaseView {
 
 // MARK: Accessibility
 extension _ColorWellBaseView {
-    //@_documentation(visibility: internal)
+
+    // MARK: Custom Values
+
     public override func accessibilityChildren() -> [Any]? {
-        provideValue(forAttribute: .children)
+        customAccessibilityChildren
     }
 
-    //@_documentation(visibility: internal)
-    public override func accessibilityPerformPress() -> Bool {
-        performAction(forType: .press)
+    public override func isAccessibilityEnabled() -> Bool {
+        customAccessibilityEnabled
     }
 
-    //@_documentation(visibility: internal)
+    public override func accessibilityValue() -> Any? {
+        customAccessibilityValue
+    }
+
+    // MARK: Fixed Values
+
     public override func accessibilityRole() -> NSAccessibility.Role? {
         .colorWell
     }
 
-    //@_documentation(visibility: internal)
-    public override func accessibilityValue() -> Any? {
-        provideValue(forAttribute: .value)
-    }
-
-    //@_documentation(visibility: internal)
     public override func isAccessibilityElement() -> Bool {
         true
     }
 
-    //@_documentation(visibility: internal)
-    public override func isAccessibilityEnabled() -> Bool {
-        provideValue(forAttribute: .enabled) ?? true
+    // MARK: Actions
+
+    public override func accessibilityPerformPress() -> Bool {
+        customAccessibilityPerformPress()
     }
 }

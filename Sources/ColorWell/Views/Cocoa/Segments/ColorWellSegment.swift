@@ -156,7 +156,7 @@ internal class ColorWellSegment: NSView {
 
     /// Invoked to perform the segment's action.
     @objc dynamic
-    func performAction() { }
+    func performAction() -> Bool { false }
 }
 
 // MARK: Private Instance Methods
@@ -274,7 +274,7 @@ extension ColorWellSegment {
         else {
             return
         }
-        performAction()
+        _ = performAction()
     }
 
     override func mouseDragged(with event: NSEvent) {
@@ -326,7 +326,6 @@ extension ColorWellSegment {
 
     override func accessibilityPerformPress() -> Bool {
         performAction()
-        return true
     }
 
     override func accessibilityRole() -> NSAccessibility.Role? {

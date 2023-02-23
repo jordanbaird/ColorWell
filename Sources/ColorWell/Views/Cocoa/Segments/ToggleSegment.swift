@@ -68,9 +68,9 @@ extension ToggleSegment {
         setImageLayer(clip: true)
     }
 
-    override func performAction() {
+    override func performAction() -> Bool {
         guard let colorWell else {
-            return
+            return false
         }
         if colorWell.isActive {
             colorWell.deactivate()
@@ -79,6 +79,7 @@ extension ToggleSegment {
             colorWell.activateAutoVerifyingExclusive()
             state = .pressed
         }
+        return true
     }
 }
 

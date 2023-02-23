@@ -230,23 +230,25 @@ extension SwatchSegment {
         needsDisplay = true
     }
 
-    override func performAction() {
+    override func performAction() -> Bool {
         prepareForPopover()
         if shouldOverrideShowPopover {
             guard let colorWell else {
-                return
+                return false
             }
             switch colorWell.style {
             case .swatches, .expanded:
                 colorWell.toggleSegment.state = .pressed
-                colorWell.toggleSegment.performAction()
+                return colorWell.toggleSegment.performAction()
             case .colorPanel:
                 state = .pressed
-                colorWell.toggleSegment.performAction()
+                return colorWell.toggleSegment.performAction()
             }
         } else if canShowPopover {
             makeAndShowPopover()
+            return true
         }
+        return false
     }
 
     override func hitTest(_ point: NSPoint) -> NSView? {

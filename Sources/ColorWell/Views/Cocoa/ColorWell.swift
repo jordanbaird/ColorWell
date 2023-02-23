@@ -594,26 +594,19 @@ extension ColorWell {
         return result.applying(insets: alignmentRectInsets)
     }
 
-    internal override func provideValue(forAttribute attribute: NSAccessibility.Attribute) -> Any? {
-        switch attribute {
-        case .children:
-            return [toggleSegment]
-        case .enabled:
-            return isEnabled
-        case .value:
-            return color.createAccessibilityValue()
-        default:
-            return nil
-        }
+    internal override var customAccessibilityChildren: [Any]? {
+        [toggleSegment]
     }
 
-    internal override func performAction(forType type: NSAccessibility.Action) -> Bool {
-        switch type {
-        case .press:
-            swatchSegment.performAction()
-            return true
-        default:
-            return false
-        }
+    internal override var customAccessibilityEnabled: Bool {
+        isEnabled
+    }
+
+    internal override var customAccessibilityValue: Any? {
+        color.createAccessibilityValue()
+    }
+
+    internal override var customAccessibilityPerformPress: () -> Bool {
+        swatchSegment.performAction
     }
 }
