@@ -5,7 +5,7 @@
 
 import Cocoa
 
-/// A view used to draw a portion of a color well.
+/// A view that draws a segmented portion of a color well.
 internal class ColorWellSegment: NSView {
     /// The segment's color well.
     weak var colorWell: ColorWell?
@@ -63,7 +63,7 @@ internal class ColorWellSegment: NSView {
         }
     }
 
-    /// The side of the color well that this segment is on.
+    /// The side of the color well that this segment is drawn in.
     var side: Side { .null }
 
     /// A Boolean value that indicates whether the color well is enabled.
@@ -78,6 +78,7 @@ internal class ColorWellSegment: NSView {
     }
 
     /// A closure that provides a value for the `fillColor` property.
+    ///
     /// Setting this value automatically redraws the segment.
     private var fillColorGetter: () -> NSColor {
         didSet {

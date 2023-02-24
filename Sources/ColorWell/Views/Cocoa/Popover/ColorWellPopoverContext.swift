@@ -3,6 +3,8 @@
 // ColorWell
 //
 
+import Cocoa
+
 /// A central context for the elements of a color well's popover.
 internal class ColorWellPopoverContext {
     private(set) weak var colorWell: ColorWell?
@@ -18,12 +20,22 @@ internal class ColorWellPopoverContext {
     private(set) lazy var maxItemsPerRow = max(4, Int(Double(swatchCount).squareRoot().rounded(.up)))
     private(set) lazy var rowCount = Int((Double(swatchCount) / Double(maxItemsPerRow)).rounded(.up))
 
-    private(set) lazy var swatches = [ColorSwatch](context: self)
+    private(set) lazy var swatches: [ColorSwatch] = {
+        guard let colorWell else {
+            return []
+        }
+        return colorWell.swatchColors.map { color in
+            ColorSwatch(color: color, context: self)
+        }
+    }()
 
+    /// Creates a context using the specified color well.
     init(colorWell: ColorWell) {
         self.colorWell = colorWell
     }
 
+    /// Removes the strong reference to this instance from this
+    /// instance's color well.
     func removeStrongReference() {
         guard colorWell?.popoverContext === self else {
             return

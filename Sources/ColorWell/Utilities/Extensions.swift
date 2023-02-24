@@ -28,20 +28,6 @@ extension Array where Element: Equatable {
     }
 }
 
-// MARK: - Array (Element == ColorSwatch)
-
-extension Array where Element == ColorSwatch {
-    internal init(context: ColorWellPopoverContext) {
-        guard let colorWell = context.colorWell else {
-            self = []
-            return
-        }
-        self = colorWell.swatchColors.map { color in
-            ColorSwatch(color: color, context: context)
-        }
-    }
-}
-
 // MARK: - CGPoint
 
 extension CGPoint {
@@ -140,7 +126,7 @@ extension NSApplication {
 // MARK: - NSColor
 
 extension NSColor {
-    /// The default fill color of a color well segment.
+    /// The default fill color for a color well segment.
     internal static var colorWellSegmentColor: NSColor {
         if NSApp.effectiveAppearanceIsDarkAppearance {
             return .selectedControlColor
@@ -149,7 +135,7 @@ extension NSColor {
         }
     }
 
-    /// The fill color of a highlighted color well segment.
+    /// The fill color for a highlighted color well segment.
     internal static var highlightedColorWellSegmentColor: NSColor {
         if NSApp.effectiveAppearanceIsDarkAppearance {
             return colorWellSegmentColor.blendedAndClamped(withFraction: 0.2, of: .highlightColor)
@@ -158,7 +144,7 @@ extension NSColor {
         }
     }
 
-    /// The fill color of a selected color well segment.
+    /// The fill color for a selected color well segment.
     internal static var selectedColorWellSegmentColor: NSColor {
         if NSApp.effectiveAppearanceIsDarkAppearance {
             return colorWellSegmentColor.withAlphaComponent(colorWellSegmentColor.alphaComponent + 0.25)
@@ -268,12 +254,6 @@ extension NSColor {
         )
     }
 
-    /// Creates a value containing a description of the color, for use with
-    /// accessibility features.
-    internal func createAccessibilityValue() -> String {
-        String(describing: ColorComponents(color: self))
-    }
-
     /// Returns a Boolean value that indicates whether this color resembles another
     /// color, checking in the given color space with the given tolerance.
     ///
@@ -350,6 +330,12 @@ extension NSColor {
         return colorSpaces.contains { colorSpace in
             resembles(other, using: colorSpace, tolerance: tolerance)
         }
+    }
+
+    /// Creates a value containing a description of the color
+    /// for use with voice-over and other accessibility features.
+    internal func createAccessibilityValue() -> String {
+        String(describing: ColorComponents(color: self))
     }
 }
 
@@ -507,7 +493,8 @@ extension NSKeyValueObservation {
 // MARK: - NSView
 
 extension NSView {
-    /// Returns the view's frame, converted to the coordinate system of its window.
+    /// Returns this view's frame, converted to the coordinate system
+    /// of its window.
     internal var frameConvertedToWindow: NSRect {
         superview?.convert(frame, to: nil) ?? frame
     }

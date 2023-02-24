@@ -14,15 +14,18 @@ internal class ColorWellLayoutView: NSGridView {
     /// A segment that, when pressed, opens the color well's color panel.
     let toggleSegment: ToggleSegment
 
+    /// The row that contains the layout view's segments.
     private var row: NSGridRow?
 
-    /// This layer helps the color well mimic the appearance of a native
-    /// macOS UI element by drawing a small bezel around the edge of the view.
+    /// A layer that enables the color well to mimic the appearance of a
+    /// native macOS UI element by drawing a small bezel around the edge
+    /// of the layout view.
     private var bezelLayer: CAGradientLayer?
 
+    /// The key-value observations retained by the layout view.
     private var observations = Set<NSKeyValueObservation>()
 
-    /// Creates a grid view with the given color well.
+    /// Creates a layout view with the given color well.
     init(colorWell: ColorWell) {
         swatchSegment = SwatchSegment(colorWell: colorWell)
         toggleSegment = ToggleSegment(colorWell: colorWell)
@@ -48,6 +51,7 @@ internal class ColorWellLayoutView: NSGridView {
 
 // MARK: Instance Methods
 extension ColorWellLayoutView {
+    /// Removes the given row from the layout view.
     func removeRow(_ row: NSGridRow) {
         for n in 0..<row.numberOfCells {
             row.cell(at: n).contentView?.removeFromSuperview()
@@ -55,6 +59,7 @@ extension ColorWellLayoutView {
         removeRow(at: index(of: row))
     }
 
+    /// Sets the layout view's row according to the given color well style.
     func setRow(for style: ColorWell.Style) {
         if let row {
             removeRow(row)

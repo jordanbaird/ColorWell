@@ -7,8 +7,10 @@ import Cocoa
 
 /// A view that contains a grid of selectable color swatches.
 internal class ColorWellPopoverContainerView: NSView {
+    /// The central context for the popover and its elements.
     weak var context: ColorWellPopoverContext?
 
+    /// Creates a container view using the specified central context.
     init(context: ColorWellPopoverContext) {
         self.context = context
 

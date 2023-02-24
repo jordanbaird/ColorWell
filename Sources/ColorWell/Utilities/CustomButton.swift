@@ -7,11 +7,12 @@ import Cocoa
 
 /// A button that takes a closure for its action.
 internal class CustomButton: NSButton {
-    private let customAction: IdentifiableAction<Void>
+    /// The button's stored action.
+    private let _action: () -> Void
 
     /// Creates a button with the given title and action.
     init(title: String, action: @escaping () -> Void) {
-        self.customAction = IdentifiableAction(body: action)
+        self._action = action
         super.init(frame: .zero)
         self.title = title
         self.target = self
@@ -23,8 +24,8 @@ internal class CustomButton: NSButton {
         fatalError("init(coder:) has not been implemented")
     }
 
-    @objc dynamic
-    private func performAction() {
-        customAction()
+    /// Executes the button's stored action.
+    @objc private func performAction() {
+        _action()
     }
 }

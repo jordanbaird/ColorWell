@@ -18,12 +18,11 @@ import SwiftUI
 /// for selecting new colors.
 @available(macOS 10.15, *)
 public struct ColorWellView<Label: View>: View {
-    private let content: AnyView
+    /// The type-erased layout view of the color well.
+    private let layoutView: AnyView
 
     /// The content view of the color well.
-    public var body: some View {
-        content
-    }
+    public var body: some View { layoutView }
 
     /// A base level initializer for other initializers to delegate to.
     ///
@@ -36,7 +35,7 @@ public struct ColorWellView<Label: View>: View {
     ) where C.CocoaType == NSColor,
             C.Converted == C
     {
-        content = LayoutView(
+        layoutView = LayoutView(
             Label.self,
             label: {
                 _label()
@@ -46,8 +45,7 @@ public struct ColorWellView<Label: View>: View {
                     .onColorChange(maybePerform: _action)
                     .fixedSize()
             }
-        )
-        .erased()
+        ).erased()
     }
 
     /// A base level initializer for other initializers to delegate to,
@@ -877,19 +875,29 @@ extension ColorWellView {
     ///
     /// ** For internal use only **
     private struct Representable: NSViewRepresentable {
+        /// The color used to create this view's underlying color well.
         let color: NSColor?
 
-        let showsAlphaIsEnabled: Bool
+        /// A Boolean value that indicates whether the this view should
+        /// update its underlying color well's `showsAlpha` property whenever
+        /// the view itself updates.
+        let shouldUpdateShowsAlpha: Bool
 
+        /// A binding to a Boolean value indicating whether the color panel
+        /// that belongs to this view's underlying color well shows alpha
+        /// values and an opacity slider.
         @Binding var showsAlpha: Bool
 
+        /// Creates a representable view with the given color, and an
+        /// optional binding that determines the value of the underlying
+        /// color well's `showsAlpha` property.
         init(color: NSColor?, showsAlpha: Binding<Bool>?) {
             self.color = color
             if let showsAlpha {
-                self.showsAlphaIsEnabled = true
+                self.shouldUpdateShowsAlpha = true
                 self._showsAlpha = showsAlpha
             } else {
-                self.showsAlphaIsEnabled = false
+                self.shouldUpdateShowsAlpha = false
                 self._showsAlpha = .constant(true)
             }
         }
@@ -906,7 +914,7 @@ extension ColorWellView {
             nsView.changeHandlers.appendUnique(contentsOf: changeHandlers(for: context))
             nsView.isEnabled = context.environment.isEnabled
 
-            if showsAlphaIsEnabled {
+            if shouldUpdateShowsAlpha {
                 nsView.showsAlpha = showsAlpha
             }
 
@@ -918,7 +926,8 @@ extension ColorWellView {
             }
         }
 
-        /// Returns the change handlers for the given context.
+        /// Returns the change handlers stored in the view's environment
+        /// for the given context.
         func changeHandlers(for context: Context) -> [IdentifiableAction<NSColor>] {
             // Reversed to reflect the true order in which they were added.
             context.environment.changeHandlers.reversed()
@@ -934,6 +943,7 @@ extension ColorWellView {
 /// ** For internal use only **
 @available(macOS 10.15, *)
 private struct NoLabel: View {
+    /// Accessing this property results in a fatal error.
     var body: Never { return fatalError() }
 }
 
@@ -949,12 +959,18 @@ private struct NoLabel: View {
 /// ** For internal use only **
 @available(macOS 10.15, *)
 private struct LayoutView<Label: View, LabelCandidate: View, Content: View>: View {
+    /// The type-erased content of the layout view.
     private let erasedContent: AnyView
 
-    var body: some View {
-        erasedContent
-    }
+    /// The layout view's content view.
+    var body: some View { erasedContent }
 
+    /// Creates a layout view that validates the given label candidate's
+    /// type to ensure that it meets the criteria to be included as part
+    /// of the constructed view.
+    ///
+    /// If the candidate fails validation, only the content view will be
+    /// included in the final constructed view.
     init(
         _: Label.Type,
         @ViewBuilder label: () -> LabelCandidate,
@@ -970,13 +986,13 @@ private struct LayoutView<Label: View, LabelCandidate: View, Content: View>: Vie
         erasedContent = HStack(alignment: .center) {
             label()
             content()
-        }
-        .erased()
+        }.erased()
     }
 }
 
 // MARK: - ChangeHandlersKey
 
+/// A key used to store a color well's change handlers in an environment.
 @available(macOS 10.15, *)
 private struct ChangeHandlersKey: EnvironmentKey {
     static let defaultValue = [IdentifiableAction<NSColor>]()
@@ -984,6 +1000,7 @@ private struct ChangeHandlersKey: EnvironmentKey {
 
 // MARK: - SwatchColorsKey
 
+/// A key used to store a color well's swatch colors in an environment.
 @available(macOS 11.0, *)
 private struct SwatchColorsKey: EnvironmentKey {
     static let defaultValue: [NSColor]? = nil
@@ -993,6 +1010,7 @@ private struct SwatchColorsKey: EnvironmentKey {
 
 @available(macOS 10.15, *)
 extension EnvironmentValues {
+    /// The change handlers to add to the color wells in this environment.
     internal var changeHandlers: [IdentifiableAction<NSColor>] {
         get { self[ChangeHandlersKey.self] }
         set { self[ChangeHandlersKey.self] = newValue }
@@ -1003,6 +1021,7 @@ extension EnvironmentValues {
 
 @available(macOS 11.0, *)
 extension EnvironmentValues {
+    /// The swatch colors to apply to the color wells in this environment.
     internal var swatchColors: [NSColor]? {
         get { self[SwatchColorsKey.self] }
         set { self[SwatchColorsKey.self] = newValue }
@@ -1011,12 +1030,22 @@ extension EnvironmentValues {
 
 // MARK: - OnColorChange
 
+/// A view modifier that performs an action when a color well
+/// view's color changes.
+///
+/// This modifier is designed so that any type that conforms
+/// to the `CustomCocoaConvertible` protocol and converts to
+/// an `NSColor` can be used to create its change handler.
 @available(macOS 10.15, *)
 private struct OnColorChange<C: CustomCocoaConvertible>: ViewModifier
     where C.CocoaType == NSColor,
           C.Converted == C
 {
+    /// A unique identifier used to create this modifier's change handler.
     let id = UUID()
+
+    /// A closure used to create this modifier's change handler. It takes
+    /// a generic `CustomCocoaConvertible` type that converts to an `NSColor`.
     let action: ((C) -> Void)?
 
     func body(content: Content) -> some View {

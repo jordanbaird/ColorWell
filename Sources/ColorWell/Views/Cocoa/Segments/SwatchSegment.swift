@@ -6,10 +6,15 @@
 import Cocoa
 
 internal class SwatchSegment: ColorWellSegment {
+    /// The cached drawing path of the segment's border.
     private var cachedBorderPath = CachedPath<NSBezierPath>()
 
+    /// A Boolean value that indicates whether the clicking
+    /// the segment can show the popover.
     private var canShowPopover = false
 
+    /// A Boolean value that, if true, overrides the current
+    /// value of `canShowPopover`.
     private var shouldOverrideShowPopover: Bool {
         guard let colorWell else {
             return false
@@ -22,6 +27,7 @@ internal class SwatchSegment: ColorWellSegment {
         }
     }
 
+    /// The color of the segment's border.
     private var borderColor: NSColor {
         let displayColor = displayColor // Avoid repeated access to reduce computation overhead
         let normalizedBrightness = min(displayColor.averageBrightness, displayColor.alphaComponent)
@@ -47,6 +53,8 @@ internal class SwatchSegment: ColorWellSegment {
 
 // MARK: Instance Methods
 extension SwatchSegment {
+    /// Invoked when the segment is about to show its popover.
+    /// This serves as a final validation.
     private func prepareForPopover() {
         guard let colorWell else {
             canShowPopover = false
@@ -60,6 +68,8 @@ extension SwatchSegment {
         canShowPopover = colorWell.popoverContext == nil
     }
 
+    /// Creates the popover, showing it at the bottom edge of
+    /// the segment's frame.
     private func makeAndShowPopover() {
         guard let colorWell else {
             return
@@ -71,6 +81,7 @@ extension SwatchSegment {
         popoverContext.popover.show(relativeTo: frame, of: self, preferredEdge: .minY)
     }
 
+    /// Draws the segment's swatch in the given rectangle.
     private func drawSwatch(in dirtyRect: NSRect) {
         guard let colorWell else {
             return
@@ -111,6 +122,7 @@ extension SwatchSegment {
         }
     }
 
+    /// Draws the segment's border in the given rectangle.
     private func drawBorder(in dirtyRect: NSRect) {
         NSGraphicsContext.withCachedGraphicsState {
             let lineWidth = ColorWell.lineWidth
@@ -127,6 +139,10 @@ extension SwatchSegment {
         }
     }
 
+    /// Draws a downward-facing caret inside the segment's layer.
+    ///
+    /// This method is invoked when the mouse pointer is inside
+    /// the bounds of the segment.
     private func drawCaret(in dirtyRect: NSRect) {
         guard !shouldOverrideShowPopover else {
             return

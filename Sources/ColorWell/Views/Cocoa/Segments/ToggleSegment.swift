@@ -6,6 +6,11 @@
 import Cocoa
 
 internal class ToggleSegment: ColorWellSegment {
+    /// The default width for a toggle segment.
+    static let defaultWidth: CGFloat = 20
+
+    /// A layer that contains an image indicating that the
+    /// segment toggles the color panel.
     private var imageLayer: CALayer?
 
     override var side: Side { .right }
@@ -15,14 +20,14 @@ internal class ToggleSegment: ColorWellSegment {
         // Constraining this segment's width will force
         // the other segment to fill the remaining space.
         translatesAutoresizingMaskIntoConstraints = false
-        widthAnchor.constraint(equalToConstant: 20).isActive = true
+        widthAnchor.constraint(equalToConstant: Self.defaultWidth).isActive = true
     }
 }
 
 // MARK: Instance Methods
 extension ToggleSegment {
     /// Adds a layer that contains an image indicating that the
-    /// segment opens the color panel.
+    /// segment toggles the color panel.
     private func setImageLayer(clip: Bool = false) {
         imageLayer?.removeFromSuperlayer()
         imageLayer = nil

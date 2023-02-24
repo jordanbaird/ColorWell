@@ -586,7 +586,7 @@ extension ColorWell {
             result = Self.defaultFrame.size
         case .swatches, .colorPanel:
             result = NSSize(
-                width: Self.defaultFrame.width - 20,
+                width: Self.defaultFrame.width - ToggleSegment.defaultWidth,
                 height: Self.defaultFrame.height
             )
         }

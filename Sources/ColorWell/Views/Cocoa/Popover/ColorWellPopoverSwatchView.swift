@@ -9,6 +9,7 @@ import Cocoa
 
 /// A view that provides the layout for a popover's color swatches.
 internal class ColorWellPopoverSwatchView: NSGridView {
+    /// The central context for the popover and its elements.
     weak var context: ColorWellPopoverContext?
 
     /// The swatch that is currently selected, if any.
@@ -16,8 +17,9 @@ internal class ColorWellPopoverSwatchView: NSGridView {
         context?.swatches.first { $0.isSelected }
     }
 
-    /// Creates a swatch view with the specified context, using the `swatchColors`
-    /// property of the context's color well to construct a grid of swatches.
+    /// Creates a swatch view with the specified context, using
+    /// the `swatchColors` property of the context's color well
+    /// to construct a grid of swatches.
     init(context: ColorWellPopoverContext) {
         self.context = context
 
@@ -99,14 +101,19 @@ extension ColorWellPopoverSwatchView {
 /// When a swatch is clicked, the color well's color value is set
 /// to the color value of the swatch.
 internal class ColorSwatch: NSView {
+    /// The central context for the popover and its elements.
     weak var context: ColorWellPopoverContext?
 
+    /// The swatch's color value.
     let color: NSColor
 
+    /// A layer that draws a bezel around the swatch.
     private var bezelLayer: CAShapeLayer?
 
+    /// The standard width of a swatch's border.
     private let borderWidth: CGFloat = 2
 
+    /// The standard corner radius for a swatch.
     private let cornerRadius: CGFloat = 1
 
     /// A Boolean value that indicates whether the swatch is selected.
