@@ -48,10 +48,9 @@ public class ColorWell: _ColorWellBaseView {
         NSColor(hexString: string)
     }
 
-    // MARK: Private Properties
+    private static let layoutViewStorage = Storage<ColorWell, ColorWellLayoutView>()
 
-    /// A view that displays the color well's segments, side by side.
-    private var layoutView: ColorWellLayoutView!
+    // MARK: Private Properties
 
     /// The observations associated with the color well.
     private var observations = [ObjectIdentifier: Set<NSKeyValueObservation>]()
@@ -130,6 +129,14 @@ public class ColorWell: _ColorWellBaseView {
                 synchronizeColorPanel()
             }
         }
+    }
+
+    /// A view that manages the layout of the color well's segments.
+    private var layoutView: ColorWellLayoutView {
+        Self.layoutViewStorage.value(
+            forObject: self,
+            default: ColorWellLayoutView(colorWell: self)
+        )
     }
 
     // MARK: Internal Properties
@@ -374,8 +381,6 @@ public class ColorWell: _ColorWellBaseView {
 extension ColorWell {
     /// Shared code to execute on a color well's initialization.
     private func sharedInit() {
-        layoutView = ColorWellLayoutView(colorWell: self)
-
         addSubview(layoutView)
 
         layoutView.translatesAutoresizingMaskIntoConstraints = false

@@ -28,6 +28,19 @@ internal class Storage<Object: AnyObject, Value> {
         objc_getAssociatedObject(object, key) as? Value
     }
 
+    /// Accesses the associated value for the specified object,
+    /// storing and returning the specified default value if no
+    /// value is currently stored.
+    func value(forObject object: Object, default defaultValue: @autoclosure () -> Value) -> Value {
+        if let value = value(forObject: object) {
+            return value
+        } else {
+            let value = defaultValue()
+            set(value, forObject: object)
+            return value
+        }
+    }
+
     /// Assigns an associated value to the specified object.
     func set(_ value: Value?, forObject object: Object) {
         objc_setAssociatedObject(object, key, value, policy)
