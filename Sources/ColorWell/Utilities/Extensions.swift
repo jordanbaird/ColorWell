@@ -479,17 +479,6 @@ extension NSImage {
     }
 }
 
-// MARK: - NSKeyValueObservation
-
-extension NSKeyValueObservation {
-    /// Stores this key-value observation in the specified set.
-    ///
-    /// - Parameter set: The set in which to store this observation.
-    internal func store(in set: inout Set<NSKeyValueObservation>) {
-        set.insert(self)
-    }
-}
-
 // MARK: - NSView
 
 extension NSView {
@@ -497,6 +486,28 @@ extension NSView {
     /// of its window.
     internal var frameConvertedToWindow: NSRect {
         superview?.convert(frame, to: nil) ?? frame
+    }
+}
+
+// MARK: - Set (Element == NSKeyValueObservation)
+
+extension Set where Element == NSKeyValueObservation {
+    /// Creates an observation for the given object, keypath,
+    /// options, and change handler, and stores it in the set.
+    /// - Parameters:
+    ///   - object: The object to observe.
+    ///   - keyPath: A keypath to the observed property.
+    ///   - options: The options describing the behavior of the observation.
+    ///   - changeHandler: A change handler that will be performed when the
+    ///     value at `object.<(keyPath)>` changes.
+    internal mutating func observe<Object: NSObject, Value>(
+        _ object: Object,
+        keyPath: KeyPath<Object, Value>,
+        options: NSKeyValueObservingOptions = [],
+        changeHandler: @escaping (Object, NSKeyValueObservedChange<Value>) -> Void
+    ) {
+        let observation = object.observe(keyPath, options: options, changeHandler: changeHandler)
+        insert(observation)
     }
 }
 

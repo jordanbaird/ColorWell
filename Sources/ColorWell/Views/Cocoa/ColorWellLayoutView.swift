@@ -37,10 +37,13 @@ internal class ColorWellLayoutView: NSGridView {
         xPlacement = .fill
         yPlacement = .fill
 
-        colorWell.observe(\.style, options: [.initial, .new]) { [weak self] colorWell, _ in
+        observations.observe(
+            colorWell,
+            keyPath: \.style,
+            options: .initial
+        ) { [weak self] colorWell, _ in
             self?.setRow(for: colorWell.style)
         }
-        .store(in: &observations)
     }
 
     @available(*, unavailable)

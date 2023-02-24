@@ -385,16 +385,20 @@ extension ColorWell {
         layoutView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
 
         if #available(macOS 10.14, *) {
-            NSApp.observe(\.effectiveAppearance) { [weak self] _, _ in
+            observations[for: NSApplication.self].observe(
+                NSApp,
+                keyPath: \.effectiveAppearance
+            ) { [weak self] _, _ in
                 self?.needsDisplay = true
             }
-            .store(in: &observations[for: NSApplication.self])
         }
 
-        colorPanel.observe(\.activeColorWells, options: .new) { [weak self] _, _ in
+        observations[for: Set<ColorWell>.self].observe(
+            colorPanel,
+            keyPath: \.activeColorWells
+        ) { [weak self] _, _ in
             self?.updateActiveState()
         }
-        .store(in: &observations[for: Set<ColorWell>.self])
 
         canSynchronizeColorPanel = true
         canExecuteChangeHandlers = true
@@ -428,7 +432,11 @@ extension ColorWell {
     private func setUpColorPanelObservations() {
         removeColorPanelObservations()
 
-        colorPanel.observe(\.color, options: .new) { colorPanel, change in
+        observations[for: NSColorPanel.self].observe(
+            colorPanel,
+            keyPath: \.color,
+            options: .new
+        ) { colorPanel, change in
             guard let newValue = change.newValue else {
                 return
             }
@@ -437,9 +445,12 @@ extension ColorWell {
                 colorWell.color = newValue
             }
         }
-        .store(in: &observations[for: NSColorPanel.self])
 
-        colorPanel.observe(\.isVisible, options: .new) { [weak self] _, change in
+        observations[for: NSColorPanel.self].observe(
+            colorPanel,
+            keyPath: \.isVisible,
+            options: .new
+        ) { [weak self] _, change in
             guard
                 let self,
                 let newValue = change.newValue
@@ -450,7 +461,6 @@ extension ColorWell {
                 self.deactivate()
             }
         }
-        .store(in: &observations[for: NSColorPanel.self])
     }
 }
 
