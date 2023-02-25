@@ -291,8 +291,8 @@ extension NSColor {
         first.getComponents(&components1)
         second.getComponents(&components2)
 
-        return (0..<components1.count).allSatisfy {
-            abs(components1[$0] - components2[$0]) <= tolerance
+        return (0..<components1.count).allSatisfy { index in
+            abs(components1[index] - components2[index]) <= tolerance
         }
     }
 
