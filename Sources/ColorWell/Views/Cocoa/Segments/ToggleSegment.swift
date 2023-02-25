@@ -5,13 +5,27 @@
 
 import Cocoa
 
+/// A segment that, when pressed, toggles the color panel.
 internal class ToggleSegment: ColorWellSegment {
+    /// Shared storage for the `cachedImage` property.
+    private static let cachedImageStorage = Storage<ToggleSegment, NSImage>()
+
     /// The default width for a toggle segment.
     static let defaultWidth: CGFloat = 20
 
     /// A layer that contains an image indicating that the
     /// segment toggles the color panel.
     private var imageLayer: CALayer?
+
+    /// An image that indicates that the segment toggles the
+    /// color panel, cached for efficient retrieval.
+    private var cachedImage: NSImage {
+        // Force unwrap is okay here, as the image ships with Cocoa.
+        Self.cachedImageStorage.value(
+            forObject: self,
+            default: NSImage(named: NSImage.touchBarColorPickerFillName)!.clippedToSquare()
+        )
+    }
 
     override var side: Side { .right }
 
@@ -28,7 +42,7 @@ internal class ToggleSegment: ColorWellSegment {
 extension ToggleSegment {
     /// Adds a layer that contains an image indicating that the
     /// segment toggles the color panel.
-    private func setImageLayer(clip: Bool = false) {
+    private func updateImageLayer(_ dirtyRect: NSRect) {
         imageLayer?.removeFromSuperlayer()
         imageLayer = nil
 
@@ -36,16 +50,7 @@ extension ToggleSegment {
             return
         }
 
-        // Force unwrap is okay here, as the image ships with Cocoa.
-        var image = NSImage(named: NSImage.touchBarColorPickerFillName)!
-
-        if state == .highlight {
-            image = NSApp.effectiveAppearanceIsDarkAppearance
-            ? image.tinted(to: .white, amount: 0.33)
-            : image.tinted(to: .black, amount: 0.2)
-        }
-
-        let dimension = min(layer.bounds.width, layer.bounds.height) - 5.5
+        let dimension = min(dirtyRect.width, dirtyRect.height) - 5.5
         let imageLayer = CALayer()
 
         imageLayer.frame = NSRect(
@@ -53,15 +58,24 @@ extension ToggleSegment {
             y: 0,
             width: dimension,
             height: dimension
-        ).centered(in: layer.bounds)
+        ).centered(in: dirtyRect)
 
-        imageLayer.contents = clip ? image.clippedToCircle() : image
+        var image = cachedImage
+
+        if state == .highlight {
+            image = NSApp.effectiveAppearanceIsDarkAppearance
+            ? image.tinted(to: .white, amount: 0.33)
+            : image.tinted(to: .black, amount: 0.2)
+        }
+
+        imageLayer.contents = image
 
         if !colorWellIsEnabled {
             imageLayer.opacity = 0.5
         }
 
         layer.addSublayer(imageLayer)
+
         self.imageLayer = imageLayer
     }
 }
@@ -70,7 +84,7 @@ extension ToggleSegment {
 extension ToggleSegment {
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
-        setImageLayer(clip: true)
+        updateImageLayer(dirtyRect)
     }
 
     override func performAction() -> Bool {

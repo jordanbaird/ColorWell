@@ -431,23 +431,31 @@ extension NSImage {
         }
     }
 
-    /// Returns a new image by clipping the current image to a circular shape
-    /// and insetting its size by the given amount.
-    internal func clippedToCircle(insetBy amount: CGFloat = 0) -> NSImage {
+    /// Returns a new image created by clipping the current image to
+    /// the given rectangle.
+    internal func clipped(to rect: NSRect) -> NSImage {
+        NSImage(size: rect.size, flipped: false) { bounds in
+            NSGraphicsContext.withCachedGraphicsState {
+                let destFrame = NSRect(origin: .zero, size: bounds.size)
+                destFrame.clip()
+                self.draw(in: destFrame, from: rect, operation: .copy, fraction: 1)
+                return true
+            }
+        }
+    }
+
+    /// Returns a new image by clipping the current image so that its
+    /// longest side is equal in length to its shortest side.
+    internal func clippedToSquare() -> NSImage {
         let originalFrame = NSRect(origin: .zero, size: size)
-        let insetDimension = min(size.width, size.height) - amount
+        let insetDimension = min(size.width, size.height)
 
         let insetFrame = NSRect(
             origin: .zero,
-            size: .init(width: insetDimension, height: insetDimension)
+            size: NSSize(width: insetDimension, height: insetDimension)
         ).centered(in: originalFrame)
 
-        return NSImage(size: insetFrame.size, flipped: false) { bounds in
-            let destFrame = NSRect(origin: .zero, size: bounds.size)
-            NSBezierPath(ovalIn: destFrame).setClip()
-            self.draw(in: destFrame, from: insetFrame, operation: .copy, fraction: 1)
-            return true
-        }
+        return clipped(to: insetFrame)
     }
 
     /// Returns a new image that has been tinted to the given color.
@@ -470,7 +478,7 @@ extension NSImage {
             self.draw(in: bounds)
             tintImage.draw(
                 in: bounds,
-                from: .init(origin: .zero, size: tintImage.size),
+                from: .zero,
                 operation: .sourceAtop,
                 fraction: amount
             )
