@@ -184,8 +184,8 @@ extension ColorWellSegment {
         }
     }
 
-    /// Creates and adds a shadow layer for the given rectangle.
-    func addShadowLayer(for rect: NSRect) {
+    /// Updates the shadow layer for the given rectangle.
+    func updateShadowLayer(_ dirtyRect: NSRect) {
         shadowLayer?.removeFromSuperlayer()
         shadowLayer = nil
 
@@ -198,7 +198,7 @@ extension ColorWellSegment {
         let shadowOffset = NSSize(width: 0, height: 0)
         let shadowRadius = ColorWell.lineWidth * 0.75
 
-        updateCachedPath(for: rect, cached: &cachedShadowPath)
+        updateCachedPath(for: dirtyRect, cached: &cachedShadowPath)
 
         shadowLayer.shadowOffset = shadowOffset
         shadowLayer.shadowOpacity = 0.25
@@ -208,7 +208,7 @@ extension ColorWellSegment {
 
         let mutablePath = CGMutablePath()
         mutablePath.addRect(
-            rect.insetBy(
+            dirtyRect.insetBy(
                 dx: -(shadowRadius * 2) + shadowOffset.width,
                 dy: -(shadowRadius * 2) + shadowOffset.height
             )
@@ -235,7 +235,7 @@ extension ColorWellSegment {
         updateCachedPath(for: dirtyRect, cached: &cachedDefaultPath)
         displayColor.setFill()
         cachedDefaultPath.path.fill()
-        addShadowLayer(for: dirtyRect)
+        updateShadowLayer(dirtyRect)
     }
 
     override func mouseEntered(with event: NSEvent) {

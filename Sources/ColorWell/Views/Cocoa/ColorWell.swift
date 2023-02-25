@@ -62,11 +62,11 @@ public class ColorWell: _ColorWellBaseView {
 
     /// A Boolean value that indicates whether the color well can
     /// currently perform synchronization with its color panel.
-    private var canSynchronizeColorPanel = false
+    private var canSynchronizeColorPanel = true
 
     /// A Boolean value that indicates whether the color well can
     /// currently execute its change handlers.
-    private var canExecuteChangeHandlers = false
+    private var canExecuteChangeHandlers = true
 
     /// A Boolean value that indicates whether the `showsAlpha` value
     /// should be synchronized the next time `synchronizeColorPanel()`
@@ -409,9 +409,6 @@ extension ColorWell {
         ) { [weak self] _, _ in
             self?.updateActiveState()
         }
-
-        canSynchronizeColorPanel = true
-        canExecuteChangeHandlers = true
     }
 
     /// Iterates through the color well's stored change handlers,

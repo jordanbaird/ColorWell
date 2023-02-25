@@ -5,6 +5,8 @@
 
 import Cocoa
 
+/// A segment that displays a color swatch with the color well's
+/// current color selection.
 internal class SwatchSegment: ColorWellSegment {
     /// The cached drawing path of the segment's border.
     private var cachedBorderPath = CachedPath<NSBezierPath>()
@@ -82,7 +84,7 @@ extension SwatchSegment {
     }
 
     /// Draws the segment's swatch in the given rectangle.
-    private func drawSwatch(in dirtyRect: NSRect) {
+    private func drawSwatch(_ dirtyRect: NSRect) {
         guard let colorWell else {
             return
         }
@@ -123,7 +125,7 @@ extension SwatchSegment {
     }
 
     /// Draws the segment's border in the given rectangle.
-    private func drawBorder(in dirtyRect: NSRect) {
+    private func drawBorder(_ dirtyRect: NSRect) {
         NSGraphicsContext.withCachedGraphicsState {
             let lineWidth = ColorWell.lineWidth
 
@@ -143,7 +145,7 @@ extension SwatchSegment {
     ///
     /// This method is invoked when the mouse pointer is inside
     /// the bounds of the segment.
-    private func drawCaret(in dirtyRect: NSRect) {
+    private func drawCaret(_ dirtyRect: NSRect) {
         guard !shouldOverrideShowPopover else {
             return
         }
@@ -211,15 +213,14 @@ extension SwatchSegment {
             return
         }
 
-        drawSwatch(in: dirtyRect)
+        drawSwatch(dirtyRect)
 
         if state == .hover {
-            drawCaret(in: dirtyRect)
+            drawCaret(dirtyRect)
         }
 
-        drawBorder(in: dirtyRect)
-
-        addShadowLayer(for: dirtyRect)
+        drawBorder(dirtyRect)
+        updateShadowLayer(dirtyRect)
     }
 
     override func drawHoverIndicator() {

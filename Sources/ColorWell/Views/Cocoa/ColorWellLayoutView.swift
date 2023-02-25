@@ -11,7 +11,7 @@ internal class ColorWellLayoutView: NSGridView {
     /// current color selection.
     let swatchSegment: SwatchSegment
 
-    /// A segment that, when pressed, opens the color well's color panel.
+    /// A segment that, when pressed, toggles the color panel.
     let toggleSegment: ToggleSegment
 
     /// The row that contains the layout view's segments.
@@ -77,14 +77,12 @@ extension ColorWellLayoutView {
             row = addRow(with: [swatchSegment])
         }
     }
-}
 
-// MARK: Overrides
-extension ColorWellLayoutView {
-    override func draw(_ dirtyRect: NSRect) {
-        super.draw(dirtyRect)
 
+    /// Updates the bezel layer for the given rectangle.
+    func updateBezelLayer(_ dirtyRect: NSRect) {
         bezelLayer?.removeFromSuperlayer()
+        bezelLayer = nil
 
         guard let layer else {
             return
@@ -117,5 +115,13 @@ extension ColorWellLayoutView {
         bezelLayer.zPosition += 1
 
         self.bezelLayer = bezelLayer
+    }
+}
+
+// MARK: Overrides
+extension ColorWellLayoutView {
+    override func draw(_ dirtyRect: NSRect) {
+        super.draw(dirtyRect)
+        updateBezelLayer(dirtyRect)
     }
 }
