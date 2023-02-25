@@ -55,9 +55,8 @@ internal class SwatchSegment: ColorWellSegment {
 
 // MARK: Instance Methods
 extension SwatchSegment {
-    /// Invoked when the segment is about to show its popover.
-    /// This serves as a final validation.
-    private func prepareForPopover() {
+    /// Invoked when the segment is about to perform its action.
+    private func prepareForAction() {
         guard let colorWell else {
             canShowPopover = false
             return
@@ -248,7 +247,7 @@ extension SwatchSegment {
     }
 
     override func performAction() -> Bool {
-        prepareForPopover()
+        prepareForAction()
         if shouldOverrideShowPopover {
             guard let colorWell else {
                 return false

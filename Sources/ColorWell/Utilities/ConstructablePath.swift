@@ -33,8 +33,8 @@ internal enum Corner {
 extension Corner {
     /// The corner at the opposite end of the rectangle from this corner.
     ///
-    /// For example, if this corner is `topLeft`, its `opposite` corner
-    /// will be `bottomRight`.
+    /// For example, if this corner is `Corner.topLeft`, its `opposite`
+    /// corner will be `Corner.bottomRight`.
     var opposite: Self {
         switch self {
         case .topLeft:
@@ -98,8 +98,8 @@ extension Side {
 extension Side {
     /// The side on the opposite end of the rectangle.
     ///
-    /// For example, if this side is `top`, its `opposite`
-    /// side will be `bottom`.
+    /// For example, if this side is `Side.top`, its `opposite`
+    /// side will be `Side.bottom`.
     var opposite: Self {
         Self(corners.map { $0.opposite })
     }
@@ -130,6 +130,7 @@ internal enum ConstructablePathComponent {
     /// A component that nests other components.
     ///
     /// This case can be created using array literal syntax.
+    ///
     /// ```swift
     /// let c1 = ConstructablePathComponent.compound([
     ///     .move(to: point1),
@@ -250,9 +251,9 @@ extension ConstructablePath {
     ///
     /// - Parameters:
     ///   - rect: The rectangle to draw the path in.
-    ///   - side: The side of `rect` that the path should be drawn in.
-    ///     > Note: This parameter implies which corners should be rounded
-    ///       and which corners should be drawn with sharp right angles.
+    ///   - side: The side of `rect` that the path should be drawn in. This parameter
+    ///     provides information about which corners should be rounded and which corners
+    ///     should be drawn with sharp right angles.
     internal static func colorWellSegment(rect: CGRect, side: Side?) -> Constructed {
         colorWellPath(rect: rect, squaredCorners: side?.opposite.corners ?? [])
     }

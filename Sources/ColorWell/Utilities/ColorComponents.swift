@@ -57,7 +57,7 @@ extension ColorComponents {
             return [name]
         case .unknown(let color):
             guard color.type == .componentBased else {
-                return ["\(color)"]
+                return [String(describing: color)]
             }
 
             var components = [CGFloat](repeating: 0, count: color.numberOfComponents)

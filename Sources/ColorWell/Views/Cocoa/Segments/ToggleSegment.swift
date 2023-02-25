@@ -20,19 +20,19 @@ internal class ToggleSegment: ColorWellSegment {
     /// An image that indicates that the segment toggles the
     /// color panel, cached for efficient retrieval.
     private var cachedImage: NSImage {
-        // Force unwrap is okay here, as the image ships with Cocoa.
-        Self.cachedImageStorage.value(
-            forObject: self,
-            default: NSImage(named: NSImage.touchBarColorPickerFillName)!.clippedToSquare()
-        )
+        Self.cachedImageStorage.value(forObject: self, default: {
+            // Force unwrap is okay here, as the image is an AppKit builtin.
+            let image = NSImage(named: NSImage.touchBarColorPickerFillName)!
+            return image.clippedToSquare()
+        }())
     }
 
     override var side: Side { .right }
 
     override init(colorWell: ColorWell) {
         super.init(colorWell: colorWell)
-        // Constraining this segment's width will force
-        // the other segment to fill the remaining space.
+        // Constraining this segment's width will force the other segment to
+        // fill the remaining space.
         translatesAutoresizingMaskIntoConstraints = false
         widthAnchor.constraint(equalToConstant: Self.defaultWidth).isActive = true
     }
@@ -64,8 +64,8 @@ extension ToggleSegment {
 
         if state == .highlight {
             image = NSApp.effectiveAppearanceIsDarkAppearance
-            ? image.tinted(to: .white, amount: 0.33)
-            : image.tinted(to: .black, amount: 0.2)
+                ? image.tinted(to: .white, amount: 0.33)
+                : image.tinted(to: .black, amount: 0.2)
         }
 
         imageLayer.contents = image

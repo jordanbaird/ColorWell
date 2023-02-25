@@ -502,6 +502,7 @@ extension NSView {
 extension Set where Element == NSKeyValueObservation {
     /// Creates an observation for the given object, keypath,
     /// options, and change handler, and stores it in the set.
+    ///
     /// - Parameters:
     ///   - object: The object to observe.
     ///   - keyPath: A keypath to the observed property.
