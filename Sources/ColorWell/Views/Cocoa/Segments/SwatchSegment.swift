@@ -268,12 +268,6 @@ extension SwatchSegment {
         return false
     }
 
-    override func hitTest(_ point: NSPoint) -> NSView? {
-        // Ignore any subviews the segment may contain
-        // (i.e. the caret view).
-        frame.contains(point) ? self : nil
-    }
-
     override func mouseDown(with event: NSEvent) {
         super.mouseDown(with: event)
         guard let colorWell else {
