@@ -32,14 +32,12 @@ public struct ColorWellView<Label: View>: View {
     /// A base level initializer for other initializers to delegate to.
     ///
     /// ** For internal use only **
-    private init<L: View, C: CustomCocoaConvertible>(
+    private init<L: View, C: CustomNSColorConvertible>(
         _color: NSColor? = nil,
         _label: () -> L,
         _action: ((C) -> Void)? = Optional<(Color) -> Void>.none,
         _showsAlpha: Binding<Bool>? = nil
-    ) where C.CocoaType == NSColor,
-            C.Converted == C
-    {
+    ) where C.ConvertedType == C {
         layoutView = LayoutView(
             Label.self,
             label: {
@@ -57,14 +55,12 @@ public struct ColorWellView<Label: View>: View {
     /// whose `_label` parameter is an `@autoclosure`.
     ///
     /// ** For internal use only **
-    private init<L: View, C: CustomCocoaConvertible>(
+    private init<L: View, C: CustomNSColorConvertible>(
         _color: NSColor? = nil,
         _label: @autoclosure () -> L,
         _action: ((C) -> Void)? = Optional<(Color) -> Void>.none,
         _showsAlpha: Binding<Bool>? = nil
-    ) where C.CocoaType == NSColor,
-            C.Converted == C
-    {
+    ) where C.ConvertedType == C {
         self.init(
             _color: _color,
             _label: _label,
@@ -292,7 +288,7 @@ extension ColorWellView {
 
 // MARK: ColorWellView (Label == Never)
 @available(macOS 10.15, *)
-extension ColorWellView<Never> {
+extension ColorWellView where Label == Never {
     /// Creates a color well with an initial color value.
     ///
     /// - Parameter color: The initial value of the color well's color.
@@ -442,7 +438,7 @@ extension ColorWellView<Never> {
 
 // MARK: ColorWellView (Label == Text)
 @available(macOS 10.15, *)
-extension ColorWellView<Text> {
+extension ColorWellView where Label == Text {
 
     // MARK: Generate Label From StringProtocol
 
@@ -1022,7 +1018,7 @@ private struct SwatchColorsKey: EnvironmentKey {
     static let defaultValue: [NSColor]? = nil
 }
 
-// MARK: - EnvironmentValues Change Handlers
+// MARK: - EnvironmentValues
 
 @available(macOS 10.15, *)
 extension EnvironmentValues {
@@ -1031,13 +1027,9 @@ extension EnvironmentValues {
         get { self[ChangeHandlersKey.self] }
         set { self[ChangeHandlersKey.self] = newValue }
     }
-}
 
-// MARK: - EnvironmentValues Swatch Colors
-
-@available(macOS 11.0, *)
-extension EnvironmentValues {
     /// The swatch colors to apply to the color wells in this environment.
+    @available(macOS 11.0, *)
     internal var swatchColors: [NSColor]? {
         get { self[SwatchColorsKey.self] }
         set { self[SwatchColorsKey.self] = newValue }
@@ -1049,28 +1041,27 @@ extension EnvironmentValues {
 /// A view modifier that performs an action when a color well's
 /// color changes.
 ///
-/// This modifier is designed so that any type that conforms
-/// to the `CustomCocoaConvertible` protocol and converts to
-/// an `NSColor` can be used to create its change handler.
+/// This modifier is designed so that any type that conforms to
+/// the `CustomNSColorConvertible` protocol can be used to create
+/// its change handler.
 @available(macOS 10.15, *)
-private struct OnColorChange<C: CustomCocoaConvertible>: ViewModifier
-    where C.CocoaType == NSColor,
-          C.Converted == C
-{
-    /// A unique identifier used to create this modifier's change handler.
-    let id = UUID()
+private struct OnColorChange<C: CustomNSColorConvertible>: ViewModifier where C.ConvertedType == C {
+    /// The modifier's change handler.
+    let changeHandler: IdentifiableAction<NSColor>?
 
-    /// A closure used to create this modifier's change handler. It takes
-    /// a generic `CustomCocoaConvertible` type that converts to an `NSColor`.
-    let action: ((C) -> Void)?
+    /// Creates a modifier with the given change handler.
+    init(changeHandler: IdentifiableAction<NSColor>?) {
+        self.changeHandler = changeHandler
+    }
 
+    /// Creates a modifier using the given id and action.
+    init(id: @autoclosure () -> UUID = UUID(), action: ((C) -> Void)?) {
+        self.init(changeHandler: IdentifiableAction(id: id(), body: action))
+    }
+
+    /// Returns the modified view.
     func body(content: Content) -> some View {
         content.transformEnvironment(\.changeHandlers) { changeHandlers in
-            let changeHandler = action.map { action in
-                IdentifiableAction(id: id) { color in
-                    action(.converted(from: color))
-                }
-            }
             if let changeHandler {
                 changeHandlers.appendUnique(changeHandler)
             }
@@ -1078,17 +1069,14 @@ private struct OnColorChange<C: CustomCocoaConvertible>: ViewModifier
     }
 }
 
-// MARK: - View On Color Change
+// MARK: - View Extension
 
 @available(macOS 10.15, *)
 extension View {
     /// Adds a generic action to perform when a color well's color changes.
     ///
     /// ** For internal use only **
-    fileprivate func onColorChange<C: CustomCocoaConvertible>(maybePerform action: ((C) -> Void)?) -> some View
-        where C.CocoaType == NSColor,
-              C.Converted == C
-    {
+    fileprivate func onColorChange<C: CustomNSColorConvertible>(maybePerform action: ((C) -> Void)?) -> some View where C.ConvertedType == C {
         modifier(OnColorChange(action: action))
     }
 
@@ -1099,12 +1087,7 @@ extension View {
     public func onColorChange(perform action: @escaping (Color) -> Void) -> some View {
         onColorChange(maybePerform: action)
     }
-}
 
-// MARK: - View Swatch Colors
-
-@available(macOS 11.0, *)
-extension View {
     /// Applies the given swatch colors to the view's color wells.
     ///
     /// Swatches are user-selectable colors that are shown when
@@ -1116,6 +1099,7 @@ extension View {
     /// will update its swatches to the colors provided here.
     ///
     /// - Parameter colors: The swatch colors to use.
+    @available(macOS 11.0, *)
     public func swatchColors(_ colors: [Color]) -> some View {
         environment(\.swatchColors, colors.map { NSColor($0) })
     }

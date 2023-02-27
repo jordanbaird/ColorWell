@@ -23,6 +23,44 @@ internal struct IdentifiableAction<Value> {
         self.body = body
     }
 
+    /// Creates an action with the given identifier and closure.
+    ///
+    /// This initializer will fail if `body` is `nil`. To prevent
+    /// unnecessary overhead, `id` will not be computed until `body`
+    /// is confirmed to have a value.
+    ///
+    /// - Parameters:
+    ///   - id: A unique identifier for this action.
+    ///   - body: A closure to store for later execution.
+    init?(id: @autoclosure () -> UUID = UUID(), body: ((Value) -> Void)?) {
+        guard let body else {
+            return nil
+        }
+        self.init(id: id(), body: body)
+    }
+
+    /// Creates an action with the given identifier and closure,
+    /// converting the closure's parameter to a new type based on
+    /// the action's `Value` type.
+    ///
+    /// This initializer will fail if `body` is `nil`. To prevent
+    /// unnecessary overhead, `id` will not be computed until `body`
+    /// is confirmed to have a value.
+    ///
+    /// - Parameters:
+    ///   - id: A unique identifier for this action.
+    ///   - body: A closure to store for later execution. Its
+    ///     parameter will be converted to a new type based on the
+    ///     action's `Value` type.
+    init?<C: CustomConvertible>(id: @autoclosure () -> UUID = UUID(), body: ((C) -> Void)?) where C.SourceType == Value, C.ConvertedType == C {
+        guard let body else {
+            return nil
+        }
+        self.init(id: id()) { value in
+            body(C.converted(from: value))
+        }
+    }
+
     /// Invokes the closure that is stored by this instance, passing the
     /// given value as an argument.
     ///

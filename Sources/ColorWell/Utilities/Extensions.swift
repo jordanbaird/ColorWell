@@ -4,9 +4,6 @@
 //
 
 import Cocoa
-#if canImport(SwiftUI)
-import SwiftUI
-#endif
 
 // MARK: - Array (Element: Equatable)
 
@@ -521,6 +518,7 @@ extension Set where Element == NSKeyValueObservation {
 }
 
 #if canImport(SwiftUI)
+import SwiftUI
 
 // MARK: - View
 
