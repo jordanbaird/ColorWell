@@ -936,6 +936,10 @@ extension ColorWellView {
             {
                 nsView.swatchColors = swatchColors
             }
+
+            if let style = context.environment.colorWellStyleConfiguration.style {
+                nsView.style = style
+            }
         }
 
         /// Returns the change handlers stored in the view's environment for
@@ -1010,6 +1014,14 @@ private struct ChangeHandlersKey: EnvironmentKey {
     static let defaultValue = [IdentifiableAction<NSColor>]()
 }
 
+// MARK: - StyleKey
+
+/// A key used to store a color well's style in an environment.
+@available(macOS 10.15, *)
+private struct ColorWellStyleConfigurationKey: EnvironmentKey {
+    static let defaultValue = ColorWellStyleConfiguration()
+}
+
 // MARK: - SwatchColorsKey
 
 /// A key used to store a color well's swatch colors in an environment.
@@ -1026,6 +1038,12 @@ extension EnvironmentValues {
     internal var changeHandlers: [IdentifiableAction<NSColor>] {
         get { self[ChangeHandlersKey.self] }
         set { self[ChangeHandlersKey.self] = newValue }
+    }
+
+    /// The style to apply to the color wells in this environment.
+    internal var colorWellStyleConfiguration: ColorWellStyleConfiguration {
+        get { self[ColorWellStyleConfigurationKey.self] }
+        set { self[ColorWellStyleConfigurationKey.self] = newValue }
     }
 
     /// The swatch colors to apply to the color wells in this environment.
@@ -1086,6 +1104,11 @@ extension View {
     ///   color changes. The closure receives the new color as an input.
     public func onColorChange(perform action: @escaping (Color) -> Void) -> some View {
         onColorChange(maybePerform: action)
+    }
+
+    /// Sets the style for color wells within this view.
+    public func colorWellStyle<S: ColorWellStyle>(_ style: S) -> some View {
+        environment(\.colorWellStyleConfiguration, style.configuration)
     }
 
     /// Applies the given swatch colors to the view's color wells.

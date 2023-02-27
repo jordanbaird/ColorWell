@@ -140,10 +140,11 @@ extension SwatchSegment {
                 cached: &cachedBorderPath
             )
 
-            borderColor.setStroke()
-
-            cachedBorderPath.path.lineWidth = lineWidth
-            cachedBorderPath.path.stroke()
+            if colorWell?.style != .colorPanel {
+                borderColor.setStroke()
+                cachedBorderPath.path.lineWidth = lineWidth
+                cachedBorderPath.path.stroke()
+            }
         }
     }
 
