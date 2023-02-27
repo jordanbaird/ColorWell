@@ -104,7 +104,7 @@ extension _ColorWellBaseView {
         true
     }
 
-    // MARK: Actions
+    // MARK: Custom Actions
 
     public override func accessibilityPerformPress() -> Bool {
         customAccessibilityPerformPress()

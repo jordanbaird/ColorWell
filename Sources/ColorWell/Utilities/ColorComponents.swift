@@ -18,7 +18,7 @@ internal enum ColorComponents {
     case pattern
 }
 
-// MARK: Properties
+// MARK: Instance Properties
 extension ColorComponents {
     /// The name of the color space associated with this instance.
     var colorSpaceName: String {

@@ -7,6 +7,9 @@ import Cocoa
 
 /// A grid view that displays color well segments side by side.
 internal class ColorWellLayoutView: NSGridView {
+
+    // MARK: Instance Properties
+
     /// A segment that displays a color swatch with the color well's
     /// current color selection.
     let swatchSegment: SwatchSegment
@@ -24,6 +27,8 @@ internal class ColorWellLayoutView: NSGridView {
 
     /// The key-value observations retained by the layout view.
     private var observations = Set<NSKeyValueObservation>()
+
+    // MARK: Initializers
 
     /// Creates a layout view with the given color well.
     init(colorWell: ColorWell) {

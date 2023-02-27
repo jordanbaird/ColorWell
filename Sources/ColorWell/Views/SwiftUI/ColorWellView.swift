@@ -18,11 +18,16 @@ import SwiftUI
 /// for selecting new colors.
 @available(macOS 10.15, *)
 public struct ColorWellView<Label: View>: View {
+
+    // MARK: Instance Properties
+
     /// The type-erased layout view of the color well.
     private let layoutView: AnyView
 
     /// The content view of the color well.
     public var body: some View { layoutView }
+
+    // MARK: Initializers
 
     /// A base level initializer for other initializers to delegate to.
     ///
@@ -69,7 +74,7 @@ public struct ColorWellView<Label: View>: View {
     }
 }
 
-// MARK: ColorWellView Initializers (Label: View)
+// MARK: ColorWellView (Label: View)
 @available(macOS 10.15, *)
 extension ColorWellView {
     /// Creates a color well that uses the provided view as its label,
@@ -285,7 +290,7 @@ extension ColorWellView {
     }
 }
 
-// MARK: ColorWellView Initializers (Label == Never)
+// MARK: ColorWellView (Label == Never)
 @available(macOS 10.15, *)
 extension ColorWellView<Never> {
     /// Creates a color well with an initial color value.
@@ -435,7 +440,7 @@ extension ColorWellView<Never> {
     }
 }
 
-// MARK: ColorWellView Initializers (Label == Text)
+// MARK: ColorWellView (Label == Text)
 @available(macOS 10.15, *)
 extension ColorWellView<Text> {
 
@@ -868,13 +873,17 @@ extension ColorWellView<Text> {
     }
 }
 
-// MARK: ColorWellView Representable
+// MARK: - ColorWellView Representable
+
 @available(macOS 10.15, *)
 extension ColorWellView {
     /// An `NSViewRepresentable` wrapper around a `ColorWell`.
     ///
     /// ** For internal use only **
     private struct Representable: NSViewRepresentable {
+
+        // MARK: Instance Properties
+
         /// The color used to create this view's underlying color well.
         let color: NSColor?
 
@@ -887,6 +896,8 @@ extension ColorWellView {
         /// that belongs to this view's underlying color well shows alpha
         /// values and an opacity slider.
         @Binding var showsAlpha: Bool
+
+        // MARK: Initializers
 
         /// Creates a representable view with the given color, and an
         /// optional binding that determines the value of the underlying
@@ -902,6 +913,9 @@ extension ColorWellView {
             }
         }
 
+        // MARK: Instance Methods
+
+        /// Creates and returns this view's underlying color well.
         func makeNSView(context: Context) -> ColorWell {
             if let color {
                 return ColorWell(color: color)
@@ -910,6 +924,8 @@ extension ColorWellView {
             }
         }
 
+        /// Updates this view's underlying color well using the specified
+        /// context.
         func updateNSView(_ nsView: ColorWell, context: Context) {
             nsView.changeHandlers.appendUnique(contentsOf: changeHandlers(for: context))
             nsView.isEnabled = context.environment.isEnabled
@@ -926,8 +942,8 @@ extension ColorWellView {
             }
         }
 
-        /// Returns the change handlers stored in the view's environment
-        /// for the given context.
+        /// Returns the change handlers stored in the view's environment for
+        /// the specified context.
         func changeHandlers(for context: Context) -> [IdentifiableAction<NSColor>] {
             // Reversed to reflect the true order in which they were added.
             context.environment.changeHandlers.reversed()
@@ -1030,8 +1046,8 @@ extension EnvironmentValues {
 
 // MARK: - OnColorChange
 
-/// A view modifier that performs an action when a color well
-/// view's color changes.
+/// A view modifier that performs an action when a color well's
+/// color changes.
 ///
 /// This modifier is designed so that any type that conforms
 /// to the `CustomCocoaConvertible` protocol and converts to
@@ -1076,54 +1092,10 @@ extension View {
         modifier(OnColorChange(action: action))
     }
 
-    /// Adds an action to perform when a color well's color changes.
+    /// Adds an action to color wells within this view.
     ///
-    /// The following example creates a `VStack` containing a text view
-    /// and a color well, both of which utilize the same `@State` value
-    /// during their construction. The `onColorChange(perform:)` modifier
-    /// is applied to the color well. Every time the user selects a new
-    /// color using the color well, the `@State` value is updated to match
-    /// the new color. This causes the text view to be redrawn to match
-    /// the new state.
-    ///
-    /// ```swift
-    /// struct ContentView: View {
-    ///     @State private var color = Color.green
-    ///
-    ///     var body: some View {
-    ///         VStack {
-    ///             Text("Colored Text")
-    ///                 .foregroundColor(color)
-    ///
-    ///             ColorWellView(color: color)
-    ///                 .onColorChange { newColor in
-    ///                     self.color = newColor
-    ///                 }
-    ///         }
-    ///     }
-    /// }
-    /// ```
-    ///
-    /// Let's say we have a view with multiple color wells, and simply
-    /// want to log the new color when any of their colors change. We can
-    /// do so like this:
-    ///
-    /// ```swift
-    /// struct ContentView: View {
-    ///     var body: some View {
-    ///         VStack {
-    ///             ColorWellView(color: .red)
-    ///             ColorWellView(color: .green)
-    ///             ColorWellView(color: .blue)
-    ///         }
-    ///         .onColorChange { newColor in
-    ///             print(newColor)
-    ///         }
-    ///     }
-    /// }
-    /// ```
-    ///
-    /// - Parameter action: An action to perform when a color well's color changes.
+    /// - Parameter action: An action to perform when a color well's
+    ///   color changes. The closure receives the new color as an input.
     public func onColorChange(perform action: @escaping (Color) -> Void) -> some View {
         onColorChange(maybePerform: action)
     }

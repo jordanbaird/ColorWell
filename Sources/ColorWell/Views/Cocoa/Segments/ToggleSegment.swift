@@ -7,11 +7,16 @@ import Cocoa
 
 /// A segment that, when pressed, toggles the color panel.
 internal class ToggleSegment: ColorWellSegment {
+
+    // MARK: Static Properties
+
     /// Shared storage for the `cachedImage` property.
     private static let cachedImageStorage = Storage<ToggleSegment, NSImage>()
 
     /// The default width for a toggle segment.
     static let defaultWidth: CGFloat = 20
+
+    // MARK: Instance Properties
 
     /// A layer that contains an image indicating that the
     /// segment toggles the color panel.
@@ -27,7 +32,11 @@ internal class ToggleSegment: ColorWellSegment {
         }())
     }
 
+    // MARK: Property Overrides
+
     override var side: Side { .right }
+
+    // MARK: Initializer Overrides
 
     override init(colorWell: ColorWell) {
         super.init(colorWell: colorWell)

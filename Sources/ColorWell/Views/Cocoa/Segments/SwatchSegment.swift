@@ -8,6 +8,9 @@ import Cocoa
 /// A segment that displays a color swatch with the color well's
 /// current color selection.
 internal class SwatchSegment: ColorWellSegment {
+
+    // MARK: Instance Properties
+
     /// The cached drawing path of the segment's border.
     private var cachedBorderPath = CachedPath<NSBezierPath>()
 
@@ -37,6 +40,8 @@ internal class SwatchSegment: ColorWellSegment {
         return NSColor(white: 1 - alpha, alpha: alpha)
     }
 
+    // MARK: Property Overrides
+
     override var side: Side { .left }
 
     override var fillColor: NSColor {
@@ -46,6 +51,8 @@ internal class SwatchSegment: ColorWellSegment {
     override var displayColor: NSColor {
         super.displayColor.usingColorSpace(.sRGB) ?? super.displayColor
     }
+
+    // MARK: Initializer Overrides
 
     override init(colorWell: ColorWell) {
         super.init(colorWell: colorWell)

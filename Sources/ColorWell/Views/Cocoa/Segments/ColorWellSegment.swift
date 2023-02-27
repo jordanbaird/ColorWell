@@ -7,6 +7,9 @@ import Cocoa
 
 /// A view that draws a segmented portion of a color well.
 internal class ColorWellSegment: NSView {
+
+    // MARK: Instance Properties
+
     /// The segment's color well.
     weak var colorWell: ColorWell?
 
@@ -97,6 +100,8 @@ internal class ColorWellSegment: NSView {
     var displayColor: NSColor {
         colorWellIsEnabled ? fillColor : fillColor.disabled
     }
+
+    // MARK: Initializers
 
     /// Creates a segment for the given color well.
     init(colorWell: ColorWell) {
@@ -338,7 +343,7 @@ extension ColorWellSegment {
     }
 }
 
-// MARK: - State
+// MARK: - ColorWellSegment State
 
 extension ColorWellSegment {
     /// A type that represents the state of a color well segment.

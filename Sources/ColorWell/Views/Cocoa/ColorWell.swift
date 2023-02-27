@@ -17,12 +17,10 @@ import SwiftUI
 /// for selecting new colors.
 public class ColorWell: _ColorWellBaseView {
 
-    // MARK: Private Static Properties
+    // MARK: Static Properties
 
     /// Shared storage for the layout views of every color well instance.
     private static let layoutViewStorage = Storage<ColorWell, ColorWellLayoutView>()
-
-    // MARK: Internal Static Properties
 
     /// A base value to use when computing the width of lines drawn as
     /// part of a color well or its elements.
