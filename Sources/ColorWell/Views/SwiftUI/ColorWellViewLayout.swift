@@ -17,22 +17,38 @@ import SwiftUI
 ///
 /// ** For internal use only **
 @available(macOS 10.15, *)
-internal struct ColorWellViewLayout<Label: View, LabelCandidate: View, Content: View>: View {
-    /// The layout view's optional label builder.
-    let label: (() -> LabelCandidate)?
+internal struct ColorWellViewLayout<Label: View, LabelCandidate: View>: View {
+    /// The values used to construct the layout view.
+    let values: ColorWellViewValues<Label, LabelCandidate>
 
-    /// The layout view's content builder.
-    let content: () -> Content
+    /// The layout view's optional label builder.
+    var label: (() -> LabelCandidate)? {
+        if
+            LabelCandidate.self == Label.self,
+            Label.self != NoLabel.self
+        {
+            return values.label
+        } else {
+            return nil
+        }
+    }
 
     /// The layout view's content view.
+    var content: some View {
+        ColorWellRepresentable(color: values.color, showsAlpha: values.showsAlpha)
+            .onColorChange(maybePerform: values.action)
+            .fixedSize()
+    }
+
+    /// The body of the layout view.
     var body: some View {
         if let label {
             HStack(alignment: .center) {
                 label()
-                content()
+                content
             }
         } else {
-            content()
+            content
         }
     }
 
@@ -42,20 +58,8 @@ internal struct ColorWellViewLayout<Label: View, LabelCandidate: View, Content: 
     ///
     /// If the candidate fails validation, only the content view will be
     /// included in the final constructed view.
-    init(
-        _: Label.Type,
-        @ViewBuilder label: () -> LabelCandidate,
-        @ViewBuilder content: () -> Content
-    ) {
-        if
-            LabelCandidate.self == Label.self,
-            Label.self != NoLabel.self
-        {
-            self.label = makeIndirect(label)
-        } else {
-            self.label = nil
-        }
-        self.content = makeIndirect(content)
+    init(values: ColorWellViewValues<Label, LabelCandidate>) {
+        self.values = values
     }
 }
 

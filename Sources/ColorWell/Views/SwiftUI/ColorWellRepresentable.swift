@@ -1,5 +1,5 @@
 //
-// ColorWellViewRepresentable.swift
+// ColorWellRepresentable.swift
 // ColorWell
 //
 
@@ -11,7 +11,7 @@ import SwiftUI
 ///
 /// ** For internal use only **
 @available(macOS 10.15, *)
-internal struct ColorWellViewRepresentable: NSViewRepresentable {
+internal struct ColorWellRepresentable: NSViewRepresentable {
 
     // MARK: Instance Properties
 
