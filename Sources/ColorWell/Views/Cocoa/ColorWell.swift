@@ -145,7 +145,7 @@ public class ColorWell: _ColorWellBaseView {
     // MARK: Internal Properties
 
     /// The color well's change handlers.
-    internal var changeHandlers = [IdentifiableAction<NSColor>]()
+    internal var changeHandlers = [(NSColor) -> Void]()
 
     /// The popover context associated with the color well.
     internal var popoverContext: ColorWellPopoverContext?
@@ -583,7 +583,7 @@ extension ColorWell {
     /// - Parameter action: A block of code that will be executed when
     ///   the color well's color changes.
     public func onColorChange(perform action: @escaping (NSColor) -> Void) {
-        changeHandlers.appendUnique(IdentifiableAction(body: action))
+        changeHandlers.append(action)
     }
 }
 

@@ -5,26 +5,6 @@
 
 import Cocoa
 
-// MARK: - Array (Element: Equatable)
-
-extension Array where Element: Equatable {
-    /// Adds a new element at the end of the array if it is not already present.
-    internal mutating func appendUnique(_ newElement: Element) {
-        guard !contains(newElement) else {
-            return
-        }
-        append(newElement)
-    }
-
-    /// Adds the elements of the specified sequence that are not already present
-    /// to the end of the array.
-    internal mutating func appendUnique<S: Sequence>(contentsOf newElements: S) where S.Element == Element {
-        for element in newElements {
-            appendUnique(element)
-        }
-    }
-}
-
 // MARK: - CGPoint
 
 extension CGPoint {

@@ -21,11 +21,13 @@ public struct ColorWellView<Label: View>: View {
 
     // MARK: Instance Properties
 
-    /// The type-erased layout view of the color well.
-    private let layoutView: AnyView
+    /// The type-erased content view of the color well.
+    private let erasedContent: () -> AnyView
 
     /// The content view of the color well.
-    public var body: some View { layoutView }
+    public var body: some View {
+        erasedContent()
+    }
 
     // MARK: Initializers
 
@@ -38,7 +40,7 @@ public struct ColorWellView<Label: View>: View {
         _action: ((C) -> Void)? = Optional<(Color) -> Void>.none,
         _showsAlpha: Binding<Bool>? = nil
     ) where C.ConvertedType == C {
-        layoutView = LayoutView(
+        erasedContent = LayoutView(
             Label.self,
             label: {
                 _label()
@@ -48,7 +50,7 @@ public struct ColorWellView<Label: View>: View {
                     .onColorChange(maybePerform: _action)
                     .fixedSize()
             }
-        ).erased()
+        ).erased
     }
 
     /// A base level initializer for other initializers to delegate to,
@@ -913,17 +915,19 @@ extension ColorWellView {
 
         /// Creates and returns this view's underlying color well.
         func makeNSView(context: Context) -> ColorWell {
+            let nsView: ColorWell
             if let color {
-                return ColorWell(color: color)
+                nsView = ColorWell(color: color)
             } else {
-                return ColorWell()
+                nsView = ColorWell()
             }
+            updateNSView(nsView, context: context)
+            return nsView
         }
 
-        /// Updates this view's underlying color well using the specified
-        /// context.
+        /// Updates this view's underlying color well using the specified context.
         func updateNSView(_ nsView: ColorWell, context: Context) {
-            nsView.changeHandlers.appendUnique(contentsOf: changeHandlers(for: context))
+            nsView.changeHandlers = changeHandlers(for: context)
             nsView.isEnabled = context.environment.isEnabled
 
             if shouldUpdateShowsAlpha {
@@ -942,10 +946,13 @@ extension ColorWellView {
             }
         }
 
-        /// Returns the change handlers stored in the view's environment for
-        /// the specified context.
-        func changeHandlers(for context: Context) -> [IdentifiableAction<NSColor>] {
-            // Reversed to reflect the true order in which they were added.
+        /// Returns the change handlers stored in the view's environment for the
+        /// specified context.
+        func changeHandlers(for context: Context) -> [(NSColor) -> Void] {
+            // @ViewBuilder variables are evaluated from outside in. This causes
+            // the handlers that were added first in the view hierarchy to be the
+            // last ones added to the environment. Reversing the stored handlers
+            // results in the correct order.
             context.environment.changeHandlers.reversed()
         }
     }
@@ -975,11 +982,23 @@ private struct NoLabel: View {
 /// ** For internal use only **
 @available(macOS 10.15, *)
 private struct LayoutView<Label: View, LabelCandidate: View, Content: View>: View {
-    /// The type-erased content of the layout view.
-    private let erasedContent: AnyView
+    /// The layout view's optional label builder.
+    let label: (() -> LabelCandidate)?
+
+    /// The layout view's content builder.
+    let content: () -> Content
 
     /// The layout view's content view.
-    var body: some View { erasedContent }
+    var body: some View {
+        if let label {
+            HStack(alignment: .center) {
+                label()
+                content()
+            }
+        } else {
+            content()
+        }
+    }
 
     /// Creates a layout view that validates the given label candidate's
     /// type to ensure that it meets the criteria to be included as part
@@ -992,17 +1011,15 @@ private struct LayoutView<Label: View, LabelCandidate: View, Content: View>: Vie
         @ViewBuilder label: () -> LabelCandidate,
         @ViewBuilder content: () -> Content
     ) {
-        guard
+        if
             LabelCandidate.self == Label.self,
             Label.self != NoLabel.self
-        else {
-            erasedContent = content().erased()
-            return
+        {
+            self.label = makeIndirect(label)
+        } else {
+            self.label = nil
         }
-        erasedContent = HStack(alignment: .center) {
-            label()
-            content()
-        }.erased()
+        self.content = makeIndirect(content)
     }
 }
 
@@ -1011,10 +1028,10 @@ private struct LayoutView<Label: View, LabelCandidate: View, Content: View>: Vie
 /// A key used to store a color well's change handlers in an environment.
 @available(macOS 10.15, *)
 private struct ChangeHandlersKey: EnvironmentKey {
-    static let defaultValue = [IdentifiableAction<NSColor>]()
+    static let defaultValue = [(NSColor) -> Void]()
 }
 
-// MARK: - StyleKey
+// MARK: - ColorWellStyleConfigurationKey
 
 /// A key used to store a color well's style in an environment.
 @available(macOS 10.15, *)
@@ -1035,7 +1052,7 @@ private struct SwatchColorsKey: EnvironmentKey {
 @available(macOS 10.15, *)
 extension EnvironmentValues {
     /// The change handlers to add to the color wells in this environment.
-    internal var changeHandlers: [IdentifiableAction<NSColor>] {
+    internal var changeHandlers: [(NSColor) -> Void] {
         get { self[ChangeHandlersKey.self] }
         set { self[ChangeHandlersKey.self] = newValue }
     }
@@ -1054,39 +1071,6 @@ extension EnvironmentValues {
     }
 }
 
-// MARK: - OnColorChange
-
-/// A view modifier that performs an action when a color well's
-/// color changes.
-///
-/// This modifier is designed so that any type that conforms to
-/// the `CustomNSColorConvertible` protocol can be used to create
-/// its change handler.
-@available(macOS 10.15, *)
-private struct OnColorChange<C: CustomNSColorConvertible>: ViewModifier where C.ConvertedType == C {
-    /// The modifier's change handler.
-    let changeHandler: IdentifiableAction<NSColor>?
-
-    /// Creates a modifier with the given change handler.
-    init(changeHandler: IdentifiableAction<NSColor>?) {
-        self.changeHandler = changeHandler
-    }
-
-    /// Creates a modifier using the given id and action.
-    init(id: @autoclosure () -> UUID = UUID(), action: ((C) -> Void)?) {
-        self.init(changeHandler: IdentifiableAction(id: id(), body: action))
-    }
-
-    /// Returns the modified view.
-    func body(content: Content) -> some View {
-        content.transformEnvironment(\.changeHandlers) { changeHandlers in
-            if let changeHandler {
-                changeHandlers.appendUnique(changeHandler)
-            }
-        }
-    }
-}
-
 // MARK: - View Extension
 
 @available(macOS 10.15, *)
@@ -1095,7 +1079,14 @@ extension View {
     ///
     /// ** For internal use only **
     fileprivate func onColorChange<C: CustomNSColorConvertible>(maybePerform action: ((C) -> Void)?) -> some View where C.ConvertedType == C {
-        modifier(OnColorChange(action: action))
+        transformEnvironment(\.changeHandlers) { changeHandlers in
+            guard let action else {
+                return
+            }
+            changeHandlers.append { color in
+                action(.converted(from: color))
+            }
+        }
     }
 
     /// Adds an action to color wells within this view.
@@ -1108,7 +1099,9 @@ extension View {
 
     /// Sets the style for color wells within this view.
     public func colorWellStyle<S: ColorWellStyle>(_ style: S) -> some View {
-        environment(\.colorWellStyleConfiguration, style.configuration)
+        transformEnvironment(\.colorWellStyleConfiguration) { configuration in
+            configuration = style.configuration
+        }
     }
 
     /// Applies the given swatch colors to the view's color wells.
@@ -1124,7 +1117,9 @@ extension View {
     /// - Parameter colors: The swatch colors to use.
     @available(macOS 11.0, *)
     public func swatchColors(_ colors: [Color]) -> some View {
-        environment(\.swatchColors, colors.map { NSColor($0) })
+        transformEnvironment(\.swatchColors) { swatchColors in
+            swatchColors = colors.map { NSColor($0) }
+        }
     }
 }
 #endif
