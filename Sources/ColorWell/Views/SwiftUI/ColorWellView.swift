@@ -21,12 +21,12 @@ public struct ColorWellView<Label: View>: View {
 
     // MARK: Instance Properties
 
-    /// The type-erased content view of the color well.
-    private let erasedContent: () -> AnyView
+    /// Values used to construct the color well.
+    private let values: ColorWellViewValues
 
     /// The content view of the color well.
     public var body: some View {
-        erasedContent()
+        values.erasedContent()
     }
 
     // MARK: Initializers
@@ -34,41 +34,8 @@ public struct ColorWellView<Label: View>: View {
     /// A base level initializer for other initializers to delegate to.
     ///
     /// ** For internal use only **
-    private init<L: View, C: CustomNSColorConvertible>(
-        _color: NSColor? = nil,
-        _label: () -> L,
-        _action: ((C) -> Void)? = Optional<(Color) -> Void>.none,
-        _showsAlpha: Binding<Bool>? = nil
-    ) where C.ConvertedType == C {
-        erasedContent = LayoutView(
-            Label.self,
-            label: {
-                _label()
-            },
-            content: {
-                Representable(color: _color, showsAlpha: _showsAlpha)
-                    .onColorChange(maybePerform: _action)
-                    .fixedSize()
-            }
-        ).erased
-    }
-
-    /// A base level initializer for other initializers to delegate to,
-    /// whose `_label` parameter is an `@autoclosure`.
-    ///
-    /// ** For internal use only **
-    private init<L: View, C: CustomNSColorConvertible>(
-        _color: NSColor? = nil,
-        _label: @autoclosure () -> L,
-        _action: ((C) -> Void)? = Optional<(Color) -> Void>.none,
-        _showsAlpha: Binding<Bool>? = nil
-    ) where C.ConvertedType == C {
-        self.init(
-            _color: _color,
-            _label: _label,
-            _action: _action,
-            _showsAlpha: _showsAlpha
-        )
+    private init(values: ColorWellViewValues) {
+        self.values = values
     }
 }
 
@@ -86,8 +53,11 @@ extension ColorWellView {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            _label: label,
-            _action: action
+            values: ColorWellViewValues(
+                Label.self,
+                label: label,
+                action: action
+            )
         )
     }
 
@@ -105,9 +75,12 @@ extension ColorWellView {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            _label: label,
-            _action: action,
-            _showsAlpha: showsAlpha
+            values: ColorWellViewValues(
+                Label.self,
+                label: label,
+                action: action,
+                showsAlpha: showsAlpha
+            )
         )
     }
 
@@ -123,8 +96,11 @@ extension ColorWellView {
         @ViewBuilder label: () -> Label
     ) {
         self.init(
-            _color: NSColor(color),
-            _label: label
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(color),
+                label: label
+            )
         )
     }
 
@@ -143,9 +119,12 @@ extension ColorWellView {
         @ViewBuilder label: () -> Label
     ) {
         self.init(
-            _color: NSColor(color),
-            _label: label,
-            _showsAlpha: showsAlpha
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(color),
+                label: label,
+                showsAlpha: showsAlpha
+            )
         )
     }
 
@@ -160,8 +139,11 @@ extension ColorWellView {
         @ViewBuilder label: () -> Label
     ) {
         self.init(
-            _color: NSColor(cgColor: cgColor),
-            _label: label
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(cgColor: cgColor),
+                label: label
+            )
         )
     }
 
@@ -179,9 +161,12 @@ extension ColorWellView {
         @ViewBuilder label: () -> Label
     ) {
         self.init(
-            _color: NSColor(cgColor: cgColor),
-            _label: label,
-            _showsAlpha: showsAlpha
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(cgColor: cgColor),
+                label: label,
+                showsAlpha: showsAlpha
+            )
         )
     }
 
@@ -200,9 +185,12 @@ extension ColorWellView {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            _color: NSColor(color),
-            _label: label,
-            _action: action
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(color),
+                label: label,
+                action: action
+            )
         )
     }
 
@@ -224,10 +212,13 @@ extension ColorWellView {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            _color: NSColor(color),
-            _label: label,
-            _action: action,
-            _showsAlpha: showsAlpha
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(color),
+                label: label,
+                action: action,
+                showsAlpha: showsAlpha
+            )
         )
     }
 
@@ -251,9 +242,12 @@ extension ColorWellView {
         action: @escaping (CGColor) -> Void
     ) {
         self.init(
-            _color: NSColor(cgColor: cgColor),
-            _label: label,
-            _action: action
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(cgColor: cgColor),
+                label: label,
+                action: action
+            )
         )
     }
 
@@ -280,10 +274,13 @@ extension ColorWellView {
         action: @escaping (CGColor) -> Void
     ) {
         self.init(
-            _color: NSColor(cgColor: cgColor),
-            _label: label,
-            _action: action,
-            _showsAlpha: showsAlpha
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(cgColor: cgColor),
+                label: label,
+                action: action,
+                showsAlpha: showsAlpha
+            )
         )
     }
 }
@@ -297,8 +294,11 @@ extension ColorWellView where Label == Never {
     @available(macOS 11.0, *)
     public init(color: Color) {
         self.init(
-            _color: NSColor(color),
-            _label: NoLabel()
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(color),
+                label: NoLabel()
+            )
         )
     }
 
@@ -314,9 +314,12 @@ extension ColorWellView where Label == Never {
         showsAlpha: Binding<Bool>
     ) {
         self.init(
-            _color: NSColor(color),
-            _label: NoLabel(),
-            _showsAlpha: showsAlpha
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(color),
+                label: NoLabel(),
+                showsAlpha: showsAlpha
+            )
         )
     }
 
@@ -325,8 +328,11 @@ extension ColorWellView where Label == Never {
     /// - Parameter cgColor: The initial value of the color well's color.
     public init(cgColor: CGColor) {
         self.init(
-            _color: NSColor(cgColor: cgColor),
-            _label: NoLabel()
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(cgColor: cgColor),
+                label: NoLabel()
+            )
         )
     }
 
@@ -341,9 +347,12 @@ extension ColorWellView where Label == Never {
         showsAlpha: Binding<Bool>
     ) {
         self.init(
-            _color: NSColor(cgColor: cgColor),
-            _label: NoLabel(),
-            _showsAlpha: showsAlpha
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(cgColor: cgColor),
+                label: NoLabel(),
+                showsAlpha: showsAlpha
+            )
         )
     }
 
@@ -359,9 +368,12 @@ extension ColorWellView where Label == Never {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            _color: NSColor(color),
-            _label: NoLabel(),
-            _action: action
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(color),
+                label: NoLabel(),
+                action: action
+            )
         )
     }
 
@@ -380,10 +392,13 @@ extension ColorWellView where Label == Never {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            _color: NSColor(color),
-            _label: NoLabel(),
-            _action: action,
-            _showsAlpha: showsAlpha
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(color),
+                label: NoLabel(),
+                action: action,
+                showsAlpha: showsAlpha
+            )
         )
     }
 
@@ -404,9 +419,12 @@ extension ColorWellView where Label == Never {
         action: @escaping (CGColor) -> Void
     ) {
         self.init(
-            _color: NSColor(cgColor: cgColor),
-            _label: NoLabel(),
-            _action: action
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(cgColor: cgColor),
+                label: NoLabel(),
+                action: action
+            )
         )
     }
 
@@ -430,10 +448,13 @@ extension ColorWellView where Label == Never {
         action: @escaping (CGColor) -> Void
     ) {
         self.init(
-            _color: NSColor(cgColor: cgColor),
-            _label: NoLabel(),
-            _action: action,
-            _showsAlpha: showsAlpha
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(cgColor: cgColor),
+                label: NoLabel(),
+                action: action,
+                showsAlpha: showsAlpha
+            )
         )
     }
 }
@@ -456,8 +477,11 @@ extension ColorWellView where Label == Text {
         color: Color
     ) {
         self.init(
-            _color: NSColor(color),
-            _label: Text(title)
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(color),
+                label: Text(title)
+            )
         )
     }
 
@@ -476,9 +500,12 @@ extension ColorWellView where Label == Text {
         showsAlpha: Binding<Bool>
     ) {
         self.init(
-            _color: NSColor(color),
-            _label: Text(title),
-            _showsAlpha: showsAlpha
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(color),
+                label: Text(title),
+                showsAlpha: showsAlpha
+            )
         )
     }
 
@@ -493,8 +520,11 @@ extension ColorWellView where Label == Text {
         cgColor: CGColor
     ) {
         self.init(
-            _color: NSColor(cgColor: cgColor),
-            _label: Text(title)
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(cgColor: cgColor),
+                label: Text(title)
+            )
         )
     }
 
@@ -512,9 +542,12 @@ extension ColorWellView where Label == Text {
         showsAlpha: Binding<Bool>
     ) {
         self.init(
-            _color: NSColor(cgColor: cgColor),
-            _label: Text(title),
-            _showsAlpha: showsAlpha
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(cgColor: cgColor),
+                label: Text(title),
+                showsAlpha: showsAlpha
+            )
         )
     }
 
@@ -529,8 +562,11 @@ extension ColorWellView where Label == Text {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            _label: Text(title),
-            _action: action
+            values: ColorWellViewValues(
+                Label.self,
+                label: Text(title),
+                action: action
+            )
         )
     }
 
@@ -548,9 +584,12 @@ extension ColorWellView where Label == Text {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            _label: Text(title),
-            _action: action,
-            _showsAlpha: showsAlpha
+            values: ColorWellViewValues(
+                Label.self,
+                label: Text(title),
+                action: action,
+                showsAlpha: showsAlpha
+            )
         )
     }
 
@@ -569,9 +608,12 @@ extension ColorWellView where Label == Text {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            _color: NSColor(color),
-            _label: Text(title),
-            _action: action
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(color),
+                label: Text(title),
+                action: action
+            )
         )
     }
 
@@ -593,10 +635,13 @@ extension ColorWellView where Label == Text {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            _color: NSColor(color),
-            _label: Text(title),
-            _action: action,
-            _showsAlpha: showsAlpha
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(color),
+                label: Text(title),
+                action: action,
+                showsAlpha: showsAlpha
+            )
         )
     }
 
@@ -620,9 +665,12 @@ extension ColorWellView where Label == Text {
         action: @escaping (CGColor) -> Void
     ) {
         self.init(
-            _color: NSColor(cgColor: cgColor),
-            _label: Text(title),
-            _action: action
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(cgColor: cgColor),
+                label: Text(title),
+                action: action
+            )
         )
     }
 
@@ -649,10 +697,13 @@ extension ColorWellView where Label == Text {
         action: @escaping (CGColor) -> Void
     ) {
         self.init(
-            _color: NSColor(cgColor: cgColor),
-            _label: Text(title),
-            _action: action,
-            _showsAlpha: showsAlpha
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(cgColor: cgColor),
+                label: Text(title),
+                action: action,
+                showsAlpha: showsAlpha
+            )
         )
     }
 
@@ -670,8 +721,11 @@ extension ColorWellView where Label == Text {
         color: Color
     ) {
         self.init(
-            _color: NSColor(color),
-            _label: Text(titleKey)
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(color),
+                label: Text(titleKey)
+            )
         )
     }
 
@@ -690,9 +744,12 @@ extension ColorWellView where Label == Text {
         showsAlpha: Binding<Bool>
     ) {
         self.init(
-            _color: NSColor(color),
-            _label: Text(titleKey),
-            _showsAlpha: showsAlpha
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(color),
+                label: Text(titleKey),
+                showsAlpha: showsAlpha
+            )
         )
     }
 
@@ -707,8 +764,11 @@ extension ColorWellView where Label == Text {
         cgColor: CGColor
     ) {
         self.init(
-            _color: NSColor(cgColor: cgColor),
-            _label: Text(titleKey)
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(cgColor: cgColor),
+                label: Text(titleKey)
+            )
         )
     }
 
@@ -726,9 +786,12 @@ extension ColorWellView where Label == Text {
         showsAlpha: Binding<Bool>
     ) {
         self.init(
-            _color: NSColor(cgColor: cgColor),
-            _label: Text(titleKey),
-            _showsAlpha: showsAlpha
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(cgColor: cgColor),
+                label: Text(titleKey),
+                showsAlpha: showsAlpha
+            )
         )
     }
 
@@ -743,8 +806,11 @@ extension ColorWellView where Label == Text {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            _label: Text(titleKey),
-            _action: action
+            values: ColorWellViewValues(
+                Label.self,
+                label: Text(titleKey),
+                action: action
+            )
         )
     }
 
@@ -762,9 +828,12 @@ extension ColorWellView where Label == Text {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            _label: Text(titleKey),
-            _action: action,
-            _showsAlpha: showsAlpha
+            values: ColorWellViewValues(
+                Label.self,
+                label: Text(titleKey),
+                action: action,
+                showsAlpha: showsAlpha
+            )
         )
     }
 
@@ -783,9 +852,12 @@ extension ColorWellView where Label == Text {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            _color: NSColor(color),
-            _label: Text(titleKey),
-            _action: action
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(color),
+                label: Text(titleKey),
+                action: action
+            )
         )
     }
 
@@ -807,10 +879,13 @@ extension ColorWellView where Label == Text {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            _color: NSColor(color),
-            _label: Text(titleKey),
-            _action: action,
-            _showsAlpha: showsAlpha
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(color),
+                label: Text(titleKey),
+                action: action,
+                showsAlpha: showsAlpha
+            )
         )
     }
 
@@ -834,9 +909,12 @@ extension ColorWellView where Label == Text {
         action: @escaping (CGColor) -> Void
     ) {
         self.init(
-            _color: NSColor(cgColor: cgColor),
-            _label: Text(titleKey),
-            _action: action
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(cgColor: cgColor),
+                label: Text(titleKey),
+                action: action
+            )
         )
     }
 
@@ -863,211 +941,14 @@ extension ColorWellView where Label == Text {
         action: @escaping (CGColor) -> Void
     ) {
         self.init(
-            _color: NSColor(cgColor: cgColor),
-            _label: Text(titleKey),
-            _action: action,
-            _showsAlpha: showsAlpha
+            values: ColorWellViewValues(
+                Label.self,
+                color: NSColor(cgColor: cgColor),
+                label: Text(titleKey),
+                action: action,
+                showsAlpha: showsAlpha
+            )
         )
-    }
-}
-
-// MARK: - ColorWellView Representable
-
-@available(macOS 10.15, *)
-extension ColorWellView {
-    /// An `NSViewRepresentable` wrapper around a `ColorWell`.
-    ///
-    /// ** For internal use only **
-    private struct Representable: NSViewRepresentable {
-
-        // MARK: Instance Properties
-
-        /// The color used to create this view's underlying color well.
-        let color: NSColor?
-
-        /// A Boolean value that indicates whether the this view should
-        /// update its underlying color well's `showsAlpha` property whenever
-        /// the view itself updates.
-        let shouldUpdateShowsAlpha: Bool
-
-        /// A binding to a Boolean value indicating whether the color panel
-        /// that belongs to this view's underlying color well shows alpha
-        /// values and an opacity slider.
-        @Binding var showsAlpha: Bool
-
-        // MARK: Initializers
-
-        /// Creates a representable view with the given color, and an
-        /// optional binding that determines the value of the underlying
-        /// color well's `showsAlpha` property.
-        init(color: NSColor?, showsAlpha: Binding<Bool>?) {
-            self.color = color
-            if let showsAlpha {
-                self.shouldUpdateShowsAlpha = true
-                self._showsAlpha = showsAlpha
-            } else {
-                self.shouldUpdateShowsAlpha = false
-                self._showsAlpha = .constant(true)
-            }
-        }
-
-        // MARK: Instance Methods
-
-        /// Creates and returns this view's underlying color well.
-        func makeNSView(context: Context) -> ColorWell {
-            let nsView: ColorWell
-            if let color {
-                nsView = ColorWell(color: color)
-            } else {
-                nsView = ColorWell()
-            }
-            updateNSView(nsView, context: context)
-            return nsView
-        }
-
-        /// Updates this view's underlying color well using the specified context.
-        func updateNSView(_ nsView: ColorWell, context: Context) {
-            nsView.changeHandlers = changeHandlers(for: context)
-            nsView.isEnabled = context.environment.isEnabled
-
-            if shouldUpdateShowsAlpha {
-                nsView.showsAlpha = showsAlpha
-            }
-
-            if
-                #available(macOS 11.0, *),
-                let swatchColors = context.environment.swatchColors
-            {
-                nsView.swatchColors = swatchColors
-            }
-
-            if let style = context.environment.colorWellStyleConfiguration.style {
-                nsView.style = style
-            }
-        }
-
-        /// Returns the change handlers stored in the view's environment for the
-        /// specified context.
-        func changeHandlers(for context: Context) -> [(NSColor) -> Void] {
-            // @ViewBuilder variables are evaluated from outside in. This causes
-            // the handlers that were added first in the view hierarchy to be the
-            // last ones added to the environment. Reversing the stored handlers
-            // results in the correct order.
-            context.environment.changeHandlers.reversed()
-        }
-    }
-}
-
-// MARK: - NoLabel
-
-/// A special view type whose presence indicates that a `ColorWellView`'s
-/// constructor should not modify the constructed view to include a label.
-///
-/// ** For internal use only **
-@available(macOS 10.15, *)
-private struct NoLabel: View {
-    /// Accessing this property results in a fatal error.
-    var body: Never { return fatalError() }
-}
-
-// MARK: - LayoutView
-
-/// A view that manages the layout of a `ColorWellView` and its label.
-///
-/// Its initializer takes a label candidate and content view. It validates
-/// the label candidate's type to ensure that it meets the criteria to be
-/// included as part of the constructed view. If the candidate fails
-/// validation, only the content view will be included.
-///
-/// ** For internal use only **
-@available(macOS 10.15, *)
-private struct LayoutView<Label: View, LabelCandidate: View, Content: View>: View {
-    /// The layout view's optional label builder.
-    let label: (() -> LabelCandidate)?
-
-    /// The layout view's content builder.
-    let content: () -> Content
-
-    /// The layout view's content view.
-    var body: some View {
-        if let label {
-            HStack(alignment: .center) {
-                label()
-                content()
-            }
-        } else {
-            content()
-        }
-    }
-
-    /// Creates a layout view that validates the given label candidate's
-    /// type to ensure that it meets the criteria to be included as part
-    /// of the constructed view.
-    ///
-    /// If the candidate fails validation, only the content view will be
-    /// included in the final constructed view.
-    init(
-        _: Label.Type,
-        @ViewBuilder label: () -> LabelCandidate,
-        @ViewBuilder content: () -> Content
-    ) {
-        if
-            LabelCandidate.self == Label.self,
-            Label.self != NoLabel.self
-        {
-            self.label = makeIndirect(label)
-        } else {
-            self.label = nil
-        }
-        self.content = makeIndirect(content)
-    }
-}
-
-// MARK: - ChangeHandlersKey
-
-/// A key used to store a color well's change handlers in an environment.
-@available(macOS 10.15, *)
-private struct ChangeHandlersKey: EnvironmentKey {
-    static let defaultValue = [(NSColor) -> Void]()
-}
-
-// MARK: - ColorWellStyleConfigurationKey
-
-/// A key used to store a color well's style in an environment.
-@available(macOS 10.15, *)
-private struct ColorWellStyleConfigurationKey: EnvironmentKey {
-    static let defaultValue = ColorWellStyleConfiguration()
-}
-
-// MARK: - SwatchColorsKey
-
-/// A key used to store a color well's swatch colors in an environment.
-@available(macOS 11.0, *)
-private struct SwatchColorsKey: EnvironmentKey {
-    static let defaultValue: [NSColor]? = nil
-}
-
-// MARK: - EnvironmentValues
-
-@available(macOS 10.15, *)
-extension EnvironmentValues {
-    /// The change handlers to add to the color wells in this environment.
-    internal var changeHandlers: [(NSColor) -> Void] {
-        get { self[ChangeHandlersKey.self] }
-        set { self[ChangeHandlersKey.self] = newValue }
-    }
-
-    /// The style to apply to the color wells in this environment.
-    internal var colorWellStyleConfiguration: ColorWellStyleConfiguration {
-        get { self[ColorWellStyleConfigurationKey.self] }
-        set { self[ColorWellStyleConfigurationKey.self] = newValue }
-    }
-
-    /// The swatch colors to apply to the color wells in this environment.
-    @available(macOS 11.0, *)
-    internal var swatchColors: [NSColor]? {
-        get { self[SwatchColorsKey.self] }
-        set { self[SwatchColorsKey.self] = newValue }
     }
 }
 
@@ -1078,7 +959,7 @@ extension View {
     /// Adds a generic action to perform when a color well's color changes.
     ///
     /// ** For internal use only **
-    fileprivate func onColorChange<C: CustomNSColorConvertible>(maybePerform action: ((C) -> Void)?) -> some View where C.ConvertedType == C {
+    internal func onColorChange<C: CustomNSColorConvertible>(maybePerform action: ((C) -> Void)?) -> some View where C.ConvertedType == C {
         transformEnvironment(\.changeHandlers) { changeHandlers in
             guard let action else {
                 return

@@ -1,0 +1,57 @@
+//
+// EnvironmentValues.swift
+// ColorWell
+//
+
+import Cocoa
+#if canImport(SwiftUI)
+import SwiftUI
+
+// MARK: - ChangeHandlersKey
+
+/// A key used to store a color well's change handlers in an environment.
+@available(macOS 10.15, *)
+private struct ChangeHandlersKey: EnvironmentKey {
+    static let defaultValue = [(NSColor) -> Void]()
+}
+
+// MARK: - ColorWellStyleConfigurationKey
+
+/// A key used to store a color well's style in an environment.
+@available(macOS 10.15, *)
+private struct ColorWellStyleConfigurationKey: EnvironmentKey {
+    static let defaultValue = ColorWellStyleConfiguration()
+}
+
+// MARK: - SwatchColorsKey
+
+/// A key used to store a color well's swatch colors in an environment.
+@available(macOS 11.0, *)
+private struct SwatchColorsKey: EnvironmentKey {
+    static let defaultValue: [NSColor]? = nil
+}
+
+// MARK: - EnvironmentValues
+
+@available(macOS 10.15, *)
+extension EnvironmentValues {
+    /// The change handlers to add to the color wells in this environment.
+    internal var changeHandlers: [(NSColor) -> Void] {
+        get { self[ChangeHandlersKey.self] }
+        set { self[ChangeHandlersKey.self] = newValue }
+    }
+
+    /// The style configuration to apply to the color wells in this environment.
+    internal var colorWellStyleConfiguration: ColorWellStyleConfiguration {
+        get { self[ColorWellStyleConfigurationKey.self] }
+        set { self[ColorWellStyleConfigurationKey.self] = newValue }
+    }
+
+    /// The swatch colors to apply to the color wells in this environment.
+    @available(macOS 11.0, *)
+    internal var swatchColors: [NSColor]? {
+        get { self[SwatchColorsKey.self] }
+        set { self[SwatchColorsKey.self] = newValue }
+    }
+}
+#endif

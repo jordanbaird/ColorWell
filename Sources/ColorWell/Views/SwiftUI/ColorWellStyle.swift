@@ -3,6 +3,8 @@
 // ColorWell
 //
 
+#if canImport(SwiftUI)
+
 // MARK: - ColorWellStyle
 
 /// A type that specifies the appearance and behavior of a color well.
@@ -81,3 +83,4 @@ extension ColorWellStyle where Self == ColorPanelColorWellStyle {
         ColorPanelColorWellStyle()
     }
 }
+#endif

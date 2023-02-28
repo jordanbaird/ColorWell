@@ -3,6 +3,7 @@
 // ColorWell
 //
 
+#if canImport(SwiftUI)
 /// Values that configure a color well's style.
 public struct ColorWellStyleConfiguration {
     /// The underlying style of the color well.
@@ -16,3 +17,4 @@ public struct ColorWellStyleConfiguration {
         self.style = style
     }
 }
+#endif
