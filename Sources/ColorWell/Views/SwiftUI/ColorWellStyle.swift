@@ -29,32 +29,18 @@ public protocol ColorWellStyle {
     var _configuration: _ColorWellStyleConfiguration { get }
 }
 
-// MARK: - Hidden Namespace
-
-/// A namespace for the various color well style types.
-///
-/// This exists because Swift Package Manager's diagnostics were getting
-/// confused. All types contained within are exposed globally via public
-/// typealiases, so use those instead (i.e. use ``ExpandedColorWellStyle``
-/// instead of `_ColorWellStyle.ExpandedStyle`).
-public enum _ColorWellStyle { }
-
 // MARK: - ExpandedColorWellStyle
-
-extension _ColorWellStyle {
-    /// A color well style that displays the color well's color alongside
-    /// a dedicated button that toggles the system color panel.
-    public struct ExpandedStyle: ColorWellStyle {
-        public let _configuration = _ColorWellStyleConfiguration(style: .expanded)
-
-        /// Creates the ``ColorWellStyle/swatches`` color well style.
-        public init() { }
-    }
-}
 
 /// A color well style that displays the color well's color alongside
 /// a dedicated button that toggles the system color panel.
-public typealias ExpandedColorWellStyle = _ColorWellStyle.ExpandedStyle
+///
+/// You can also use ``expanded`` to construct this style.
+public struct ExpandedColorWellStyle: ColorWellStyle {
+    public let _configuration = _ColorWellStyleConfiguration(style: .expanded)
+
+    /// Creates an instance of the expanded color well style.
+    public init() { }
+}
 
 extension ColorWellStyle where Self == ExpandedColorWellStyle {
     /// A color well style that displays the color well's color alongside
@@ -69,22 +55,17 @@ extension ColorWellStyle where Self == ExpandedColorWellStyle {
 
 // MARK: - SwatchesColorWellStyle
 
-extension _ColorWellStyle {
-    /// A color well style that displays the color well's color inside of a
-    /// rectangular control, and shows a popover containing the color well's
-    /// swatch colors when clicked.
-    public struct SwatchesStyle: ColorWellStyle {
-        public let _configuration = _ColorWellStyleConfiguration(style: .swatches)
-
-        /// Creates the ``ColorWellStyle/swatches`` color well style.
-        public init() { }
-    }
-}
-
 /// A color well style that displays the color well's color inside of a
 /// rectangular control, and shows a popover containing the color well's
 /// swatch colors when clicked.
-public typealias SwatchesColorWellStyle = _ColorWellStyle.SwatchesStyle
+///
+/// You can also use ``swatches`` to construct this style.
+public struct SwatchesColorWellStyle: ColorWellStyle {
+    public let _configuration = _ColorWellStyleConfiguration(style: .swatches)
+
+    /// Creates an instance of the swatches color well style.
+    public init() { }
+}
 
 extension ColorWellStyle where Self == SwatchesColorWellStyle {
     /// A color well style that displays the color well's color inside of a
@@ -97,26 +78,22 @@ extension ColorWellStyle where Self == SwatchesColorWellStyle {
 
 // MARK: - ColorPanelColorWellStyle
 
-extension _ColorWellStyle {
-    /// A color well style that displays the color well's color inside of a
-    /// rectangular control, and toggles the system color panel when clicked.
-    public struct ColorPanelStyle: ColorWellStyle {
-        public let _configuration = _ColorWellStyleConfiguration(style: .colorPanel)
-
-        /// Creates the ``ColorWellStyle/colorPanel`` color well style.
-        public init() { }
-    }
-}
-
 /// A color well style that displays the color well's color inside of a
 /// rectangular control, and toggles the system color panel when clicked.
-public typealias ColorPanelColorWellStyle = _ColorWellStyle.ColorPanelStyle
+///
+/// You can also use ``colorPanel`` to construct this style.
+public struct PanelColorWellStyle: ColorWellStyle {
+    public let _configuration = _ColorWellStyleConfiguration(style: .colorPanel)
 
-extension ColorWellStyle where Self == ColorPanelColorWellStyle {
+    /// Creates an instance of the color panel color well style.
+    public init() { }
+}
+
+extension ColorWellStyle where Self == PanelColorWellStyle {
     /// A color well style that displays the color well's color inside of a
     /// rectangular control, and toggles the system color panel when clicked.
-    public static var colorPanel: ColorPanelColorWellStyle {
-        ColorPanelColorWellStyle()
+    public static var colorPanel: PanelColorWellStyle {
+        PanelColorWellStyle()
     }
 }
 #endif

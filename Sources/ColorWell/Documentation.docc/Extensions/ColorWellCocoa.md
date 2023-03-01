@@ -4,14 +4,16 @@
 
 ### Required Initializers
 
-- ``init(frame:color:)``
+- ``init(frame:color:style:)``
 - ``init(coder:)``
 
 ### Convenience Initializers
 
-- ``init()``
 - ``init(frame:)``
 - ``init(color:)``
+- ``init(style:)``
+- ``init()``
+- ``init(frame:color:)``
 - ``init(cgColor:)``
 - ``init(ciColor:)``
 - ``init(_:)``
@@ -24,6 +26,7 @@
 - ``isActive``
 - ``isEnabled``
 - ``showsAlpha``
+- ``style-swift.property``
 - ``swatchColors``
 
 ### Instance Methods

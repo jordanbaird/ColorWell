@@ -6,7 +6,7 @@
 
 - ``ExpandedColorWellStyle``
 - ``SwatchesColorWellStyle``
-- ``ColorPanelColorWellStyle``
+- ``PanelColorWellStyle``
 
 ### Creating a color well style
 

@@ -293,7 +293,7 @@ public class ColorWell: _ColorWellBaseView {
 
     // MARK: Initializers
 
-    /// Creates a color well with the given frame, color, and style.
+    /// Creates a color well with the specified frame, color, and style.
     ///
     /// - Parameters:
     ///   - frameRect: The frame rectangle for the created color panel.
@@ -306,7 +306,7 @@ public class ColorWell: _ColorWellBaseView {
         sharedInit()
     }
 
-    /// Creates a color well with the given frame and color.
+    /// Creates a color well with the specified frame and color.
     ///
     /// - Parameters:
     ///   - frameRect: The frame rectangle for the created color panel.
@@ -315,33 +315,33 @@ public class ColorWell: _ColorWellBaseView {
         self.init(frame: frameRect, color: color, style: Self.defaultStyle)
     }
 
-    /// Creates a color well with the given frame.
+    /// Creates a color well with the specified frame.
     ///
     /// - Parameter frameRect: The frame rectangle for the created color panel.
     public override convenience init(frame frameRect: NSRect) {
         self.init(frame: frameRect, color: Self.defaultColor)
     }
 
-    /// Creates a color well with the default frame, color, and style.
+    /// Creates a color well using a default frame, color, and style.
     public convenience init() {
         self.init(frame: Self.defaultFrame)
     }
 
-    /// Creates a color well with the given style.
+    /// Creates a color well with the specified style.
     ///
     /// - Parameter style: The style to use to display the color well.
     public convenience init(style: Style) {
         self.init(frame: Self.defaultFrame, color: Self.defaultColor, style: style)
     }
 
-    /// Creates a color well with the given color.
+    /// Creates a color well with the specified color.
     ///
     /// - Parameter color: The initial value of the color well's color.
     public convenience init(color: NSColor) {
         self.init(frame: Self.defaultFrame, color: color)
     }
 
-    /// Creates a color well with the given `CoreGraphics` color.
+    /// Creates a color well with the specified Core Graphics color.
     ///
     /// - Parameter cgColor: The initial value of the color well's color.
     public convenience init?(cgColor: CGColor) {
@@ -351,15 +351,32 @@ public class ColorWell: _ColorWellBaseView {
         self.init(color: color)
     }
 
-    /// Creates a color well with the given `CoreImage` color.
+    /// Creates a color well with the specified Core Image color.
     ///
     /// - Parameter ciColor: The initial value of the color well's color.
     public convenience init(ciColor: CIColor) {
+        // FIXME: This initializer should really be failable.
+        // It isn't because `NSColor(ciColor:)` also isn't (instead it
+        // raises an exception). Ideally, this should be deprecated and
+        // replaced with a failable version that attempts to create a
+        // CGColor, then delegates to `init(cgColor:)` if it succeeds.
+        //
+        // Something like this:
+        //
+        /// ```swift
+        /// public convenience init?(ciColor: CIColor) {
+        ///     guard let cgColor = CGColor(colorSpace: ciColor.colorSpace, components: ciColor.components) else {
+        ///         return nil
+        ///     }
+        ///     self.init(cgColor: cgColor)
+        /// }
+        /// ```
+        //
         self.init(color: NSColor(ciColor: ciColor))
     }
 
     #if canImport(SwiftUI)
-    /// Creates a color well with the given `SwiftUI` color.
+    /// Creates a color well with the specified `SwiftUI` color.
     ///
     /// - Parameter color: The initial value of the color well's color.
     @available(macOS 11.0, *)

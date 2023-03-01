@@ -2,6 +2,10 @@
 
 ## Topics
 
-### Creating the `expanded` color well style
+### Getting the style
 
 - ``ColorWellStyle/expanded``
+
+### Creating an expanded color well style
+
+- ``init()``

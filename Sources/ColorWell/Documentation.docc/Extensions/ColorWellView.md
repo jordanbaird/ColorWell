@@ -61,6 +61,24 @@
 - ``swatchColors(_:)``
 - ``onColorChange(perform:)``
 
-### Color well styles
+### Styling color wells
+
+You can customize a color well's appearance using one of the standard color well styles, like ``ColorWellStyle/swatches``, and apply the style with the ``colorWellStyle(_:)`` modifier:
+
+```swift
+HStack {
+    ColorWellView("Foreground", color: .blue)
+    ColorWellView("Background", color: .blue)
+}
+.colorWellStyle(.swatches)
+```
+
+If you apply the style to a container view, as in the example above, all the color wells in the container use the style:
+
+![Two color wells, both displayed in the swatches style](swatches-style)
 
 - ``ColorWellStyle``
+
+### A color well's content view
+
+- ``body``

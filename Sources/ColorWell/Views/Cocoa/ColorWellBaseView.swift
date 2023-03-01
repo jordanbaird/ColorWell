@@ -12,7 +12,12 @@ import Cocoa
 /// in front of its name indicates that this is a private API, and subject
 /// to change. This class exists to enable public properties and methods to
 /// be overridden without polluting the package's documentation.
-public class _ColorWellBaseView: NSView { }
+public class _ColorWellBaseView: NSView {
+    // TODO: Implement standin for `init(coder:)`
+    // required convenience init?(_coder: NSCoder) {
+    //     self.init(coder: _coder)
+    // }
+}
 
 // MARK: Instance Properties
 extension _ColorWellBaseView {
