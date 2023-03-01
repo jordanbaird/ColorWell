@@ -18,7 +18,7 @@ import SwiftUI
 /// ** For internal use only **
 @available(macOS 10.15, *)
 internal struct ColorWellViewLayout: View {
-    /// The values used to construct the layout view.
+    /// The model used to construct the color well.
     let model: ColorWellViewModel
 
     /// The layout view's content view.
@@ -38,12 +38,7 @@ internal struct ColorWellViewLayout: View {
         }
     }
 
-    /// Creates a layout view that validates the given label candidate's
-    /// type to ensure that it meets the criteria to be included as part
-    /// of the constructed view.
-    ///
-    /// If the candidate fails validation, only the content view will be
-    /// included in the final constructed view.
+    /// Creates a layout view from the given model.
     init(model: ColorWellViewModel) {
         self.model = model
     }

@@ -32,7 +32,7 @@ internal struct ColorWellRepresentable: NSViewRepresentable {
 
     // MARK: Initializers
 
-    /// Creates a color well representable view using the given context.
+    /// Creates a color well representable view using the given model.
     init(model: ColorWellViewModel) {
         self.model = model
         if let showsAlpha = model.showsAlpha {
@@ -46,27 +46,27 @@ internal struct ColorWellRepresentable: NSViewRepresentable {
 
     /// Creates and returns this view's underlying color well.
     func makeNSView(context: Context) -> ColorWell {
-        let nsView: ColorWell
-        if let color = model.color {
-            nsView = ColorWell(color: color)
+        let colorWell: ColorWell
+        if let color = model.take(\.color) {
+            colorWell = ColorWell(color: color)
         } else {
-            nsView = ColorWell()
+            colorWell = ColorWell()
         }
-        updateNSView(nsView, context: context)
-        return nsView
+        updateNSView(colorWell, context: context)
+        return colorWell
     }
 
     /// Updates the color well's configuration to the most recent
     /// values stored in the environment.
-    func updateNSView(_ nsView: ColorWell, context: Context) {
-        updateStyle(nsView, context: context)
-        updateChangeHandlers(nsView, context: context)
-        updateSwatchColors(nsView, context: context)
+    func updateNSView(_ colorWell: ColorWell, context: Context) {
+        updateStyle(colorWell, context: context)
+        updateChangeHandlers(colorWell, context: context)
+        updateSwatchColors(colorWell, context: context)
 
-        nsView.isEnabled = context.environment.isEnabled
+        colorWell.isEnabled = context.environment.isEnabled
 
         if shouldUpdateShowsAlpha {
-            nsView.showsAlpha = showsAlpha
+            colorWell.showsAlpha = showsAlpha
         }
     }
 

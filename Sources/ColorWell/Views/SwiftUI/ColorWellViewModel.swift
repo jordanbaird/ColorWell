@@ -11,34 +11,29 @@ import SwiftUI
 
 /// A type containing information used to construct a color well.
 @available(macOS 10.15, *)
-internal struct ColorWellViewModel {
+internal class ColorWellViewModel {
 
     // MARK: Properties
 
     /// The color well's color.
-    let color: NSColor?
+    private(set) var color: NSColor?
 
-    /// An object that validates the type of the model's `label`
-    /// property.
-    let validator: LabelValidator
+    /// An optional action that is passed into the layout view and added
+    /// to the color well.
+    private(set) var action: ((NSColor) -> Void)?
 
-    /// An optional action that is passed into the layout view to
-    /// add to the color well.
-    let action: ((NSColor) -> Void)?
+    /// A binding to a Boolean value indicating whether the color panel
+    /// that belongs to the color well shows alpha values and an opacity
+    /// slider.
+    private(set) var showsAlpha: Binding<Bool>?
 
-    /// A binding to a Boolean value indicating whether the color
-    /// panel that belongs to the color well shows alpha values
-    /// and an opacity slider.
-    let showsAlpha: Binding<Bool>?
+    /// An optional label that is displayed adjacent to the color well,
+    /// represented as an existential type.
+    private var _label: (any View)?
 
-    /// An optional label that is displayed adjacent to the color
-    /// well.
-    ///
-    /// As there are many different types that can be used to create
-    /// the label, its type is validated by the model's `validator`
-    /// to determine whether it is a valid type for display.
+    /// An optional label that is displayed adjacent to the color well.
     var label: (some View)? {
-        validator.label
+        _label?.erased()
     }
 
     /// A view that manages the layout of the color well.
@@ -51,107 +46,71 @@ internal struct ColorWellViewModel {
     /// Creates a model with the given values.
     init(
         color: NSColor?,
-        validator: LabelValidator,
+        label: (some View)?,
         action: ((NSColor) -> Void)?,
         showsAlpha: Binding<Bool>?
     ) {
         self.color = color
-        self.validator = validator
+        self._label = label
         self.action = action
         self.showsAlpha = showsAlpha
     }
 
     /// Creates a model with the default values.
-    init() {
+    convenience init() {
         self.init(
             color: nil,
-            validator: .invalid,
+            label: .invalid,
             action: nil,
             showsAlpha: nil
         )
     }
 
-    /// Creates a model with the given label type and label candidate.
-    ///
-    /// The label will be validated before being displayed. If it fails
-    /// validation, only the color well's content view will be shown.
-    init<Label: View, LabelCandidate: View>(_: Label.Type, label: () -> LabelCandidate) {
-        self.init(
-            color: nil,
-            validator: LabelValidator(Label.self, label: label),
-            action: nil,
-            showsAlpha: nil
-        )
-    }
+    // MARK: Methods
 
-    /// Creates a model with the given label type and label candidate.
-    ///
-    /// The label will be validated before being displayed. If it fails
-    /// validation, only the color well's content view will be shown.
-    init<Label: View, LabelCandidate: View>(_: Label.Type, label: @autoclosure () -> LabelCandidate) {
-        self.init(Label.self, label: label)
-    }
-
-    /// Creates a model with the given label.
-    ///
-    /// The label will be validated before being displayed. If it fails
-    /// validation, only the color well's content view will be shown.
-    init<Label: View>(label: () -> Label) {
-        self.init(Label.self, label: label)
-    }
-
-    /// Creates a model with the given label.
-    ///
-    /// The label will be validated before being displayed. If it fails
-    /// validation, only the color well's content view will be shown.
-    init<Label: View>(label: @autoclosure () -> Label) {
-        self.init(label: label)
+    /// Returns the optional value at the given keypath, removing
+    /// its value from the model after the value is returned.
+    func take<Value>(_ keyPath: KeyPath<ColorWellViewModel, Value?>) -> Value? {
+        defer {
+            if let keyPath = keyPath as? ReferenceWritableKeyPath<ColorWellViewModel, Value?> {
+                self[keyPath: keyPath] = nil
+            }
+        }
+        return self[keyPath: keyPath]
     }
 
     // MARK: Modifiers
 
-    /// Returns a new model with the given color.
+    /// Sets the model's color to the given value.
     func color(_ color: NSColor?) -> Self {
-        Self(
-            color: color,
-            validator: validator,
-            action: action,
-            showsAlpha: showsAlpha
-        )
+        self.color = color
+        return self
     }
 
-    /// Returns a new model with the given color.
+    /// Sets the model's color to the given value.
     @available(macOS 11.0, *)
     func color(_ color: Color?) -> Self {
         self.color(color.map(NSColor.init))
     }
 
-    /// Returns a new model with the given color.
+    /// Sets the model's color to the given value.
     func color(_ color: CGColor?) -> Self {
         self.color(color.flatMap(NSColor.init))
     }
 
-    /// Returns a new model with the given label validator.
-    func validator(_ validator: LabelValidator) -> Self {
-        Self(
-            color: color,
-            validator: validator,
-            action: action,
-            showsAlpha: showsAlpha
-        )
+    /// Sets the model's label to the given value.
+    func label(_ label: some View) -> Self {
+        self._label = label
+        return self
     }
 
-    /// Returns a new model with the given action.
+    /// Sets the model's action to the given value.
     func action(_ action: ((NSColor) -> Void)?) -> Self {
-        Self(
-            color: color,
-            validator: validator,
-            action: action,
-            showsAlpha: showsAlpha
-        )
+        self.action = action
+        return self
     }
 
-    /// Returns a new model with the given action.
+    /// Sets the model's action to the given value.
     func action(_ action: ((Color) -> Void)?) -> Self {
         self.action(action.map { action in
             let converted: (NSColor) -> Void = { color in
@@ -161,7 +120,7 @@ internal struct ColorWellViewModel {
         })
     }
 
-    /// Returns a new model with the given action.
+    /// Sets the model's action to the given value.
     func action(_ action: ((CGColor) -> Void)?) -> Self {
         self.action(action.map { action in
             let converted: (NSColor) -> Void = { color in
@@ -171,54 +130,29 @@ internal struct ColorWellViewModel {
         })
     }
 
-    /// Returns a new model with the given `showsAlpha` binding.
+    /// Sets the model's `showsAlpha` binding to the given value.
     func showsAlpha(_ showsAlpha: Binding<Bool>?) -> Self {
-        Self(
-            color: color,
-            validator: validator,
-            action: action,
-            showsAlpha: showsAlpha
-        )
+        self.showsAlpha = showsAlpha
+        return self
     }
 }
 
-// MARK: - LabelValidator
+// MARK: - ColorWellViewModel InvalidLabel
 
 @available(macOS 10.15, *)
-internal struct LabelValidator {
-    /// A closure that produces the pre-validated label.
-    private let _label: (() -> any View)?
-
-    /// The label validated by this instance.
-    var label: (some View)? { _label?().erased() }
-
-    /// Creates a label validator for the given label type and
-    /// label candidate.
-    init<Label: View, LabelCandidate: View>(_: Label.Type, label: () -> LabelCandidate) {
-        if LabelCandidate.self == Label.self {
-            _label = label().opaque
-        } else {
-            _label = nil
-        }
+extension ColorWellViewModel {
+    /// A type that represents an invalid label that should never be displayed.
+    internal enum _InvalidLabel: View {
+        var body: some View { return self }
     }
 
-    /// Creates a label validator for the given label type and
-    /// label candidate.
-    init<Label: View, LabelCandidate: View>(_: Label.Type, label: @autoclosure () -> LabelCandidate) {
-        self.init(Label.self, label: label)
-    }
-
-    /// Creates label validator that unconditionally invalidates
-    /// its label.
-    init(invalid: ()) { _label = nil }
+    /// A placeholder type for an invalid label that should never be displayed.
+    internal typealias InvalidLabel = _InvalidLabel?
 }
 
 @available(macOS 10.15, *)
-extension LabelValidator {
-    /// A label validator that unconditionally invalidates its
-    /// label.
-    static var invalid: Self {
-        LabelValidator(invalid: ())
-    }
+extension ColorWellViewModel.InvalidLabel {
+    /// A placeholder for an invalid label that should never be displayed.
+    internal static var invalid: Self { .none }
 }
 #endif
