@@ -17,34 +17,22 @@ import SwiftUI
 ///
 /// ** For internal use only **
 @available(macOS 10.15, *)
-internal struct ColorWellViewLayout<Label: View, LabelCandidate: View>: View {
+internal struct ColorWellViewLayout: View {
     /// The values used to construct the layout view.
-    let values: ColorWellViewValues<Label, LabelCandidate>
-
-    /// The layout view's optional label builder.
-    var label: (() -> LabelCandidate)? {
-        if
-            LabelCandidate.self == Label.self,
-            Label.self != NoLabel.self
-        {
-            return values.label
-        } else {
-            return nil
-        }
-    }
+    let context: ColorWellViewContext
 
     /// The layout view's content view.
     var content: some View {
-        ColorWellRepresentable(color: values.color, showsAlpha: values.showsAlpha)
-            .onColorChange(maybePerform: values.action)
+        ColorWellRepresentable(color: context.color, showsAlpha: context.showsAlpha)
+            .onColorChange(maybePerform: context.action)
             .fixedSize()
     }
 
     /// The body of the layout view.
     var body: some View {
-        if let label {
+        if let label = context.label {
             HStack(alignment: .center) {
-                label()
+                label
                 content
             }
         } else {
@@ -58,20 +46,8 @@ internal struct ColorWellViewLayout<Label: View, LabelCandidate: View>: View {
     ///
     /// If the candidate fails validation, only the content view will be
     /// included in the final constructed view.
-    init(values: ColorWellViewValues<Label, LabelCandidate>) {
-        self.values = values
+    init(context: ColorWellViewContext) {
+        self.context = context
     }
-}
-
-// MARK: - NoLabel
-
-/// A special view type whose presence indicates that a `ColorWellView`'s
-/// constructor should not modify the constructed view to include a label.
-///
-/// ** For internal use only **
-@available(macOS 10.15, *)
-internal struct NoLabel: View {
-    /// Accessing this property results in a fatal error.
-    var body: Never { return fatalError() }
 }
 #endif

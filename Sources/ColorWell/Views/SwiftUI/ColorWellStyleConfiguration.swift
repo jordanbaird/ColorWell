@@ -4,6 +4,9 @@
 //
 
 #if canImport(SwiftUI)
+
+// MARK: - ColorWellStyleConfiguration
+
 /// Values that configure a color well's style.
 public struct ColorWellStyleConfiguration {
     /// The underlying style of the color well.
