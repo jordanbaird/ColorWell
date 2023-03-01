@@ -1,5 +1,5 @@
 //
-// ColorWellViewContext.swift
+// ColorWellViewModel.swift
 // ColorWell
 //
 
@@ -7,18 +7,18 @@ import Cocoa
 #if canImport(SwiftUI)
 import SwiftUI
 
-// MARK: - ColorWellViewContext
+// MARK: - ColorWellViewModel
 
-/// A type containing contextual information used to construct a color well.
+/// A type containing information used to construct a color well.
 @available(macOS 10.15, *)
-internal struct ColorWellViewContext {
+internal struct ColorWellViewModel {
 
     // MARK: Properties
 
     /// The color well's color.
     let color: NSColor?
 
-    /// An object that validates the type of the context's `label`
+    /// An object that validates the type of the model's `label`
     /// property.
     let validator: LabelValidator
 
@@ -35,7 +35,7 @@ internal struct ColorWellViewContext {
     /// well.
     ///
     /// As there are many different types that can be used to create
-    /// the label, its type is validated by the context's `validator`
+    /// the label, its type is validated by the model's `validator`
     /// to determine whether it is a valid type for display.
     var label: (some View)? {
         validator.label
@@ -43,12 +43,12 @@ internal struct ColorWellViewContext {
 
     /// A view that manages the layout of the color well.
     var content: some View {
-        ColorWellViewLayout(context: self)
+        ColorWellViewLayout(model: self)
     }
 
     // MARK: Initializers
 
-    /// Creates a context with the given values.
+    /// Creates a model with the given values.
     init(
         color: NSColor?,
         validator: LabelValidator,
@@ -61,7 +61,7 @@ internal struct ColorWellViewContext {
         self.showsAlpha = showsAlpha
     }
 
-    /// Creates a context with the default values.
+    /// Creates a model with the default values.
     init() {
         self.init(
             color: nil,
@@ -71,7 +71,7 @@ internal struct ColorWellViewContext {
         )
     }
 
-    /// Creates a context with the given label type and label candidate.
+    /// Creates a model with the given label type and label candidate.
     ///
     /// The label will be validated before being displayed. If it fails
     /// validation, only the color well's content view will be shown.
@@ -84,7 +84,7 @@ internal struct ColorWellViewContext {
         )
     }
 
-    /// Creates a context with the given label type and label candidate.
+    /// Creates a model with the given label type and label candidate.
     ///
     /// The label will be validated before being displayed. If it fails
     /// validation, only the color well's content view will be shown.
@@ -92,7 +92,7 @@ internal struct ColorWellViewContext {
         self.init(Label.self, label: label)
     }
 
-    /// Creates a context with the given label.
+    /// Creates a model with the given label.
     ///
     /// The label will be validated before being displayed. If it fails
     /// validation, only the color well's content view will be shown.
@@ -100,7 +100,7 @@ internal struct ColorWellViewContext {
         self.init(Label.self, label: label)
     }
 
-    /// Creates a context with the given label.
+    /// Creates a model with the given label.
     ///
     /// The label will be validated before being displayed. If it fails
     /// validation, only the color well's content view will be shown.
@@ -110,7 +110,7 @@ internal struct ColorWellViewContext {
 
     // MARK: Modifiers
 
-    /// Returns a new context with the given color.
+    /// Returns a new model with the given color.
     func color(_ color: NSColor?) -> Self {
         Self(
             color: color,
@@ -120,18 +120,18 @@ internal struct ColorWellViewContext {
         )
     }
 
-    /// Returns a new context with the given color.
+    /// Returns a new model with the given color.
     @available(macOS 11.0, *)
     func color(_ color: Color?) -> Self {
         self.color(color.map(NSColor.init))
     }
 
-    /// Returns a new context with the given color.
+    /// Returns a new model with the given color.
     func color(_ color: CGColor?) -> Self {
         self.color(color.flatMap(NSColor.init))
     }
 
-    /// Returns a new context with the given label validator.
+    /// Returns a new model with the given label validator.
     func validator(_ validator: LabelValidator) -> Self {
         Self(
             color: color,
@@ -141,7 +141,7 @@ internal struct ColorWellViewContext {
         )
     }
 
-    /// Returns a new context with the given action.
+    /// Returns a new model with the given action.
     func action(_ action: ((NSColor) -> Void)?) -> Self {
         Self(
             color: color,
@@ -151,7 +151,7 @@ internal struct ColorWellViewContext {
         )
     }
 
-    /// Returns a new context with the given action.
+    /// Returns a new model with the given action.
     func action(_ action: ((Color) -> Void)?) -> Self {
         self.action(action.map { action in
             let converted: (NSColor) -> Void = { color in
@@ -161,7 +161,7 @@ internal struct ColorWellViewContext {
         })
     }
 
-    /// Returns a new context with the given action.
+    /// Returns a new model with the given action.
     func action(_ action: ((CGColor) -> Void)?) -> Self {
         self.action(action.map { action in
             let converted: (NSColor) -> Void = { color in
@@ -171,7 +171,7 @@ internal struct ColorWellViewContext {
         })
     }
 
-    /// Returns a new context with the given `showsAlpha` binding.
+    /// Returns a new model with the given `showsAlpha` binding.
     func showsAlpha(_ showsAlpha: Binding<Bool>?) -> Self {
         Self(
             color: color,

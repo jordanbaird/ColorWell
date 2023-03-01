@@ -19,18 +19,16 @@ import SwiftUI
 @available(macOS 10.15, *)
 internal struct ColorWellViewLayout: View {
     /// The values used to construct the layout view.
-    let context: ColorWellViewContext
+    let model: ColorWellViewModel
 
     /// The layout view's content view.
     var content: some View {
-        ColorWellRepresentable(context: context)
-            .onColorChange(maybePerform: context.action)
-            .fixedSize()
+        ColorWellRepresentable(model: model).fixedSize()
     }
 
     /// The body of the layout view.
     var body: some View {
-        if let label = context.label {
+        if let label = model.label {
             HStack(alignment: .center) {
                 label
                 content
@@ -46,8 +44,8 @@ internal struct ColorWellViewLayout: View {
     ///
     /// If the candidate fails validation, only the content view will be
     /// included in the final constructed view.
-    init(context: ColorWellViewContext) {
-        self.context = context
+    init(model: ColorWellViewModel) {
+        self.model = model
     }
 }
 #endif

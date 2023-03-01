@@ -21,12 +21,12 @@ public struct ColorWellView<Label: View>: View {
 
     // MARK: Instance Properties
 
-    /// The context used to construct the color well.
-    private let context: ColorWellViewContext
+    /// The model used to construct the color well.
+    private let model: ColorWellViewModel
 
     /// The content view of the color well.
     public var body: some View {
-        context.content
+        model.content
     }
 
     // MARK: Initializers
@@ -34,8 +34,8 @@ public struct ColorWellView<Label: View>: View {
     /// A base level initializer for other initializers to delegate to.
     ///
     /// ** For internal use only **
-    private init(context: ColorWellViewContext) {
-        self.context = context
+    private init(model: ColorWellViewModel) {
+        self.model = model
     }
 }
 
@@ -53,7 +53,7 @@ extension ColorWellView {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            context: ColorWellViewContext(label: label)
+            model: ColorWellViewModel(label: label)
                 .action(action)
         )
     }
@@ -72,7 +72,7 @@ extension ColorWellView {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            context: ColorWellViewContext(label: label)
+            model: ColorWellViewModel(label: label)
                 .showsAlpha(showsAlpha)
                 .action(action)
         )
@@ -90,7 +90,7 @@ extension ColorWellView {
         @ViewBuilder label: () -> Label
     ) {
         self.init(
-            context: ColorWellViewContext(label: label)
+            model: ColorWellViewModel(label: label)
                 .color(color)
         )
     }
@@ -110,7 +110,7 @@ extension ColorWellView {
         @ViewBuilder label: () -> Label
     ) {
         self.init(
-            context: ColorWellViewContext(label: label)
+            model: ColorWellViewModel(label: label)
                 .showsAlpha(showsAlpha)
                 .color(color)
         )
@@ -127,7 +127,7 @@ extension ColorWellView {
         @ViewBuilder label: () -> Label
     ) {
         self.init(
-            context: ColorWellViewContext(label: label)
+            model: ColorWellViewModel(label: label)
                 .color(cgColor)
         )
     }
@@ -146,7 +146,7 @@ extension ColorWellView {
         @ViewBuilder label: () -> Label
     ) {
         self.init(
-            context: ColorWellViewContext(label: label)
+            model: ColorWellViewModel(label: label)
                 .showsAlpha(showsAlpha)
                 .color(cgColor)
         )
@@ -167,7 +167,7 @@ extension ColorWellView {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            context: ColorWellViewContext(label: label)
+            model: ColorWellViewModel(label: label)
                 .color(color)
                 .action(action)
         )
@@ -191,7 +191,7 @@ extension ColorWellView {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            context: ColorWellViewContext(label: label)
+            model: ColorWellViewModel(label: label)
                 .showsAlpha(showsAlpha)
                 .color(color)
                 .action(action)
@@ -218,7 +218,7 @@ extension ColorWellView {
         action: @escaping (CGColor) -> Void
     ) {
         self.init(
-            context: ColorWellViewContext(label: label)
+            model: ColorWellViewModel(label: label)
                 .color(cgColor)
                 .action(action)
         )
@@ -247,7 +247,7 @@ extension ColorWellView {
         action: @escaping (CGColor) -> Void
     ) {
         self.init(
-            context: ColorWellViewContext(label: label)
+            model: ColorWellViewModel(label: label)
                 .showsAlpha(showsAlpha)
                 .color(cgColor)
                 .action(action)
@@ -264,7 +264,7 @@ extension ColorWellView where Label == Never {
     @available(macOS 11.0, *)
     public init(color: Color) {
         self.init(
-            context: ColorWellViewContext()
+            model: ColorWellViewModel()
                 .color(color)
         )
     }
@@ -281,7 +281,7 @@ extension ColorWellView where Label == Never {
         showsAlpha: Binding<Bool>
     ) {
         self.init(
-            context: ColorWellViewContext()
+            model: ColorWellViewModel()
                 .color(color)
                 .showsAlpha(showsAlpha)
         )
@@ -292,7 +292,7 @@ extension ColorWellView where Label == Never {
     /// - Parameter cgColor: The initial value of the color well's color.
     public init(cgColor: CGColor) {
         self.init(
-            context: ColorWellViewContext()
+            model: ColorWellViewModel()
                 .color(cgColor)
         )
     }
@@ -308,7 +308,7 @@ extension ColorWellView where Label == Never {
         showsAlpha: Binding<Bool>
     ) {
         self.init(
-            context: ColorWellViewContext()
+            model: ColorWellViewModel()
                 .color(cgColor)
                 .showsAlpha(showsAlpha)
         )
@@ -326,7 +326,7 @@ extension ColorWellView where Label == Never {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            context: ColorWellViewContext()
+            model: ColorWellViewModel()
                 .color(color)
                 .action(action)
         )
@@ -347,7 +347,7 @@ extension ColorWellView where Label == Never {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            context: ColorWellViewContext()
+            model: ColorWellViewModel()
                 .color(color)
                 .showsAlpha(showsAlpha)
                 .action(action)
@@ -371,7 +371,7 @@ extension ColorWellView where Label == Never {
         action: @escaping (CGColor) -> Void
     ) {
         self.init(
-            context: ColorWellViewContext()
+            model: ColorWellViewModel()
                 .color(cgColor)
                 .action(action)
         )
@@ -397,7 +397,7 @@ extension ColorWellView where Label == Never {
         action: @escaping (CGColor) -> Void
     ) {
         self.init(
-            context: ColorWellViewContext()
+            model: ColorWellViewModel()
                 .color(cgColor)
                 .showsAlpha(showsAlpha)
                 .action(action)
@@ -423,7 +423,7 @@ extension ColorWellView where Label == Text {
         color: Color
     ) {
         self.init(
-            context: ColorWellViewContext(label: Text(title))
+            model: ColorWellViewModel(label: Text(title))
                 .color(color)
         )
     }
@@ -443,7 +443,7 @@ extension ColorWellView where Label == Text {
         showsAlpha: Binding<Bool>
     ) {
         self.init(
-            context: ColorWellViewContext(label: Text(title))
+            model: ColorWellViewModel(label: Text(title))
                 .color(color)
                 .showsAlpha(showsAlpha)
         )
@@ -460,7 +460,7 @@ extension ColorWellView where Label == Text {
         cgColor: CGColor
     ) {
         self.init(
-            context: ColorWellViewContext(label: Text(title))
+            model: ColorWellViewModel(label: Text(title))
                 .color(cgColor)
         )
     }
@@ -479,7 +479,7 @@ extension ColorWellView where Label == Text {
         showsAlpha: Binding<Bool>
     ) {
         self.init(
-            context: ColorWellViewContext(label: Text(title))
+            model: ColorWellViewModel(label: Text(title))
                 .color(cgColor)
                 .showsAlpha(showsAlpha)
         )
@@ -496,7 +496,7 @@ extension ColorWellView where Label == Text {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            context: ColorWellViewContext(label: Text(title))
+            model: ColorWellViewModel(label: Text(title))
                 .action(action)
         )
     }
@@ -515,7 +515,7 @@ extension ColorWellView where Label == Text {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            context: ColorWellViewContext(label: Text(title))
+            model: ColorWellViewModel(label: Text(title))
                 .showsAlpha(showsAlpha)
                 .action(action)
         )
@@ -536,7 +536,7 @@ extension ColorWellView where Label == Text {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            context: ColorWellViewContext(label: Text(title))
+            model: ColorWellViewModel(label: Text(title))
                 .color(color)
                 .action(action)
         )
@@ -560,7 +560,7 @@ extension ColorWellView where Label == Text {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            context: ColorWellViewContext(label: Text(title))
+            model: ColorWellViewModel(label: Text(title))
                 .color(color)
                 .showsAlpha(showsAlpha)
                 .action(action)
@@ -587,7 +587,7 @@ extension ColorWellView where Label == Text {
         action: @escaping (CGColor) -> Void
     ) {
         self.init(
-            context: ColorWellViewContext(label: Text(title))
+            model: ColorWellViewModel(label: Text(title))
                 .color(cgColor)
                 .action(action)
         )
@@ -616,7 +616,7 @@ extension ColorWellView where Label == Text {
         action: @escaping (CGColor) -> Void
     ) {
         self.init(
-            context: ColorWellViewContext(label: Text(title))
+            model: ColorWellViewModel(label: Text(title))
                 .color(cgColor)
                 .showsAlpha(showsAlpha)
                 .action(action)
@@ -637,7 +637,7 @@ extension ColorWellView where Label == Text {
         color: Color
     ) {
         self.init(
-            context: ColorWellViewContext(label: Text(titleKey))
+            model: ColorWellViewModel(label: Text(titleKey))
                 .color(color)
         )
     }
@@ -657,7 +657,7 @@ extension ColorWellView where Label == Text {
         showsAlpha: Binding<Bool>
     ) {
         self.init(
-            context: ColorWellViewContext(label: Text(titleKey))
+            model: ColorWellViewModel(label: Text(titleKey))
                 .color(color)
                 .showsAlpha(showsAlpha)
         )
@@ -674,7 +674,7 @@ extension ColorWellView where Label == Text {
         cgColor: CGColor
     ) {
         self.init(
-            context: ColorWellViewContext(label: Text(titleKey))
+            model: ColorWellViewModel(label: Text(titleKey))
                 .color(cgColor)
         )
     }
@@ -693,7 +693,7 @@ extension ColorWellView where Label == Text {
         showsAlpha: Binding<Bool>
     ) {
         self.init(
-            context: ColorWellViewContext(label: Text(titleKey))
+            model: ColorWellViewModel(label: Text(titleKey))
                 .color(cgColor)
                 .showsAlpha(showsAlpha)
         )
@@ -710,7 +710,7 @@ extension ColorWellView where Label == Text {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            context: ColorWellViewContext(label: Text(titleKey))
+            model: ColorWellViewModel(label: Text(titleKey))
                 .action(action)
         )
     }
@@ -729,7 +729,7 @@ extension ColorWellView where Label == Text {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            context: ColorWellViewContext(label: Text(titleKey))
+            model: ColorWellViewModel(label: Text(titleKey))
                 .showsAlpha(showsAlpha)
                 .action(action)
         )
@@ -750,7 +750,7 @@ extension ColorWellView where Label == Text {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            context: ColorWellViewContext(label: Text(titleKey))
+            model: ColorWellViewModel(label: Text(titleKey))
                 .color(color)
                 .action(action)
         )
@@ -774,7 +774,7 @@ extension ColorWellView where Label == Text {
         action: @escaping (Color) -> Void
     ) {
         self.init(
-            context: ColorWellViewContext(label: Text(titleKey))
+            model: ColorWellViewModel(label: Text(titleKey))
                 .color(color)
                 .showsAlpha(showsAlpha)
                 .action(action)
@@ -801,7 +801,7 @@ extension ColorWellView where Label == Text {
         action: @escaping (CGColor) -> Void
     ) {
         self.init(
-            context: ColorWellViewContext(label: Text(titleKey))
+            model: ColorWellViewModel(label: Text(titleKey))
                 .color(cgColor)
                 .action(action)
         )
@@ -830,7 +830,7 @@ extension ColorWellView where Label == Text {
         action: @escaping (CGColor) -> Void
     ) {
         self.init(
-            context: ColorWellViewContext(label: Text(titleKey))
+            model: ColorWellViewModel(label: Text(titleKey))
                 .color(cgColor)
                 .showsAlpha(showsAlpha)
                 .action(action)

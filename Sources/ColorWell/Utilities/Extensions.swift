@@ -474,6 +474,19 @@ extension NSView {
     }
 }
 
+// MARK: - RangeReplaceableCollection
+
+extension RangeReplaceableCollection {
+    /// Creates a new instance of a collection containing the non-`nil`
+    /// elements of a sequence.
+    ///
+    /// - Parameter elements: The sequence of optional elements for the
+    ///   new collection. `elements` must be finite.
+    internal init<S: Sequence>(compacting elements: S) where S.Element == Element? {
+        self.init(elements.compactMap { $0 })
+    }
+}
+
 // MARK: - Set (Element == NSKeyValueObservation)
 
 extension Set where Element == NSKeyValueObservation {
