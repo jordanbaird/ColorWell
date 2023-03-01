@@ -521,10 +521,5 @@ extension View {
     internal func erased() -> AnyView {
         AnyView(self)
     }
-
-    /// Returns this view as an opaque view type.
-    internal func opaque() -> some View {
-        self
-    }
 }
 #endif

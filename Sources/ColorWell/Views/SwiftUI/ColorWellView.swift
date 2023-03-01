@@ -3,7 +3,6 @@
 // ColorWell
 //
 
-import Cocoa
 #if canImport(SwiftUI)
 import SwiftUI
 
@@ -874,22 +873,14 @@ extension ColorWellView where Label == Text {
 extension View {
     /// Adds an action to color wells within this view.
     ///
-    /// ** For internal use only **
-    internal func onColorChange(maybePerform action: ((NSColor) -> Void)?) -> some View {
-        transformEnvironment(\.changeHandlers) { changeHandlers in
-            guard let action else {
-                return
-            }
-            changeHandlers.append(action)
-        }
-    }
-
-    /// Adds an action to color wells within this view.
-    ///
     /// - Parameter action: An action to perform when a color well's
     ///   color changes. The closure receives the new color as an input.
     public func onColorChange(perform action: @escaping (Color) -> Void) -> some View {
-        onColorChange(maybePerform: passResult(of: Color.init, into: action))
+        transformEnvironment(\.changeHandlers) { changeHandlers in
+            changeHandlers.append { color in
+                action(Color(color))
+            }
+        }
     }
 
     /// Sets the style for color wells within this view.

@@ -3,7 +3,6 @@
 // ColorWell
 //
 
-import Cocoa
 #if canImport(SwiftUI)
 import SwiftUI
 
@@ -90,12 +89,12 @@ internal class ColorWellViewModel {
     /// Sets the model's color to the given value.
     @available(macOS 11.0, *)
     func color(_ color: Color?) -> Self {
-        self.color(color.map(NSColor.init))
+        self.color(color.map { NSColor($0) })
     }
 
     /// Sets the model's color to the given value.
     func color(_ color: CGColor?) -> Self {
-        self.color(color.flatMap(NSColor.init))
+        self.color(color.flatMap { NSColor(cgColor: $0) })
     }
 
     /// Sets the model's label to the given value.

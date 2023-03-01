@@ -57,5 +57,10 @@
 
 ### Modifying a color well
 
+- ``colorWellStyle(_:)``
 - ``swatchColors(_:)``
 - ``onColorChange(perform:)``
+
+### Color well styles
+
+- ``ColorWellStyle``

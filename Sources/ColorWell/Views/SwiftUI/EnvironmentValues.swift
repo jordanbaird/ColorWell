@@ -3,7 +3,6 @@
 // ColorWell
 //
 
-import Cocoa
 #if canImport(SwiftUI)
 import SwiftUI
 
@@ -20,7 +19,7 @@ private struct ChangeHandlersKey: EnvironmentKey {
 /// A key used to store a color well's style in an environment.
 @available(macOS 10.15, *)
 private struct ColorWellStyleConfigurationKey: EnvironmentKey {
-    static let defaultValue = ColorWellStyleConfiguration()
+    static let defaultValue = _ColorWellStyleConfiguration()
 }
 
 // MARK: - SwatchColorsKey
@@ -42,7 +41,7 @@ extension EnvironmentValues {
     }
 
     /// The style configuration to apply to the color wells in this environment.
-    internal var colorWellStyleConfiguration: ColorWellStyleConfiguration {
+    internal var colorWellStyleConfiguration: _ColorWellStyleConfiguration {
         get { self[ColorWellStyleConfigurationKey.self] }
         set { self[ColorWellStyleConfigurationKey.self] = newValue }
     }

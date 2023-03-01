@@ -3,7 +3,6 @@
 // ColorWell
 //
 
-import Cocoa
 #if canImport(SwiftUI)
 import SwiftUI
 
