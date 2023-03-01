@@ -17,24 +17,19 @@ import SwiftUI
 /// for selecting new colors.
 @available(macOS 10.15, *)
 public struct ColorWellView<Label: View>: View {
-
-    // MARK: Instance Properties
-
-    /// The model used to construct the color well.
+    /// The model used to create the color well.
     private let model: ColorWellViewModel
 
     /// The content view of the color well.
     public var body: some View {
-        model.content
-    }
-
-    // MARK: Initializers
-
-    /// A base level initializer for other initializers to delegate to.
-    ///
-    /// ** For internal use only **
-    private init(model: ColorWellViewModel) {
-        self.model = model
+        if let label = model.label {
+            HStack(alignment: .center) {
+                label
+                model.representable
+            }
+        } else {
+            model.representable
+        }
     }
 }
 
@@ -886,7 +881,7 @@ extension View {
     /// Sets the style for color wells within this view.
     public func colorWellStyle<S: ColorWellStyle>(_ style: S) -> some View {
         transformEnvironment(\.colorWellStyleConfiguration) { configuration in
-            configuration = style.configuration
+            configuration = style._configuration
         }
     }
 

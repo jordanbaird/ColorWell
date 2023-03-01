@@ -14,24 +14,24 @@ internal struct ColorWellRepresentable: NSViewRepresentable {
 
     // MARK: Instance Properties
 
-    /// The model used to construct the color well.
-    private let model: ColorWellViewModel
-
-    /// A Boolean value that indicates whether the this view should
-    /// update its underlying color well's `showsAlpha` property whenever
-    /// the view itself updates.
-    var shouldUpdateShowsAlpha: Bool {
-        model.showsAlpha != nil
-    }
+    /// The model used to create the color well.
+    let model: ColorWellViewModel
 
     /// A binding to a Boolean value indicating whether the color panel
     /// that belongs to this view's underlying color well shows alpha
     /// values and an opacity slider.
     @Binding var showsAlpha: Bool
 
+    /// A Boolean value that indicates whether the view should update
+    /// its underlying color well's `showsAlpha` property whenever the
+    /// view itself updates.
+    var shouldUpdateShowsAlpha: Bool {
+        model.showsAlpha != nil
+    }
+
     // MARK: Initializers
 
-    /// Creates a color well representable view using the given model.
+    /// Creates a view using the given model.
     init(model: ColorWellViewModel) {
         self.model = model
         if let showsAlpha = model.showsAlpha {
@@ -61,12 +61,8 @@ internal struct ColorWellRepresentable: NSViewRepresentable {
         updateStyle(colorWell, context: context)
         updateChangeHandlers(colorWell, context: context)
         updateSwatchColors(colorWell, context: context)
-
-        colorWell.isEnabled = context.environment.isEnabled
-
-        if shouldUpdateShowsAlpha {
-            colorWell.showsAlpha = showsAlpha
-        }
+        updateIsEnabled(colorWell, context: context)
+        updateShowsAlpha(colorWell)
     }
 
     /// Updates the color well's style to the most recent configuration
@@ -78,7 +74,7 @@ internal struct ColorWellRepresentable: NSViewRepresentable {
     }
 
     /// Updates the color well's change handlers to the most recent
-    /// values stored in the environment.
+    /// value stored in the environment.
     func updateChangeHandlers(_ colorWell: ColorWell, context: Context) {
         // If an action was added to the model, it can only have happened on
         // initialization, so it should come first.
@@ -96,13 +92,24 @@ internal struct ColorWellRepresentable: NSViewRepresentable {
     }
 
     /// Updates the color well's swatch colors to the most recent
-    /// values stored in the environment.
+    /// value stored in the environment.
     func updateSwatchColors(_ colorWell: ColorWell, context: Context) {
-        if
-            #available(macOS 11.0, *),
-            let swatchColors = context.environment.swatchColors
-        {
+        if let swatchColors = context.environment.swatchColors {
             colorWell.swatchColors = swatchColors
+        }
+    }
+
+    /// Updates the color well's `isEnabled` value to the most recent
+    /// value stored in the environment.
+    func updateIsEnabled(_ colorWell: ColorWell, context: Context) {
+        colorWell.isEnabled = context.environment.isEnabled
+    }
+
+    /// Updates the color well's `showsAlpha` value to the value stored
+    /// by the view's model.
+    func updateShowsAlpha(_ colorWell: ColorWell) {
+        if shouldUpdateShowsAlpha {
+            colorWell.showsAlpha = showsAlpha
         }
     }
 }

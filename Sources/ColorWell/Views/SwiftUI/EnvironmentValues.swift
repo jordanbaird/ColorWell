@@ -25,7 +25,7 @@ private struct ColorWellStyleConfigurationKey: EnvironmentKey {
 // MARK: - SwatchColorsKey
 
 /// A key used to store a color well's swatch colors in an environment.
-@available(macOS 11.0, *)
+@available(macOS 10.15, *)
 private struct SwatchColorsKey: EnvironmentKey {
     static let defaultValue: [NSColor]? = nil
 }
@@ -47,7 +47,6 @@ extension EnvironmentValues {
     }
 
     /// The swatch colors to apply to the color wells in this environment.
-    @available(macOS 11.0, *)
     internal var swatchColors: [NSColor]? {
         get { self[SwatchColorsKey.self] }
         set { self[SwatchColorsKey.self] = newValue }

@@ -35,9 +35,9 @@ internal class ColorWellViewModel {
         _label?.erased()
     }
 
-    /// A view that manages the layout of the color well.
-    var content: some View {
-        ColorWellViewLayout(model: self)
+    /// An `NSViewRepresentable` wrapper around the color well.
+    var representable: some View {
+        ColorWellRepresentable(model: self).fixedSize()
     }
 
     // MARK: Initializers

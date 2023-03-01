@@ -13,7 +13,7 @@ public struct _ColorWellStyleConfiguration {
     internal var style: ColorWell.Style?
 
     /// Creates a style configuration.
-    public init() { }
+    internal init() { }
 
     /// Creates a style configuration for the specified underlying style.
     internal init(style: ColorWell.Style) {
@@ -25,11 +25,8 @@ public struct _ColorWellStyleConfiguration {
 
 /// A type that specifies the appearance and behavior of a color well.
 public protocol ColorWellStyle {
-    /// Values that configure a color well's style.
-    typealias Configuration = _ColorWellStyleConfiguration
-
     /// Values that configure the color well's style.
-    var configuration: Configuration { get }
+    var _configuration: _ColorWellStyleConfiguration { get }
 }
 
 // MARK: - Hidden Namespace
@@ -48,7 +45,7 @@ extension _ColorWellStyle {
     /// A color well style that displays the color well's color alongside
     /// a dedicated button that toggles the system color panel.
     public struct ExpandedStyle: ColorWellStyle {
-        public let configuration = Configuration(style: .expanded)
+        public let _configuration = _ColorWellStyleConfiguration(style: .expanded)
 
         /// Creates the ``ColorWellStyle/swatches`` color well style.
         public init() { }
@@ -77,7 +74,7 @@ extension _ColorWellStyle {
     /// rectangular control, and shows a popover containing the color well's
     /// swatch colors when clicked.
     public struct SwatchesStyle: ColorWellStyle {
-        public let configuration = Configuration(style: .swatches)
+        public let _configuration = _ColorWellStyleConfiguration(style: .swatches)
 
         /// Creates the ``ColorWellStyle/swatches`` color well style.
         public init() { }
@@ -104,7 +101,7 @@ extension _ColorWellStyle {
     /// A color well style that displays the color well's color inside of a
     /// rectangular control, and toggles the system color panel when clicked.
     public struct ColorPanelStyle: ColorWellStyle {
-        public let configuration = Configuration(style: .colorPanel)
+        public let _configuration = _ColorWellStyleConfiguration(style: .colorPanel)
 
         /// Creates the ``ColorWellStyle/colorPanel`` color well style.
         public init() { }
