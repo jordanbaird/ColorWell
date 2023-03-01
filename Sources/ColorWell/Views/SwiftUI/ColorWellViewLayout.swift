@@ -23,7 +23,7 @@ internal struct ColorWellViewLayout: View {
 
     /// The layout view's content view.
     var content: some View {
-        ColorWellRepresentable(color: context.color, showsAlpha: context.showsAlpha)
+        ColorWellRepresentable(context: context)
             .onColorChange(maybePerform: context.action)
             .fixedSize()
     }

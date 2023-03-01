@@ -15,13 +15,15 @@ internal struct ColorWellRepresentable: NSViewRepresentable {
 
     // MARK: Instance Properties
 
-    /// The color used to create this view's underlying color well.
-    let color: NSColor?
+    /// The context used to construct the color well.
+    private let context: ColorWellViewContext
 
     /// A Boolean value that indicates whether the this view should
     /// update its underlying color well's `showsAlpha` property whenever
     /// the view itself updates.
-    let shouldUpdateShowsAlpha: Bool
+    var shouldUpdateShowsAlpha: Bool {
+        context.showsAlpha != nil
+    }
 
     /// A binding to a Boolean value indicating whether the color panel
     /// that belongs to this view's underlying color well shows alpha
@@ -30,16 +32,12 @@ internal struct ColorWellRepresentable: NSViewRepresentable {
 
     // MARK: Initializers
 
-    /// Creates a representable view with the given color, and an
-    /// optional binding that determines the value of the underlying
-    /// color well's `showsAlpha` property.
-    init(color: NSColor?, showsAlpha: Binding<Bool>?) {
-        self.color = color
-        if let showsAlpha {
-            self.shouldUpdateShowsAlpha = true
+    /// Creates a color well representable view using the given context.
+    init(context: ColorWellViewContext) {
+        self.context = context
+        if let showsAlpha = context.showsAlpha {
             self._showsAlpha = showsAlpha
         } else {
-            self.shouldUpdateShowsAlpha = false
             self._showsAlpha = .constant(true)
         }
     }
@@ -49,7 +47,7 @@ internal struct ColorWellRepresentable: NSViewRepresentable {
     /// Creates and returns this view's underlying color well.
     func makeNSView(context: Context) -> ColorWell {
         let nsView: ColorWell
-        if let color {
+        if let color = self.context.color {
             nsView = ColorWell(color: color)
         } else {
             nsView = ColorWell()
