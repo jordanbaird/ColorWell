@@ -1,16 +1,16 @@
 //
-// ColorWellViewModel.swift
+// ColorWellModel.swift
 // ColorWell
 //
 
 #if canImport(SwiftUI)
 import SwiftUI
 
-// MARK: - ColorWellViewModel
+// MARK: - ColorWellModel
 
 /// A type containing information used to construct a color well.
 @available(macOS 10.15, *)
-internal struct ColorWellViewModel {
+internal struct ColorWellModel {
 
     // MARK: Properties
 
@@ -43,14 +43,25 @@ internal struct ColorWellViewModel {
     // MARK: Initializers
 
     init(modifiers: [Modifier]) {
-        modifiers.apply(to: &self)
+        for modifier in modifiers {
+            switch modifier {
+            case .color(let color):
+                self.color = color
+            case .label(let label):
+                self._label = label
+            case .action(let action):
+                self.action = action
+            case .showsAlpha(let showsAlpha):
+                self.showsAlpha = showsAlpha
+            }
+        }
     }
 }
 
-// MARK: - ColorWellViewModel Modifier
+// MARK: - ColorWellModel Modifier
 
 @available(macOS 10.15, *)
-extension ColorWellViewModel {
+extension ColorWellModel {
     internal enum Modifier {
         /// Sets the model's color to the given value.
         case color(NSColor?)
@@ -69,7 +80,7 @@ extension ColorWellViewModel {
 // MARK: - Modifier Constructors
 
 @available(macOS 10.15, *)
-extension ColorWellViewModel.Modifier {
+extension ColorWellModel.Modifier {
     /// Sets the model's color to the given value.
     @available(macOS 11.0, *)
     static func color(_ color: Color?) -> Self {
@@ -79,6 +90,11 @@ extension ColorWellViewModel.Modifier {
     /// Sets the model's color to the given value.
     static func color(_ cgColor: CGColor?) -> Self {
         Self.color(cgColor.flatMap(NSColor.init))
+    }
+
+    /// Sets the model's label to the view returned from the given closure.
+    static func label(_ label: () -> any View) -> Self {
+        Self.label(label())
     }
 
     /// Sets the model's label to a text view constructed using
@@ -114,29 +130,10 @@ extension ColorWellViewModel.Modifier {
     }
 }
 
-// MARK: - Modifier Instance Methods
+// MARK: - ColorWellModel InvalidLabel
 
 @available(macOS 10.15, *)
-extension ColorWellViewModel.Modifier {
-    /// Applies this modifier to the specified model.
-    func apply(to model: inout ColorWellViewModel) {
-        switch self {
-        case .color(let color):
-            model.color = color
-        case .label(let label):
-            model._label = label
-        case .action(let action):
-            model.action = action
-        case .showsAlpha(let showsAlpha):
-            model.showsAlpha = showsAlpha
-        }
-    }
-}
-
-// MARK: - ColorWellViewModel InvalidLabel
-
-@available(macOS 10.15, *)
-extension ColorWellViewModel {
+extension ColorWellModel {
     /// A type that represents an invalid label that should never be displayed.
     internal enum _InvalidLabel: View {
         var body: some View { return self }
@@ -147,20 +144,8 @@ extension ColorWellViewModel {
 }
 
 @available(macOS 10.15, *)
-extension ColorWellViewModel.InvalidLabel {
+extension ColorWellModel.InvalidLabel {
     /// A placeholder for an invalid label that should never be displayed.
     internal static var invalid: Self { .none }
-}
-
-// MARK: - Sequence (Element == ColorWellViewModel.Modifier)
-
-@available(macOS 10.15, *)
-extension Sequence where Element == ColorWellViewModel.Modifier {
-    /// Applies the modifiers in the sequence to the specified model.
-    func apply(to model: inout ColorWellViewModel) {
-        for element in self {
-            element.apply(to: &model)
-        }
-    }
 }
 #endif

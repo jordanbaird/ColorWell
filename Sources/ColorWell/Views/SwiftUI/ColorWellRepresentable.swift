@@ -13,7 +13,7 @@ internal struct ColorWellRepresentable: NSViewRepresentable {
     // MARK: Instance Properties
 
     /// The model used to create the color well.
-    let model: ColorWellViewModel
+    let model: ColorWellModel
 
     /// A binding to a Boolean value indicating whether the color panel
     /// that belongs to this view's underlying color well shows alpha
@@ -30,7 +30,7 @@ internal struct ColorWellRepresentable: NSViewRepresentable {
     // MARK: Initializers
 
     /// Creates a view using the given model.
-    init(model: ColorWellViewModel) {
+    init(model: ColorWellModel) {
         self.model = model
         if let showsAlpha = model.showsAlpha {
             self._showsAlpha = showsAlpha
