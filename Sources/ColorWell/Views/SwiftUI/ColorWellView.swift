@@ -31,6 +31,10 @@ public struct ColorWellView<Label: View>: View {
             model.representable
         }
     }
+
+    private init(modifiers: [ColorWellViewModel.Modifier]) {
+        model = ColorWellViewModel(modifiers: modifiers)
+    }
 }
 
 // MARK: ColorWellView (Label: View)
@@ -46,11 +50,10 @@ extension ColorWellView {
         @ViewBuilder label: () -> Label,
         action: @escaping (Color) -> Void
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .label(label())
-                .action(action)
-        )
+        self.init(modifiers: [
+            .label(label()),
+            .action(action),
+        ])
     }
 
     /// Creates a color well that uses the provided view as its label,
@@ -66,12 +69,11 @@ extension ColorWellView {
         @ViewBuilder label: () -> Label,
         action: @escaping (Color) -> Void
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .showsAlpha(showsAlpha)
-                .label(label())
-                .action(action)
-        )
+        self.init(modifiers: [
+            .showsAlpha(showsAlpha),
+            .label(label()),
+            .action(action),
+        ])
     }
 
     /// Creates a color well with an initial color value, with the provided
@@ -85,11 +87,10 @@ extension ColorWellView {
         color: Color,
         @ViewBuilder label: () -> Label
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .color(color)
-                .label(label())
-        )
+        self.init(modifiers: [
+            .color(color),
+            .label(label()),
+        ])
     }
 
     /// Creates a color well with an initial color value, with the provided
@@ -106,12 +107,11 @@ extension ColorWellView {
         color: Color,
         @ViewBuilder label: () -> Label
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .showsAlpha(showsAlpha)
-                .color(color)
-                .label(label())
-        )
+        self.init(modifiers: [
+            .showsAlpha(showsAlpha),
+            .color(color),
+            .label(label()),
+        ])
     }
 
     /// Creates a color well with an initial color value, with the provided
@@ -124,11 +124,10 @@ extension ColorWellView {
         cgColor: CGColor,
         @ViewBuilder label: () -> Label
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .color(cgColor)
-                .label(label())
-        )
+        self.init(modifiers: [
+            .color(cgColor),
+            .label(label()),
+        ])
     }
 
     /// Creates a color well with an initial color value, with the provided
@@ -144,12 +143,11 @@ extension ColorWellView {
         cgColor: CGColor,
         @ViewBuilder label: () -> Label
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .showsAlpha(showsAlpha)
-                .color(cgColor)
-                .label(label())
-        )
+        self.init(modifiers: [
+            .showsAlpha(showsAlpha),
+            .color(cgColor),
+            .label(label()),
+        ])
     }
 
     /// Creates a color well with an initial color value, with the provided view
@@ -166,12 +164,11 @@ extension ColorWellView {
         @ViewBuilder label: () -> Label,
         action: @escaping (Color) -> Void
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .color(color)
-                .label(label())
-                .action(action)
-        )
+        self.init(modifiers: [
+            .color(color),
+            .label(label()),
+            .action(action),
+        ])
     }
 
     /// Creates a color well with an initial color value, with the provided view
@@ -191,13 +188,12 @@ extension ColorWellView {
         @ViewBuilder label: () -> Label,
         action: @escaping (Color) -> Void
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .showsAlpha(showsAlpha)
-                .color(color)
-                .label(label())
-                .action(action)
-        )
+        self.init(modifiers: [
+            .showsAlpha(showsAlpha),
+            .color(color),
+            .label(label()),
+            .action(action),
+        ])
     }
 
     /// Creates a color well with an initial color value, with the provided view
@@ -219,12 +215,11 @@ extension ColorWellView {
         @ViewBuilder label: () -> Label,
         action: @escaping (CGColor) -> Void
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .color(cgColor)
-                .label(label())
-                .action(action)
-        )
+        self.init(modifiers: [
+            .color(cgColor),
+            .label(label()),
+            .action(action),
+        ])
     }
 
     /// Creates a color well with an initial color value, with the provided view
@@ -249,13 +244,12 @@ extension ColorWellView {
         @ViewBuilder label: () -> Label,
         action: @escaping (CGColor) -> Void
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .showsAlpha(showsAlpha)
-                .color(cgColor)
-                .label(label())
-                .action(action)
-        )
+        self.init(modifiers: [
+            .showsAlpha(showsAlpha),
+            .color(cgColor),
+            .label(label()),
+            .action(action),
+        ])
     }
 }
 
@@ -267,10 +261,7 @@ extension ColorWellView where Label == Never {
     /// - Parameter color: The initial value of the color well's color.
     @available(macOS 11.0, *)
     public init(color: Color) {
-        self.init(
-            model: ColorWellViewModel()
-                .color(color)
-        )
+        self.init(modifiers: [.color(color)])
     }
 
     /// Creates a color well with an initial color value.
@@ -284,21 +275,17 @@ extension ColorWellView where Label == Never {
         color: Color,
         showsAlpha: Binding<Bool>
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .color(color)
-                .showsAlpha(showsAlpha)
-        )
+        self.init(modifiers: [
+            .color(color),
+            .showsAlpha(showsAlpha),
+        ])
     }
 
     /// Creates a color well with an initial color value.
     ///
     /// - Parameter cgColor: The initial value of the color well's color.
     public init(cgColor: CGColor) {
-        self.init(
-            model: ColorWellViewModel()
-                .color(cgColor)
-        )
+        self.init(modifiers: [.color(cgColor)])
     }
 
     /// Creates a color well with an initial color value.
@@ -311,11 +298,10 @@ extension ColorWellView where Label == Never {
         cgColor: CGColor,
         showsAlpha: Binding<Bool>
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .color(cgColor)
-                .showsAlpha(showsAlpha)
-        )
+        self.init(modifiers: [
+            .color(cgColor),
+            .showsAlpha(showsAlpha),
+        ])
     }
 
     /// Creates a color well with an initial color value, that executes the
@@ -329,11 +315,10 @@ extension ColorWellView where Label == Never {
         color: Color,
         action: @escaping (Color) -> Void
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .color(color)
-                .action(action)
-        )
+        self.init(modifiers: [
+            .color(color),
+            .action(action),
+        ])
     }
 
     /// Creates a color well with an initial color value, that executes the
@@ -350,12 +335,11 @@ extension ColorWellView where Label == Never {
         showsAlpha: Binding<Bool>,
         action: @escaping (Color) -> Void
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .color(color)
-                .showsAlpha(showsAlpha)
-                .action(action)
-        )
+        self.init(modifiers: [
+            .color(color),
+            .showsAlpha(showsAlpha),
+            .action(action),
+        ])
     }
 
     /// Creates a color well with an initial color value, that executes the
@@ -374,11 +358,10 @@ extension ColorWellView where Label == Never {
         cgColor: CGColor,
         action: @escaping (CGColor) -> Void
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .color(cgColor)
-                .action(action)
-        )
+        self.init(modifiers: [
+            .color(cgColor),
+            .action(action),
+        ])
     }
 
     /// Creates a color well with an initial color value, that executes the
@@ -400,12 +383,11 @@ extension ColorWellView where Label == Never {
         showsAlpha: Binding<Bool>,
         action: @escaping (CGColor) -> Void
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .color(cgColor)
-                .showsAlpha(showsAlpha)
-                .action(action)
-        )
+        self.init(modifiers: [
+            .color(cgColor),
+            .showsAlpha(showsAlpha),
+            .action(action),
+        ])
     }
 }
 
@@ -426,11 +408,10 @@ extension ColorWellView where Label == Text {
         _ title: S,
         color: Color
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .label(Text(title))
-                .color(color)
-        )
+        self.init(modifiers: [
+            .title(title),
+            .color(color),
+        ])
     }
 
     /// Creates a color well with an initial color value, that generates
@@ -447,12 +428,11 @@ extension ColorWellView where Label == Text {
         color: Color,
         showsAlpha: Binding<Bool>
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .label(Text(title))
-                .color(color)
-                .showsAlpha(showsAlpha)
-        )
+        self.init(modifiers: [
+            .title(title),
+            .color(color),
+            .showsAlpha(showsAlpha),
+        ])
     }
 
     /// Creates a color well with an initial color value, that generates
@@ -465,11 +445,10 @@ extension ColorWellView where Label == Text {
         _ title: S,
         cgColor: CGColor
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .label(Text(title))
-                .color(cgColor)
-        )
+        self.init(modifiers: [
+            .title(title),
+            .color(cgColor),
+        ])
     }
 
     /// Creates a color well with an initial color value, that generates
@@ -485,12 +464,11 @@ extension ColorWellView where Label == Text {
         cgColor: CGColor,
         showsAlpha: Binding<Bool>
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .label(Text(title))
-                .color(cgColor)
-                .showsAlpha(showsAlpha)
-        )
+        self.init(modifiers: [
+            .title(title),
+            .color(cgColor),
+            .showsAlpha(showsAlpha),
+        ])
     }
 
     /// Creates a color well that generates its label from a string, and
@@ -503,11 +481,10 @@ extension ColorWellView where Label == Text {
         _ title: S,
         action: @escaping (Color) -> Void
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .label(Text(title))
-                .action(action)
-        )
+        self.init(modifiers: [
+            .title(title),
+            .action(action),
+        ])
     }
 
     /// Creates a color well that generates its label from a string, and
@@ -523,12 +500,11 @@ extension ColorWellView where Label == Text {
         showsAlpha: Binding<Bool>,
         action: @escaping (Color) -> Void
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .label(Text(title))
-                .showsAlpha(showsAlpha)
-                .action(action)
-        )
+        self.init(modifiers: [
+            .title(title),
+            .showsAlpha(showsAlpha),
+            .action(action),
+        ])
     }
 
     /// Creates a color well with an initial color value that generates
@@ -545,12 +521,11 @@ extension ColorWellView where Label == Text {
         color: Color,
         action: @escaping (Color) -> Void
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .label(Text(title))
-                .color(color)
-                .action(action)
-        )
+        self.init(modifiers: [
+            .title(title),
+            .color(color),
+            .action(action),
+        ])
     }
 
     /// Creates a color well with an initial color value that generates
@@ -570,13 +545,12 @@ extension ColorWellView where Label == Text {
         showsAlpha: Binding<Bool>,
         action: @escaping (Color) -> Void
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .label(Text(title))
-                .color(color)
-                .showsAlpha(showsAlpha)
-                .action(action)
-        )
+        self.init(modifiers: [
+            .title(title),
+            .color(color),
+            .showsAlpha(showsAlpha),
+            .action(action),
+        ])
     }
 
     /// Creates a color well with an initial color value that generates
@@ -598,12 +572,11 @@ extension ColorWellView where Label == Text {
         cgColor: CGColor,
         action: @escaping (CGColor) -> Void
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .label(Text(title))
-                .color(cgColor)
-                .action(action)
-        )
+        self.init(modifiers: [
+            .title(title),
+            .color(cgColor),
+            .action(action),
+        ])
     }
 
     /// Creates a color well with an initial color value that generates
@@ -628,13 +601,12 @@ extension ColorWellView where Label == Text {
         showsAlpha: Binding<Bool>,
         action: @escaping (CGColor) -> Void
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .label(Text(title))
-                .color(cgColor)
-                .showsAlpha(showsAlpha)
-                .action(action)
-        )
+        self.init(modifiers: [
+            .title(title),
+            .color(cgColor),
+            .showsAlpha(showsAlpha),
+            .action(action),
+        ])
     }
 
     // MARK: Generate Label From LocalizedStringKey
@@ -650,11 +622,10 @@ extension ColorWellView where Label == Text {
         _ titleKey: LocalizedStringKey,
         color: Color
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .label(Text(titleKey))
-                .color(color)
-        )
+        self.init(modifiers: [
+            .titleKey(titleKey),
+            .color(color),
+        ])
     }
 
     /// Creates a color well with an initial color value, that generates
@@ -671,12 +642,11 @@ extension ColorWellView where Label == Text {
         color: Color,
         showsAlpha: Binding<Bool>
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .label(Text(titleKey))
-                .color(color)
-                .showsAlpha(showsAlpha)
-        )
+        self.init(modifiers: [
+            .titleKey(titleKey),
+            .color(color),
+            .showsAlpha(showsAlpha),
+        ])
     }
 
     /// Creates a color well with an initial color value, that generates
@@ -689,11 +659,10 @@ extension ColorWellView where Label == Text {
         _ titleKey: LocalizedStringKey,
         cgColor: CGColor
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .label(Text(titleKey))
-                .color(cgColor)
-        )
+        self.init(modifiers: [
+            .titleKey(titleKey),
+            .color(cgColor),
+        ])
     }
 
     /// Creates a color well with an initial color value, that generates
@@ -709,12 +678,11 @@ extension ColorWellView where Label == Text {
         cgColor: CGColor,
         showsAlpha: Binding<Bool>
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .label(Text(titleKey))
-                .color(cgColor)
-                .showsAlpha(showsAlpha)
-        )
+        self.init(modifiers: [
+            .titleKey(titleKey),
+            .color(cgColor),
+            .showsAlpha(showsAlpha),
+        ])
     }
 
     /// Creates a color well that generates its label from a localized
@@ -727,11 +695,10 @@ extension ColorWellView where Label == Text {
         _ titleKey: LocalizedStringKey,
         action: @escaping (Color) -> Void
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .label(Text(titleKey))
-                .action(action)
-        )
+        self.init(modifiers: [
+            .titleKey(titleKey),
+            .action(action),
+        ])
     }
 
     /// Creates a color well that generates its label from a localized
@@ -747,12 +714,11 @@ extension ColorWellView where Label == Text {
         showsAlpha: Binding<Bool>,
         action: @escaping (Color) -> Void
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .label(Text(titleKey))
-                .showsAlpha(showsAlpha)
-                .action(action)
-        )
+        self.init(modifiers: [
+            .titleKey(titleKey),
+            .showsAlpha(showsAlpha),
+            .action(action),
+        ])
     }
 
     /// Creates a color well with an initial color value that generates
@@ -769,12 +735,11 @@ extension ColorWellView where Label == Text {
         color: Color,
         action: @escaping (Color) -> Void
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .label(Text(titleKey))
-                .color(color)
-                .action(action)
-        )
+        self.init(modifiers: [
+            .titleKey(titleKey),
+            .color(color),
+            .action(action),
+        ])
     }
 
     /// Creates a color well with an initial color value that generates
@@ -794,13 +759,12 @@ extension ColorWellView where Label == Text {
         showsAlpha: Binding<Bool>,
         action: @escaping (Color) -> Void
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .label(Text(titleKey))
-                .color(color)
-                .showsAlpha(showsAlpha)
-                .action(action)
-        )
+        self.init(modifiers: [
+            .titleKey(titleKey),
+            .color(color),
+            .showsAlpha(showsAlpha),
+            .action(action),
+        ])
     }
 
     /// Creates a color well with an initial color value that generates
@@ -822,12 +786,11 @@ extension ColorWellView where Label == Text {
         cgColor: CGColor,
         action: @escaping (CGColor) -> Void
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .label(Text(titleKey))
-                .color(cgColor)
-                .action(action)
-        )
+        self.init(modifiers: [
+            .titleKey(titleKey),
+            .color(cgColor),
+            .action(action),
+        ])
     }
 
     /// Creates a color well with an initial color value that generates
@@ -852,13 +815,12 @@ extension ColorWellView where Label == Text {
         showsAlpha: Binding<Bool>,
         action: @escaping (CGColor) -> Void
     ) {
-        self.init(
-            model: ColorWellViewModel()
-                .label(Text(titleKey))
-                .color(cgColor)
-                .showsAlpha(showsAlpha)
-                .action(action)
-        )
+        self.init(modifiers: [
+            .titleKey(titleKey),
+            .color(cgColor),
+            .showsAlpha(showsAlpha),
+            .action(action),
+        ])
     }
 }
 

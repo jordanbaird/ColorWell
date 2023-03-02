@@ -44,7 +44,7 @@ internal struct ColorWellRepresentable: NSViewRepresentable {
     /// Creates and returns this view's underlying color well.
     func makeNSView(context: Context) -> ColorWell {
         let colorWell: ColorWell
-        if let color = model.take(\.color) {
+        if let color = model.color {
             colorWell = ColorWell(color: color)
         } else {
             colorWell = ColorWell()

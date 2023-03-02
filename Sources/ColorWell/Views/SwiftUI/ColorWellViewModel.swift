@@ -10,7 +10,7 @@ import SwiftUI
 
 /// A type containing information used to construct a color well.
 @available(macOS 10.15, *)
-internal class ColorWellViewModel {
+internal struct ColorWellViewModel {
 
     // MARK: Properties
 
@@ -42,76 +42,60 @@ internal class ColorWellViewModel {
 
     // MARK: Initializers
 
-    /// Creates a model with the given values.
-    init(
-        color: NSColor?,
-        label: (some View)?,
-        action: ((NSColor) -> Void)?,
-        showsAlpha: Binding<Bool>?
-    ) {
-        self.color = color
-        self._label = label
-        self.action = action
-        self.showsAlpha = showsAlpha
+    init(modifiers: [Modifier]) {
+        modifiers.apply(to: &self)
     }
+}
 
-    /// Creates a model with the default values.
-    convenience init() {
-        self.init(
-            color: nil,
-            label: .invalid,
-            action: nil,
-            showsAlpha: nil
-        )
+// MARK: - ColorWellViewModel Modifier
+
+@available(macOS 10.15, *)
+extension ColorWellViewModel {
+    internal enum Modifier {
+        /// Sets the model's color to the given value.
+        case color(NSColor?)
+
+        /// Sets the model's label to the given view.
+        case label(any View)
+
+        /// Sets the model's action to the given closure.
+        case action(((NSColor) -> Void)?)
+
+        /// Sets the model's `showsAlpha` binding to the given value.
+        case showsAlpha(Binding<Bool>?)
     }
+}
 
-    // MARK: Methods
+// MARK: - Modifier Constructors
 
-    /// Returns the optional value at the given keypath, removing
-    /// its value from the model after the value is returned.
-    func take<Value>(_ keyPath: KeyPath<ColorWellViewModel, Value?>) -> Value? {
-        defer {
-            if let keyPath = keyPath as? ReferenceWritableKeyPath<ColorWellViewModel, Value?> {
-                self[keyPath: keyPath] = nil
-            }
-        }
-        return self[keyPath: keyPath]
-    }
-
-    // MARK: Modifiers
-
-    /// Sets the model's color to the given value.
-    func color(_ color: NSColor?) -> Self {
-        self.color = color
-        return self
-    }
-
+@available(macOS 10.15, *)
+extension ColorWellViewModel.Modifier {
     /// Sets the model's color to the given value.
     @available(macOS 11.0, *)
-    func color(_ color: Color?) -> Self {
-        self.color(color.map { NSColor($0) })
+    static func color(_ color: Color?) -> Self {
+        Self.color(color.map(NSColor.init))
     }
 
     /// Sets the model's color to the given value.
-    func color(_ color: CGColor?) -> Self {
-        self.color(color.flatMap { NSColor(cgColor: $0) })
+    static func color(_ cgColor: CGColor?) -> Self {
+        Self.color(cgColor.flatMap(NSColor.init))
     }
 
-    /// Sets the model's label to the given value.
-    func label(_ label: some View) -> Self {
-        self._label = label
-        return self
+    /// Sets the model's label to a text view constructed using
+    /// the given string.
+    static func title<S: StringProtocol>(_ title: S) -> Self {
+        Self.label(Text(title))
     }
 
-    /// Sets the model's action to the given value.
-    func action(_ action: ((NSColor) -> Void)?) -> Self {
-        self.action = action
-        return self
+    /// Sets the model's label to a text view constructed using
+    /// the given localized string key.
+    static func titleKey(_ titleKey: LocalizedStringKey) -> Self {
+        Self.label(Text(titleKey))
     }
 
-    /// Sets the model's action to the given value.
-    func action(_ action: ((Color) -> Void)?) -> Self {
-        self.action(action.map { action in
+    /// Sets the model's action to the given closure.
+    static func action(_ action: ((Color) -> Void)?) -> Self {
+        Self.action(action.map { action in
             let converted: (NSColor) -> Void = { color in
                 action(Color(color))
             }
@@ -119,20 +103,33 @@ internal class ColorWellViewModel {
         })
     }
 
-    /// Sets the model's action to the given value.
-    func action(_ action: ((CGColor) -> Void)?) -> Self {
-        self.action(action.map { action in
+    /// Sets the model's action to the given closure.
+    static func action(_ action: ((CGColor) -> Void)?) -> Self {
+        Self.action(action.map { action in
             let converted: (NSColor) -> Void = { color in
                 action(color.cgColor)
             }
             return converted
         })
     }
+}
 
-    /// Sets the model's `showsAlpha` binding to the given value.
-    func showsAlpha(_ showsAlpha: Binding<Bool>?) -> Self {
-        self.showsAlpha = showsAlpha
-        return self
+// MARK: - Modifier Instance Methods
+
+@available(macOS 10.15, *)
+extension ColorWellViewModel.Modifier {
+    /// Applies this modifier to the specified model.
+    func apply(to model: inout ColorWellViewModel) {
+        switch self {
+        case .color(let color):
+            model.color = color
+        case .label(let label):
+            model._label = label
+        case .action(let action):
+            model.action = action
+        case .showsAlpha(let showsAlpha):
+            model.showsAlpha = showsAlpha
+        }
     }
 }
 
@@ -153,5 +150,17 @@ extension ColorWellViewModel {
 extension ColorWellViewModel.InvalidLabel {
     /// A placeholder for an invalid label that should never be displayed.
     internal static var invalid: Self { .none }
+}
+
+// MARK: - Sequence (Element == ColorWellViewModel.Modifier)
+
+@available(macOS 10.15, *)
+extension Sequence where Element == ColorWellViewModel.Modifier {
+    /// Applies the modifiers in the sequence to the specified model.
+    func apply(to model: inout ColorWellViewModel) {
+        for element in self {
+            element.apply(to: &model)
+        }
+    }
 }
 #endif
