@@ -72,7 +72,6 @@ extension ColorWellLayoutView {
         if let row {
             removeRow(row)
         }
-
         switch style {
         case .expanded:
             row = addRow(with: [swatchSegment, toggleSegment])
@@ -82,7 +81,6 @@ extension ColorWellLayoutView {
             row = addRow(with: [swatchSegment])
         }
     }
-
 
     /// Updates the bezel layer for the given rectangle.
     func updateBezelLayer(_ dirtyRect: NSRect) {

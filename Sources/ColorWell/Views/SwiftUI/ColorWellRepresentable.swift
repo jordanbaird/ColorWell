@@ -7,8 +7,6 @@
 import SwiftUI
 
 /// An `NSViewRepresentable` wrapper around a `ColorWell`.
-///
-/// ** For internal use only **
 @available(macOS 10.15, *)
 internal struct ColorWellRepresentable: NSViewRepresentable {
 

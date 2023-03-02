@@ -862,7 +862,7 @@ extension ColorWellView where Label == Text {
     }
 }
 
-// MARK: - View Extension
+// MARK: - View Modifiers
 
 @available(macOS 10.15, *)
 extension View {

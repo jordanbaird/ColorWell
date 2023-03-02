@@ -16,7 +16,7 @@ private struct ChangeHandlersKey: EnvironmentKey {
 
 // MARK: - ColorWellStyleConfigurationKey
 
-/// A key used to store a color well's style in an environment.
+/// A key used to store a color well's style configuration in an environment.
 @available(macOS 10.15, *)
 private struct ColorWellStyleConfigurationKey: EnvironmentKey {
     static let defaultValue = _ColorWellStyleConfiguration()

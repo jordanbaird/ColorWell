@@ -124,7 +124,11 @@ extension SwatchSegment {
                 NSImage.drawSwatch(
                     with: displayColor,
                     in: dirtyRect,
-                    clippingTo: NSBezierPath(roundedRect: dirtyRect.insetBy(dx: 3, dy: 3), xRadius: 2, yRadius: 2)
+                    clippingTo: NSBezierPath(
+                        roundedRect: dirtyRect.insetBy(dx: 3, dy: 3),
+                        xRadius: 2,
+                        yRadius: 2
+                    )
                 )
             }
         }

@@ -12,11 +12,8 @@ public struct _ColorWellStyleConfiguration {
     /// The underlying style of the color well.
     internal var style: ColorWell.Style?
 
-    /// Creates a style configuration.
-    internal init() { }
-
     /// Creates a style configuration for the specified underlying style.
-    internal init(style: ColorWell.Style) {
+    internal init(style: ColorWell.Style? = nil) {
         self.style = style
     }
 }
@@ -33,6 +30,9 @@ public protocol ColorWellStyle {
 
 /// A color well style that displays the color well's color alongside
 /// a dedicated button that toggles the system color panel.
+///
+/// Clicking inside the color area displays a popover containing the
+/// color well's swatch colors.
 ///
 /// You can also use ``expanded`` to construct this style.
 public struct ExpandedColorWellStyle: ColorWellStyle {
