@@ -291,7 +291,7 @@ public class ColorWell: _ColorWellBaseView {
         }
     }
 
-    // MARK: Initializers
+    // MARK: Designated Initializers
 
     /// Creates a color well with the specified frame, color, and style.
     ///
@@ -305,6 +305,19 @@ public class ColorWell: _ColorWellBaseView {
         super.init(frame: frameRect)
         sharedInit()
     }
+
+    /// Creates a color well from data in the given coder object.
+    ///
+    /// - Parameter coder: The coder object that contains the color
+    ///   well's configuration details.
+    public required init?(coder: NSCoder) {
+        color = Self.defaultColor
+        style = Self.defaultStyle
+        super.init(coder: coder)
+        sharedInit()
+    }
+
+    // MARK: Convenience Initializers
 
     /// Creates a color well with the specified frame and color.
     ///
@@ -384,17 +397,6 @@ public class ColorWell: _ColorWellBaseView {
         self.init(color: NSColor(color))
     }
     #endif
-
-    /// Creates a color well from data in the given coder object.
-    ///
-    /// - Parameter coder: The coder object that contains the color
-    ///   well's configuration details.
-    public required init?(coder: NSCoder) {
-        color = Self.defaultColor
-        style = Self.defaultStyle
-        super.init(coder: coder)
-        sharedInit()
-    }
 }
 
 // MARK: Private Instance Methods

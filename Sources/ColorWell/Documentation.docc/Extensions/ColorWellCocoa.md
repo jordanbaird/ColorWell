@@ -2,7 +2,7 @@
 
 ## Topics
 
-### Required Initializers
+### Designated Initializers
 
 - ``init(frame:color:style:)``
 - ``init(coder:)``
@@ -34,6 +34,10 @@
 - ``activate(exclusive:)``
 - ``deactivate()``
 - ``onColorChange(perform:)``
+
+### Supporting Types
+
+- ``Style-swift.enum``
 
 ### Partially Deprecated
 
