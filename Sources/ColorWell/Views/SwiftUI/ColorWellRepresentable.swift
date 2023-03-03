@@ -9,12 +9,12 @@ import SwiftUI
 /// An `NSViewRepresentable` wrapper around a `ColorWell`.
 @available(macOS 10.15, *)
 internal struct ColorWellRepresentable: NSViewRepresentable {
-    /// The model used to create the color well.
-    let model: ColorWellModel
+    /// The configuration used to create the color well.
+    let configuration: ColorWellConfiguration
 
     /// Creates and returns this view's underlying color well.
     func makeNSView(context: Context) -> ColorWell {
-        if let color = model.color {
+        if let color = configuration.color {
             return ColorWell(color: color)
         } else {
             return ColorWell()
@@ -42,9 +42,9 @@ internal struct ColorWellRepresentable: NSViewRepresentable {
     /// Updates the color well's change handlers to the most recent
     /// value stored in the environment.
     func updateChangeHandlers(_ colorWell: ColorWell, context: Context) {
-        // If an action was added to the model, it can only have happened on
-        // initialization, so it should come first.
-        var changeHandlers = Array(compacting: [model.action])
+        // If an action was added to the configuration, it can only have
+        // happened on initialization, so it should come first.
+        var changeHandlers = Array(compacting: [configuration.action])
 
         // @ViewBuilder blocks are evaluated from the outside in. This causes
         // the change handlers that were added nearest to the color well in
@@ -72,9 +72,9 @@ internal struct ColorWellRepresentable: NSViewRepresentable {
     }
 
     /// Updates the color well's `showsAlpha` value to the value stored
-    /// by the view's model.
+    /// by the view's configuration.
     func updateShowsAlpha(_ colorWell: ColorWell) {
-        if let showsAlpha = model.showsAlpha {
+        if let showsAlpha = configuration.showsAlpha {
             colorWell.showsAlpha = showsAlpha
         }
     }

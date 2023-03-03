@@ -1,16 +1,16 @@
 //
-// ColorWellModel.swift
+// ColorWellConfiguration.swift
 // ColorWell
 //
 
 #if canImport(SwiftUI)
 import SwiftUI
 
-// MARK: - ColorWellModel
+// MARK: - ColorWellConfiguration
 
-/// A type containing information used to construct a color well.
+/// A type containing information used to create a color well.
 @available(macOS 10.15, *)
-internal struct ColorWellModel {
+internal struct ColorWellConfiguration {
 
     // MARK: Properties
 
@@ -22,11 +22,11 @@ internal struct ColorWellModel {
     let action: ((NSColor) -> Void)?
 
     /// A closure that returns the value of a potential Boolean binding,
-    /// to be accessed through the model's `showsAlpha` property.
+    /// to be accessed through the configuration's `showsAlpha` property.
     private let showsAlphaGetter: () -> Bool?
 
     /// A closure that updates the value of a potential Boolean binding,
-    /// to be set through the model's `showsAlpha` property.
+    /// to be set through the configuration's `showsAlpha` property.
     private let showsAlphaSetter: (Bool?) -> Void
 
     /// An optional label that is displayed adjacent to the color well,
@@ -53,7 +53,7 @@ internal struct ColorWellModel {
 
     /// An `NSViewRepresentable` wrapper around the color well.
     var representable: some View {
-        ColorWellRepresentable(model: self).fixedSize()
+        ColorWellRepresentable(configuration: self).fixedSize()
     }
 
     // MARK: Initializers
@@ -101,21 +101,22 @@ internal struct ColorWellModel {
     }
 }
 
-// MARK: - ColorWellModel Modifier
+// MARK: - ColorWellConfiguration Modifier
 
 @available(macOS 10.15, *)
-extension ColorWellModel {
+extension ColorWellConfiguration {
     internal enum Modifier {
-        /// Sets the model's color to the given value.
+        /// Sets the configuration's color to the given value.
         case color(NSColor?)
 
-        /// Sets the model's action to the given closure.
+        /// Sets the configuration's action to the given closure.
         case action(((NSColor) -> Void)?)
 
-        /// Sets the model's `showsAlpha` binding to the given value.
+        /// Sets the value of the configuration's `showsAlpha`
+        /// property to the value stored by the given binding.
         case showsAlpha(Binding<Bool>?)
 
-        /// Sets the model's label to the given view.
+        /// Sets the configuration's label to the given view.
         case label(any View)
     }
 }
@@ -123,19 +124,19 @@ extension ColorWellModel {
 // MARK: - Modifier Constructors
 
 @available(macOS 10.15, *)
-extension ColorWellModel.Modifier {
-    /// Sets the model's color to the given value.
+extension ColorWellConfiguration.Modifier {
+    /// Sets the configuration's color to the given value.
     @available(macOS 11.0, *)
     static func color(_ color: Color?) -> Self {
         Self.color(color.map(NSColor.init))
     }
 
-    /// Sets the model's color to the given value.
+    /// Sets the configuration's color to the given value.
     static func color(_ cgColor: CGColor?) -> Self {
         Self.color(cgColor.flatMap(NSColor.init))
     }
 
-    /// Sets the model's action to the given closure.
+    /// Sets the configuration's action to the given closure.
     static func action(_ action: ((Color) -> Void)?) -> Self {
         Self.action(action.map { action in
             let converted: (NSColor) -> Void = { color in
@@ -145,7 +146,7 @@ extension ColorWellModel.Modifier {
         })
     }
 
-    /// Sets the model's action to the given closure.
+    /// Sets the configuration's action to the given closure.
     static func action(_ action: ((CGColor) -> Void)?) -> Self {
         Self.action(action.map { action in
             let converted: (NSColor) -> Void = { color in
@@ -155,19 +156,20 @@ extension ColorWellModel.Modifier {
         })
     }
 
-    /// Sets the model's label to the view returned from the given closure.
+    /// Sets the configuration's label to the view returned from
+    /// the given closure.
     static func label(_ label: () -> any View) -> Self {
         Self.label(label())
     }
 
-    /// Sets the model's label to a text view constructed using
-    /// the given string.
+    /// Sets the configuration's label to a text view constructed
+    /// using the given string.
     static func title<S: StringProtocol>(_ title: S) -> Self {
         Self.label(Text(title))
     }
 
-    /// Sets the model's label to a text view constructed using
-    /// the given localized string key.
+    /// Sets the configuration's label to a text view constructed
+    /// using the given localized string key.
     static func titleKey(_ titleKey: LocalizedStringKey) -> Self {
         Self.label(Text(titleKey))
     }
