@@ -25,7 +25,6 @@ internal class ColorWellPopoverViewController: NSViewController {
     }
 }
 
-// MARK: NSPopoverDelegate
 extension ColorWellPopoverViewController: NSPopoverDelegate {
     func popoverDidClose(_ notification: Notification) {
         // Async so that ColorWellSegment's mouseDown method

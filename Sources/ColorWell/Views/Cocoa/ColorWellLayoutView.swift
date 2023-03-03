@@ -8,7 +8,7 @@ import Cocoa
 /// A grid view that displays color well segments side by side.
 internal class ColorWellLayoutView: NSGridView {
 
-    // MARK: Instance Properties
+    // MARK: Properties
 
     /// A segment that displays a color swatch with the color well's
     /// current color selection.

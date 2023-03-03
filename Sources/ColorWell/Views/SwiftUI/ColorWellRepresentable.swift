@@ -9,13 +9,8 @@ import SwiftUI
 /// An `NSViewRepresentable` wrapper around a `ColorWell`.
 @available(macOS 10.15, *)
 internal struct ColorWellRepresentable: NSViewRepresentable {
-
-    // MARK: Instance Properties
-
     /// The model used to create the color well.
     let model: ColorWellModel
-
-    // MARK: Instance Methods
 
     /// Creates and returns this view's underlying color well.
     func makeNSView(context: Context) -> ColorWell {

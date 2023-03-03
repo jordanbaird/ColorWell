@@ -5,8 +5,6 @@
 
 import Foundation
 
-// MARK: - ColorWell Style
-
 extension ColorWell {
     /// Constants that specify the appearance and behavior of a color well.
     @objc public enum Style: Int {
@@ -31,7 +29,6 @@ extension ColorWell {
     }
 }
 
-// MARK: CustomStringConvertible
 extension ColorWell.Style: CustomStringConvertible {
     public var description: String {
         switch self {

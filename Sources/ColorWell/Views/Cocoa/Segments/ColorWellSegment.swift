@@ -8,7 +8,7 @@ import Cocoa
 /// A view that draws a segmented portion of a color well.
 internal class ColorWellSegment: NSView {
 
-    // MARK: Instance Properties
+    // MARK: Properties
 
     /// The segment's color well.
     weak var colorWell: ColorWell?

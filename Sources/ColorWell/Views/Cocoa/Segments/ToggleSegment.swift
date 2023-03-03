@@ -16,7 +16,7 @@ internal class ToggleSegment: ColorWellSegment {
     /// The default width for a toggle segment.
     static let defaultWidth: CGFloat = 20
 
-    // MARK: Instance Properties
+    // MARK: Properties
 
     /// A layer that contains an image indicating that the
     /// segment toggles the color panel.

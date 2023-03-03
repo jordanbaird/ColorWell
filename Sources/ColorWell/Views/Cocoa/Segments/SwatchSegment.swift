@@ -9,7 +9,7 @@ import Cocoa
 /// current color selection.
 internal class SwatchSegment: ColorWellSegment {
 
-    // MARK: Instance Properties
+    // MARK: Properties
 
     /// The cached drawing path of the segment's border.
     private var cachedBorderPath = CachedPath<NSBezierPath>()

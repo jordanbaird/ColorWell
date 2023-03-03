@@ -19,7 +19,7 @@ public class _ColorWellBaseView: NSView {
     // }
 }
 
-// MARK: Instance Properties
+// MARK: Properties
 extension _ColorWellBaseView {
     /// A custom value for the color well's alignment rect insets.
     ///
