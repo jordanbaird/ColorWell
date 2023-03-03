@@ -17,17 +17,12 @@ internal struct ColorWellConfiguration {
     /// The color well's color.
     let color: NSColor?
 
-    /// An optional action that is passed into the layout view and added
-    /// to the color well.
+    /// An optional action to add to the color well.
     let action: ((NSColor) -> Void)?
 
-    /// A closure that returns the value of a potential Boolean binding,
+    /// A closure that returns the value of an optional Boolean binding,
     /// to be accessed through the configuration's `showsAlpha` property.
     private let showsAlphaGetter: () -> Bool?
-
-    /// A closure that updates the value of a potential Boolean binding,
-    /// to be set through the configuration's `showsAlpha` property.
-    private let showsAlphaSetter: (Bool?) -> Void
 
     /// An optional label that is displayed adjacent to the color well,
     /// represented as an existential type.
@@ -37,13 +32,12 @@ internal struct ColorWellConfiguration {
     /// that belongs to the color well shows alpha values and an opacity
     /// slider.
     ///
-    /// This property may be tied to an underlying binding. If this is
-    /// the case, updating the property also updates the binding. If it
-    /// is not tied to a binding, accessing this property will always
-    /// return `nil`, and setting it will have no effect.
+    /// This property gets its value from an optional underlying binding.
+    /// If a binding was not passed into the configuration's initializer
+    /// using the `showsAlpha(_:)` modifier, accessing this property will
+    /// always return `nil`.
     var showsAlpha: Bool? {
-        get { showsAlphaGetter() }
-        set { showsAlphaSetter(newValue) }
+        showsAlphaGetter()
     }
 
     /// An optional label that is displayed adjacent to the color well.
@@ -58,16 +52,19 @@ internal struct ColorWellConfiguration {
 
     // MARK: Initializers
 
+    /// Creates a configuration using the specified modifiers.
+    ///
+    /// If more than one of the same modifier is provided, the one
+    /// which occurs last will be used.
     init(modifiers: [Modifier]) {
         typealias Values = (
             color: NSColor?,
             action: ((NSColor) -> Void)?,
             showsAlphaGetter: () -> Bool?,
-            showsAlphaSetter: (Bool?) -> Void,
             label: (any View)?
         )
 
-        var values: Values = (nil, nil, { nil }, { _ in }, nil)
+        var values: Values = (nil, nil, { nil }, nil)
 
         for modifier in modifiers {
             switch modifier {
@@ -76,18 +73,7 @@ internal struct ColorWellConfiguration {
             case .action(let action):
                 values.action = action
             case .showsAlpha(let showsAlpha):
-                guard let showsAlpha else {
-                    values.showsAlphaGetter = { nil }
-                    values.showsAlphaSetter = { _ in }
-                    continue
-                }
-                values.showsAlphaGetter = { showsAlpha.wrappedValue }
-                values.showsAlphaSetter = { newValue in
-                    guard let newValue else {
-                        return
-                    }
-                    showsAlpha.wrappedValue = newValue
-                }
+                values.showsAlphaGetter = { showsAlpha?.wrappedValue }
             case .label(let label):
                 values.label = label
             }
@@ -96,7 +82,6 @@ internal struct ColorWellConfiguration {
         self.color = values.color
         self.action = values.action
         self.showsAlphaGetter = values.showsAlphaGetter
-        self.showsAlphaSetter = values.showsAlphaSetter
         self._label = values.label
     }
 }
@@ -105,6 +90,7 @@ internal struct ColorWellConfiguration {
 
 @available(macOS 10.15, *)
 extension ColorWellConfiguration {
+    /// A type that modifies a value in a `ColorWellConfiguration`.
     internal enum Modifier {
         /// Sets the configuration's color to the given value.
         case color(NSColor?)
