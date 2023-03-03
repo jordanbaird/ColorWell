@@ -76,18 +76,17 @@ internal struct ColorWellModel {
             case .action(let action):
                 values.action = action
             case .showsAlpha(let showsAlpha):
-                if let showsAlpha {
-                    values.showsAlphaGetter = {
-                        showsAlpha.wrappedValue
-                    }
-                    values.showsAlphaSetter = { newValue in
-                        if let newValue {
-                            showsAlpha.wrappedValue = newValue
-                        }
-                    }
-                } else {
+                guard let showsAlpha else {
                     values.showsAlphaGetter = { nil }
                     values.showsAlphaSetter = { _ in }
+                    continue
+                }
+                values.showsAlphaGetter = { showsAlpha.wrappedValue }
+                values.showsAlphaSetter = { newValue in
+                    guard let newValue else {
+                        return
+                    }
+                    showsAlpha.wrappedValue = newValue
                 }
             case .label(let label):
                 values.label = label
