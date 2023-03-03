@@ -11,11 +11,6 @@
 public struct _ColorWellStyleConfiguration {
     /// The underlying style of the color well.
     internal var style: ColorWell.Style?
-
-    /// Creates a style configuration for the specified underlying style.
-    internal init(style: ColorWell.Style? = nil) {
-        self.style = style
-    }
 }
 
 // MARK: - ColorWellStyle

@@ -15,20 +15,36 @@ internal struct ColorWellModel {
     // MARK: Properties
 
     /// The color well's color.
-    private(set) var color: NSColor?
+    let color: NSColor?
 
     /// An optional action that is passed into the layout view and added
     /// to the color well.
-    private(set) var action: ((NSColor) -> Void)?
+    let action: ((NSColor) -> Void)?
 
-    /// A binding to a Boolean value indicating whether the color panel
-    /// that belongs to the color well shows alpha values and an opacity
-    /// slider.
-    private(set) var showsAlpha: Binding<Bool>?
+    /// A closure that returns the value of a potential Boolean binding,
+    /// to be accessed through the model's `showsAlpha` property.
+    private let showsAlphaGetter: () -> Bool?
+
+    /// A closure that updates the value of a potential Boolean binding,
+    /// to be set through the model's `showsAlpha` property.
+    private let showsAlphaSetter: (Bool?) -> Void
 
     /// An optional label that is displayed adjacent to the color well,
     /// represented as an existential type.
-    private var _label: (any View)?
+    private let _label: (any View)?
+
+    /// An optional Boolean value indicating whether the color panel
+    /// that belongs to the color well shows alpha values and an opacity
+    /// slider.
+    ///
+    /// This property may be tied to an underlying binding. If this is
+    /// the case, updating the property also updates the binding. If it
+    /// is not tied to a binding, accessing this property will always
+    /// return `nil`, and setting it will have no effect.
+    var showsAlpha: Bool? {
+        get { showsAlphaGetter() }
+        set { showsAlphaSetter(newValue) }
+    }
 
     /// An optional label that is displayed adjacent to the color well.
     var label: (some View)? {
@@ -43,18 +59,46 @@ internal struct ColorWellModel {
     // MARK: Initializers
 
     init(modifiers: [Modifier]) {
+        typealias Values = (
+            color: NSColor?,
+            action: ((NSColor) -> Void)?,
+            showsAlphaGetter: () -> Bool?,
+            showsAlphaSetter: (Bool?) -> Void,
+            label: (any View)?
+        )
+
+        var values: Values = (nil, nil, { nil }, { _ in }, nil)
+
         for modifier in modifiers {
             switch modifier {
             case .color(let color):
-                self.color = color
-            case .label(let label):
-                self._label = label
+                values.color = color
             case .action(let action):
-                self.action = action
+                values.action = action
             case .showsAlpha(let showsAlpha):
-                self.showsAlpha = showsAlpha
+                if let showsAlpha {
+                    values.showsAlphaGetter = {
+                        showsAlpha.wrappedValue
+                    }
+                    values.showsAlphaSetter = { newValue in
+                        if let newValue {
+                            showsAlpha.wrappedValue = newValue
+                        }
+                    }
+                } else {
+                    values.showsAlphaGetter = { nil }
+                    values.showsAlphaSetter = { _ in }
+                }
+            case .label(let label):
+                values.label = label
             }
         }
+
+        self.color = values.color
+        self.action = values.action
+        self.showsAlphaGetter = values.showsAlphaGetter
+        self.showsAlphaSetter = values.showsAlphaSetter
+        self._label = values.label
     }
 }
 
@@ -66,14 +110,14 @@ extension ColorWellModel {
         /// Sets the model's color to the given value.
         case color(NSColor?)
 
-        /// Sets the model's label to the given view.
-        case label(any View)
-
         /// Sets the model's action to the given closure.
         case action(((NSColor) -> Void)?)
 
         /// Sets the model's `showsAlpha` binding to the given value.
         case showsAlpha(Binding<Bool>?)
+
+        /// Sets the model's label to the given view.
+        case label(any View)
     }
 }
 
@@ -90,23 +134,6 @@ extension ColorWellModel.Modifier {
     /// Sets the model's color to the given value.
     static func color(_ cgColor: CGColor?) -> Self {
         Self.color(cgColor.flatMap(NSColor.init))
-    }
-
-    /// Sets the model's label to the view returned from the given closure.
-    static func label(_ label: () -> any View) -> Self {
-        Self.label(label())
-    }
-
-    /// Sets the model's label to a text view constructed using
-    /// the given string.
-    static func title<S: StringProtocol>(_ title: S) -> Self {
-        Self.label(Text(title))
-    }
-
-    /// Sets the model's label to a text view constructed using
-    /// the given localized string key.
-    static func titleKey(_ titleKey: LocalizedStringKey) -> Self {
-        Self.label(Text(titleKey))
     }
 
     /// Sets the model's action to the given closure.
@@ -128,24 +155,22 @@ extension ColorWellModel.Modifier {
             return converted
         })
     }
-}
 
-// MARK: - ColorWellModel InvalidLabel
-
-@available(macOS 10.15, *)
-extension ColorWellModel {
-    /// A type that represents an invalid label that should never be displayed.
-    internal enum _InvalidLabel: View {
-        var body: some View { return self }
+    /// Sets the model's label to the view returned from the given closure.
+    static func label(_ label: () -> any View) -> Self {
+        Self.label(label())
     }
 
-    /// A placeholder type for an invalid label that should never be displayed.
-    internal typealias InvalidLabel = _InvalidLabel?
-}
+    /// Sets the model's label to a text view constructed using
+    /// the given string.
+    static func title<S: StringProtocol>(_ title: S) -> Self {
+        Self.label(Text(title))
+    }
 
-@available(macOS 10.15, *)
-extension ColorWellModel.InvalidLabel {
-    /// A placeholder for an invalid label that should never be displayed.
-    internal static var invalid: Self { .none }
+    /// Sets the model's label to a text view constructed using
+    /// the given localized string key.
+    static func titleKey(_ titleKey: LocalizedStringKey) -> Self {
+        Self.label(Text(titleKey))
+    }
 }
 #endif

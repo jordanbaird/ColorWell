@@ -15,42 +15,15 @@ internal struct ColorWellRepresentable: NSViewRepresentable {
     /// The model used to create the color well.
     let model: ColorWellModel
 
-    /// A binding to a Boolean value indicating whether the color panel
-    /// that belongs to this view's underlying color well shows alpha
-    /// values and an opacity slider.
-    @Binding var showsAlpha: Bool
-
-    /// A Boolean value that indicates whether the view should update
-    /// its underlying color well's `showsAlpha` property whenever the
-    /// view itself updates.
-    var shouldUpdateShowsAlpha: Bool {
-        model.showsAlpha != nil
-    }
-
-    // MARK: Initializers
-
-    /// Creates a view using the given model.
-    init(model: ColorWellModel) {
-        self.model = model
-        if let showsAlpha = model.showsAlpha {
-            self._showsAlpha = showsAlpha
-        } else {
-            self._showsAlpha = .constant(true)
-        }
-    }
-
     // MARK: Instance Methods
 
     /// Creates and returns this view's underlying color well.
     func makeNSView(context: Context) -> ColorWell {
-        let colorWell: ColorWell
         if let color = model.color {
-            colorWell = ColorWell(color: color)
+            return ColorWell(color: color)
         } else {
-            colorWell = ColorWell()
+            return ColorWell()
         }
-        updateNSView(colorWell, context: context)
-        return colorWell
     }
 
     /// Updates the color well's configuration to the most recent
@@ -78,10 +51,10 @@ internal struct ColorWellRepresentable: NSViewRepresentable {
         // initialization, so it should come first.
         var changeHandlers = Array(compacting: [model.action])
 
-        // @ViewBuilder variables are evaluated from outside in. This causes
-        // the handlers that were added first in the view hierarchy to be the
-        // last ones added to the environment. Reversing the stored handlers
-        // results in the correct order.
+        // @ViewBuilder blocks are evaluated from the outside in. This causes
+        // the change handlers that were added nearest to the color well in
+        // the view hierarchy to be added last in the environment. Reversing
+        // the stored handlers returns the correct order.
         changeHandlers += context.environment.changeHandlers.reversed()
 
         // Overwrite the current change handlers. DO NOT APPEND, or more and
@@ -106,7 +79,7 @@ internal struct ColorWellRepresentable: NSViewRepresentable {
     /// Updates the color well's `showsAlpha` value to the value stored
     /// by the view's model.
     func updateShowsAlpha(_ colorWell: ColorWell) {
-        if shouldUpdateShowsAlpha {
+        if let showsAlpha = model.showsAlpha {
             colorWell.showsAlpha = showsAlpha
         }
     }
