@@ -8,13 +8,13 @@ import Cocoa
 import SwiftUI
 #endif
 
-/// A view that displays a user-settable color value.
+/// A control that displays a user-selectable color value.
 ///
-/// Color wells enable the user to select custom colors from within an app's
-/// interface. A graphics app might, for example, include a color well to let
-/// someone choose the fill color for a shape. Color wells display the currently
-/// selected color, and interactions with the color well display interfaces
-/// for selecting new colors.
+/// Color wells provide an interface for choosing custom colors directly
+/// within your app's user interface. A color well displays the currently
+/// selected color, and provides options for selecting new colors. There
+/// are a number of styles to choose from, each of which provides a
+/// different appearance and set of behaviors.
 public class ColorWell: _ColorWellBaseView {
 
     // MARK: Static Properties
