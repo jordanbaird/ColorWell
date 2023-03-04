@@ -75,7 +75,7 @@ internal struct ColorWellRepresentable: NSViewRepresentable {
     /// by the view's configuration.
     func updateShowsAlpha(_ colorWell: ColorWell) {
         if let showsAlpha = configuration.showsAlpha {
-            colorWell.showsAlpha = showsAlpha
+            colorWell.showsAlpha = showsAlpha()
         }
     }
 }

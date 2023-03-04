@@ -23,21 +23,10 @@ internal struct ColorWellConfiguration {
     /// An optional label that is displayed adjacent to the color well.
     let label: AnyView?
 
-    /// A closure that returns the value of an optional Boolean binding,
-    /// to be accessed through the configuration's `showsAlpha` property.
-    private let showsAlphaGetter: (() -> Bool)?
-
-    /// An optional Boolean value indicating whether the color panel
-    /// that belongs to the color well shows alpha values and an opacity
-    /// slider.
-    ///
-    /// This property gets its value from an optional underlying binding.
-    /// If a binding was not passed into the configuration's initializer
-    /// using the `showsAlpha(_:)` modifier, accessing this property will
-    /// always return `nil`.
-    var showsAlpha: Bool? {
-        showsAlphaGetter?()
-    }
+    /// A closure that returns the value of an optional Boolean binding
+    /// indicating whether the color panel that belongs to the color well
+    /// shows alpha values and an opacity slider.
+    let showsAlpha: (() -> Bool)?
 
     // MARK: Initializers
 
@@ -50,7 +39,7 @@ internal struct ColorWellConfiguration {
             color: NSColor?,
             action: ((NSColor) -> Void)?,
             label: AnyView?,
-            showsAlphaGetter: (() -> Bool)?
+            showsAlpha: (() -> Bool)?
         )
 
         var values: Values = (nil, nil, nil, nil)
@@ -64,14 +53,14 @@ internal struct ColorWellConfiguration {
             case .label(let label):
                 values.label = label.erased()
             case .showsAlpha(let showsAlpha):
-                values.showsAlphaGetter = { showsAlpha.wrappedValue }
+                values.showsAlpha = { showsAlpha.wrappedValue }
             }
         }
 
         self.color = values.color
         self.action = values.action
         self.label = values.label
-        self.showsAlphaGetter = values.showsAlphaGetter
+        self.showsAlpha = values.showsAlpha
     }
 }
 
