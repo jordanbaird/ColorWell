@@ -16,8 +16,10 @@ internal class ColorWellLayoutView: NSGridView {
     /// A constructor for the layout view's toggle segment.
     private let makeToggleSegment: () -> ToggleSegment?
 
+    /// Backing storage for the layout view's swatch segment.
     private var cachedSwatchSegment: SwatchSegment?
 
+    /// Backing storage for the layout view's toggle segment.
     private var cachedToggleSegment: ToggleSegment?
 
     /// A segment that displays a color swatch with the color well's
