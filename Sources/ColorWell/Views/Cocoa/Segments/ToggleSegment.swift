@@ -97,17 +97,10 @@ extension ToggleSegment {
     }
 
     override func performAction() -> Bool {
-        guard let colorWell else {
+        guard let action = colorWell?.swatchSegment?.action(forStyle: .colorPanel) else {
             return false
         }
-        if colorWell.isActive {
-            colorWell.deactivate()
-            state = .default
-        } else {
-            colorWell.activateAutoVerifyingExclusive()
-            state = .pressed
-        }
-        return true
+        return action()
     }
 }
 

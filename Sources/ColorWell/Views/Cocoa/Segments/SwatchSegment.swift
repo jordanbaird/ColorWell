@@ -89,6 +89,40 @@ extension SwatchSegment {
         popoverContext.popover.show(relativeTo: frame, of: self, preferredEdge: .minY)
     }
 
+    func action(forStyle style: ColorWell.Style?) -> () -> Bool {
+        switch style {
+        case .expanded, .swatches:
+            return { [weak self] in
+                guard let self else {
+                    return false
+                }
+                self.prepareForAction()
+                if self.shouldOverrideShowPopover {
+                    let action = self.action(forStyle: .colorPanel)
+                    return action()
+                } else if self.canShowPopover {
+                    self.makeAndShowPopover()
+                    return true
+                }
+                return false
+            }
+        case .colorPanel:
+            return { [weak colorWell] in
+                guard let colorWell else {
+                    return false
+                }
+                if colorWell.isActive {
+                    colorWell.deactivate()
+                } else {
+                    colorWell.activateAutoVerifyingExclusive()
+                }
+                return true
+            }
+        case .none:
+            return { false }
+        }
+    }
+
     /// Draws the segment's swatch in the given rectangle.
     private func drawSwatch(_ dirtyRect: NSRect) {
         guard let colorWell else {
@@ -259,30 +293,8 @@ extension SwatchSegment {
     }
 
     override func performAction() -> Bool {
-        prepareForAction()
-        if shouldOverrideShowPopover {
-            guard let colorWell else {
-                return false
-            }
-            switch colorWell.style {
-            case .swatches, .expanded:
-                guard let toggleSegment = colorWell.toggleSegment else {
-                    return false
-                }
-                toggleSegment.state = .pressed
-                return toggleSegment.performAction()
-            case .colorPanel:
-                guard let toggleSegment = colorWell.toggleSegment else {
-                    return false
-                }
-                state = .pressed
-                return toggleSegment.performAction()
-            }
-        } else if canShowPopover {
-            makeAndShowPopover()
-            return true
-        }
-        return false
+        let action = action(forStyle: colorWell?.style)
+        return action()
     }
 
     override func mouseDown(with event: NSEvent) {
