@@ -23,10 +23,8 @@ internal struct ColorWellConfiguration {
     /// An optional label that is displayed adjacent to the color well.
     let label: AnyView?
 
-    /// A closure that returns the value of an optional Boolean binding
-    /// indicating whether the color panel that belongs to the color well
-    /// shows alpha values and an opacity slider.
-    let showsAlpha: (() -> Bool)?
+    /// A closure to update the color well's `showsAlpha` value.
+    let updateShowsAlpha: (ColorWell) -> Void
 
     // MARK: Initializers
 
@@ -39,10 +37,10 @@ internal struct ColorWellConfiguration {
             color: NSColor?,
             action: ((NSColor) -> Void)?,
             label: AnyView?,
-            showsAlpha: (() -> Bool)?
+            updateShowsAlpha: (ColorWell) -> Void
         )
 
-        var values: Values = (nil, nil, nil, nil)
+        var values: Values = (nil, nil, nil, { _ in })
 
         for case .some(let modifier) in modifiers {
             switch modifier {
@@ -53,14 +51,16 @@ internal struct ColorWellConfiguration {
             case .label(let label):
                 values.label = label.erased()
             case .showsAlpha(let showsAlpha):
-                values.showsAlpha = { showsAlpha.wrappedValue }
+                values.updateShowsAlpha = { colorWell in
+                    colorWell.showsAlpha = showsAlpha.wrappedValue
+                }
             }
         }
 
         self.color = values.color
         self.action = values.action
         self.label = values.label
-        self.showsAlpha = values.showsAlpha
+        self.updateShowsAlpha = values.updateShowsAlpha
     }
 }
 

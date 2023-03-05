@@ -28,7 +28,7 @@ internal struct ColorWellRepresentable: NSViewRepresentable {
         updateChangeHandlers(colorWell, context: context)
         updateSwatchColors(colorWell, context: context)
         updateIsEnabled(colorWell, context: context)
-        updateShowsAlpha(colorWell)
+        configuration.updateShowsAlpha(colorWell)
     }
 
     /// Updates the color well's style to the most recent configuration
@@ -69,14 +69,6 @@ internal struct ColorWellRepresentable: NSViewRepresentable {
     /// value stored in the environment.
     func updateIsEnabled(_ colorWell: ColorWell, context: Context) {
         colorWell.isEnabled = context.environment.isEnabled
-    }
-
-    /// Updates the color well's `showsAlpha` value to the value stored
-    /// by the view's configuration.
-    func updateShowsAlpha(_ colorWell: ColorWell) {
-        if let showsAlpha = configuration.showsAlpha {
-            colorWell.showsAlpha = showsAlpha()
-        }
     }
 }
 #endif
