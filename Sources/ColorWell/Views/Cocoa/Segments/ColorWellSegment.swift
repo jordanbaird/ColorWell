@@ -104,7 +104,10 @@ internal class ColorWellSegment: NSView {
     // MARK: Initializers
 
     /// Creates a segment for the given color well.
-    init(colorWell: ColorWell) {
+    init?(colorWell: ColorWell?) {
+        guard let colorWell else {
+            return nil
+        }
         self.fillColorGetter = { .colorWellSegmentColor }
         super.init(frame: .zero)
         self.colorWell = colorWell

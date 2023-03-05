@@ -38,7 +38,7 @@ internal class ToggleSegment: ColorWellSegment {
 
     // MARK: Initializer Overrides
 
-    override init(colorWell: ColorWell) {
+    override init?(colorWell: ColorWell?) {
         super.init(colorWell: colorWell)
         // Constraining this segment's width will force the other segment to
         // fill the remaining space.

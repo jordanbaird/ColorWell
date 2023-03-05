@@ -54,7 +54,7 @@ internal class SwatchSegment: ColorWellSegment {
 
     // MARK: Initializer Overrides
 
-    override init(colorWell: ColorWell) {
+    override init?(colorWell: ColorWell?) {
         super.init(colorWell: colorWell)
         registerForDraggedTypes([.color])
     }
@@ -266,11 +266,17 @@ extension SwatchSegment {
             }
             switch colorWell.style {
             case .swatches, .expanded:
-                colorWell.toggleSegment.state = .pressed
-                return colorWell.toggleSegment.performAction()
+                guard let toggleSegment = colorWell.toggleSegment else {
+                    return false
+                }
+                toggleSegment.state = .pressed
+                return toggleSegment.performAction()
             case .colorPanel:
+                guard let toggleSegment = colorWell.toggleSegment else {
+                    return false
+                }
                 state = .pressed
-                return colorWell.toggleSegment.performAction()
+                return toggleSegment.performAction()
             }
         } else if canShowPopover {
             makeAndShowPopover()

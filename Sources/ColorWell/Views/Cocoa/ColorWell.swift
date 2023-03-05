@@ -151,13 +151,18 @@ public class ColorWell: _ColorWellBaseView {
     internal var popoverContext: ColorWellPopoverContext?
 
     /// The segment that shows the color well's color.
-    internal var swatchSegment: SwatchSegment {
+    internal var swatchSegment: SwatchSegment? {
         layoutView.swatchSegment
     }
 
     /// The segment that toggles the color well's color panel.
-    internal var toggleSegment: ToggleSegment {
-        layoutView.toggleSegment
+    internal var toggleSegment: ToggleSegment? {
+        switch style {
+        case .expanded:
+            return layoutView.toggleSegment
+        case .swatches, .colorPanel:
+            return nil
+        }
     }
 
     // MARK: Public Properties
@@ -227,7 +232,7 @@ public class ColorWell: _ColorWellBaseView {
             if isActive {
                 synchronizeColorPanel()
             }
-            swatchSegment.needsDisplay = true
+            swatchSegment?.needsDisplay = true
         }
     }
 
@@ -573,6 +578,8 @@ extension ColorWell {
         synchronizeColorPanel()
         setUpColorPanelObservations()
         colorPanel.orderFront(self)
+        swatchSegment?.state = .pressed
+        toggleSegment?.state = .pressed
     }
 
     /// Deactivates the color well, detaching it from its color panel.
@@ -581,8 +588,8 @@ extension ColorWell {
     /// panel will not affect its state.
     public func deactivate() {
         colorPanel.activeColorWells.remove(self)
-        swatchSegment.state = .default
-        toggleSegment.state = .default
+        swatchSegment?.state = .default
+        toggleSegment?.state = .default
         removeColorPanelObservations()
     }
 
@@ -629,7 +636,9 @@ extension ColorWell {
     }
 
     internal override var customAccessibilityChildren: [Any]? {
-        [toggleSegment]
+        toggleSegment
+            .map(CollectionOfOne.init)
+            .map(Array.init)
     }
 
     internal override var customAccessibilityEnabled: Bool {
@@ -641,6 +650,6 @@ extension ColorWell {
     }
 
     internal override var customAccessibilityPerformPress: () -> Bool {
-        swatchSegment.performAction
+        swatchSegment?.performAction ?? { false }
     }
 }

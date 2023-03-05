@@ -10,12 +10,34 @@ internal class ColorWellLayoutView: NSGridView {
 
     // MARK: Properties
 
+    /// A constructor for the layout view's swatch segment.
+    private let makeSwatchSegment: () -> SwatchSegment?
+
+    /// A constructor for the layout view's toggle segment.
+    private let makeToggleSegment: () -> ToggleSegment?
+
+    private var cachedSwatchSegment: SwatchSegment?
+
+    private var cachedToggleSegment: ToggleSegment?
+
     /// A segment that displays a color swatch with the color well's
     /// current color selection.
-    let swatchSegment: SwatchSegment
+    var swatchSegment: SwatchSegment? {
+        if let cachedSwatchSegment {
+            return cachedSwatchSegment
+        }
+        cachedSwatchSegment = makeSwatchSegment()
+        return cachedSwatchSegment
+    }
 
     /// A segment that, when pressed, toggles the color panel.
-    let toggleSegment: ToggleSegment
+    var toggleSegment: ToggleSegment? {
+        if let cachedToggleSegment {
+            return cachedToggleSegment
+        }
+        cachedToggleSegment = makeToggleSegment()
+        return cachedToggleSegment
+    }
 
     /// The row that contains the layout view's segments.
     private var row: NSGridRow?
@@ -32,8 +54,12 @@ internal class ColorWellLayoutView: NSGridView {
 
     /// Creates a layout view with the given color well.
     init(colorWell: ColorWell) {
-        swatchSegment = SwatchSegment(colorWell: colorWell)
-        toggleSegment = ToggleSegment(colorWell: colorWell)
+        makeSwatchSegment = { [weak colorWell] in
+            SwatchSegment(colorWell: colorWell)
+        }
+        makeToggleSegment = { [weak colorWell] in
+            ToggleSegment(colorWell: colorWell)
+        }
 
         super.init(frame: .zero)
 
@@ -74,10 +100,18 @@ extension ColorWellLayoutView {
         }
         switch style {
         case .expanded:
+            guard
+                let swatchSegment,
+                let toggleSegment
+            else {
+                return
+            }
             row = addRow(with: [swatchSegment, toggleSegment])
-        case .colorPanel:
-            row = addRow(with: [swatchSegment])
-        case .swatches:
+        case .swatches, .colorPanel:
+            cachedToggleSegment = nil
+            guard let swatchSegment else {
+                return
+            }
             row = addRow(with: [swatchSegment])
         }
     }
