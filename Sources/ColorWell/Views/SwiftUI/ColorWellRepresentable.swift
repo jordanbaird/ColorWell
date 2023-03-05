@@ -14,11 +14,20 @@ internal struct ColorWellRepresentable: NSViewRepresentable {
 
     /// Creates and returns this view's underlying color well.
     func makeNSView(context: Context) -> ColorWell {
-        if let color = configuration.color {
-            return ColorWell(color: color)
-        } else {
-            return ColorWell()
+        guard let color = configuration.color else {
+            guard let style = context.environment.colorWellStyleConfiguration.style else {
+                return ColorWell()
+            }
+            return ColorWell(style: style)
         }
+        guard let style = context.environment.colorWellStyleConfiguration.style else {
+            return ColorWell(color: color)
+        }
+        return ColorWell(
+            frame: ColorWell.defaultFrame,
+            color: color,
+            style: style
+        )
     }
 
     /// Updates the color well's configuration to the most recent
