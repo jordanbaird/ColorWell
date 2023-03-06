@@ -9,25 +9,26 @@ import Foundation
 
 /// A type that interfaces with a collection of value-storing contexts.
 struct Storage {
-    /// An object that manages the lifetime of the instance's
-    /// stored contexts.
+
+    // MARK: Properties
+
     private let lifetime: AnyObject
 
-    /// A closure that returns the instance's stored contexts.
-    private let getContexts: () -> [StorageKey: Any]
+    private let accessors: (
+        get: () -> [StorageKey: Any],
+        set: ([StorageKey: Any]) -> Void
+    )
 
-    /// A closure that updates the instance's stored contexts.
-    private let setContexts: ([StorageKey: Any]) -> Void
-
-    /// The instance's stored contexts.
     private var contexts: [StorageKey: Any] {
         get {
-            getContexts()
+            accessors.get()
         }
         nonmutating set {
-            setContexts(newValue)
+            accessors.set(newValue)
         }
     }
+
+    // MARK: Initializers
 
     /// Creates a storage instance.
     init() {
@@ -55,9 +56,10 @@ struct Storage {
 
         let lifetime = Lifetime<[StorageKey: Any]>(value: [:])
         self.lifetime = lifetime
-        self.getContexts = lifetime.getPointee
-        self.setContexts = lifetime.setPointee
+        self.accessors = (lifetime.getPointee, lifetime.setPointee)
     }
+
+    // MARK: Private Methods
 
     /// Returns the storage context for the given object and value types.
     private func context<Object: AnyObject, Value>(
@@ -76,7 +78,9 @@ struct Storage {
         contexts[StorageKey(objectType, valueType)] = context
     }
 
-    /// Accesses the associated value for the specified object.
+    // MARK: Internal Methods
+
+    /// Accesses the value of the given type for the specified object.
     func value<Object: AnyObject, Value>(
         ofType valueType: Value.Type = Value.self,
         forObject object: Object
@@ -84,23 +88,22 @@ struct Storage {
         context(Object.self, valueType)?.value(forObject: object)
     }
 
-    /// Accesses the associated value for the specified object, storing and
-    /// returning the specified default value if no value is currently stored.
+    /// Accesses the value of the given type for the specified object, storing
+    /// and returning the specified default value if no value is currently stored.
     func value<Object: AnyObject, Value>(
         ofType valueType: Value.Type = Value.self,
         forObject object: Object,
         default defaultValue: @autoclosure () -> Value
     ) -> Value {
-        if let value = value(ofType: valueType, forObject: object) {
-            return value
-        } else {
+        guard let value = value(ofType: valueType, forObject: object) else {
             let value = defaultValue()
             set(value, forObject: object)
             return value
         }
+        return value
     }
 
-    /// Assigns an associated value to the specified object.
+    /// Assigns a value to the specified object.
     func set<Object: AnyObject, Value>(_ value: Value?, forObject object: Object) {
         if let context = context(Object.self, Value.self) {
             context.set(value, forObject: object)
@@ -111,7 +114,7 @@ struct Storage {
         }
     }
 
-    /// Removes the associated value for the specified object.
+    /// Removes the value of the given type for the specified object.
     func removeValue<Object: AnyObject, Value>(ofType valueType: Value.Type, forObject object: Object) {
         if let context = context(Object.self, valueType) {
             context.removeValue(forObject: object)
@@ -122,21 +125,16 @@ struct Storage {
 // MARK: - StorageKey
 
 extension Storage {
-    /// A key that contains information about the object and
-    /// value types of a storage context.
+    /// A key created from the `Object` and `Value` types of a storage
+    /// context, enabling efficient lookup based on the type of value
+    /// being retrieved, and the type of object that is retrieving it.
     private struct StorageKey: Hashable {
-        /// An integer created based on the bit pattern of a storage
-        /// context's object type.
-        let objectID: UInt64
+        let objectKey: UInt64
+        let valueKey: UInt64
 
-        /// An integer created based on the bit pattern of a storage
-        /// context's value type.
-        let valueID: UInt64
-
-        /// Creates a storage key for the given object and value types.
-        init<Object: AnyObject, Value>(_: Object.Type, _: Value.Type) {
-            objectID = UInt64(UInt(bitPattern: ObjectIdentifier(Object.self)))
-            valueID = UInt64(UInt(bitPattern: ObjectIdentifier(Value.self)))
+        init<Object: AnyObject, Value>(_ objectType: Object.Type, _ valueType: Value.Type) {
+            objectKey = UInt64(UInt(bitPattern: ObjectIdentifier(objectType)))
+            valueKey = UInt64(UInt(bitPattern: ObjectIdentifier(valueType)))
         }
     }
 }
@@ -144,28 +142,20 @@ extension Storage {
 // MARK: - StorageContext
 
 extension Storage {
-    /// A type that uses object association to store external values.
+    /// A context that uses object association to store external values.
     private class StorageContext<Object: AnyObject, Value> {
-        /// A pointer that this storage context uses as a key to create
-        /// and access object associations.
-        private var key: UnsafeMutableRawPointer {
-            Unmanaged.passUnretained(self).toOpaque()
+        private var key: UnsafeRawPointer {
+            UnsafeRawPointer(Unmanaged.passUnretained(self).toOpaque())
         }
 
-        /// Creates a storage context.
-        init() { }
-
-        /// Accesses the associated value for the specified object.
         func value(forObject object: Object) -> Value? {
             objc_getAssociatedObject(object, key) as? Value
         }
 
-        /// Assigns an associated value to the specified object.
         func set(_ value: Value?, forObject object: Object) {
             objc_setAssociatedObject(object, key, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
 
-        /// Removes the associated value for the specified object.
         func removeValue(forObject object: Object) {
             set(nil, forObject: object)
         }

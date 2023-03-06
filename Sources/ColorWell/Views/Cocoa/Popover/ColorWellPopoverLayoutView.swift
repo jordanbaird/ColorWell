@@ -7,18 +7,17 @@ import Cocoa
 
 /// A view that provides the layout for a color well's popover.
 class ColorWellPopoverLayoutView: NSGridView {
-    /// The central context for the popover and its elements.
-    weak var context: ColorWellPopoverContext?
+    private weak var context: ColorWellPopoverContext?
 
     /// A button that, when pressed, activates the color well
     /// and closes the popover.
     var activateButton: CustomButton? {
         didSet {
+            oldValue?.setAccessibilityParent(nil)
             activateButton?.setAccessibilityParent(self)
         }
     }
 
-    /// Creates a layout view using the specified central context.
     init(context: ColorWellPopoverContext) {
         self.context = context
 

@@ -10,11 +10,11 @@ import SwiftUI
 
 /// A control that displays a user-selectable color value.
 ///
-/// Color wells provide an interface for choosing custom colors directly
-/// within your app's user interface. A color well displays the currently
-/// selected color, and provides options for selecting new colors. There
-/// are a number of styles to choose from, each of which provides a
-/// different appearance and set of behaviors.
+/// Color wells provide a means for choosing custom colors directly within
+/// your app's user interface. A color well displays the currently selected
+/// color, and provides options for selecting new colors. There are a number
+/// of styles to choose from, each of which provides a different appearance
+/// and set of behaviors.
 @available(macOS 10.15, *)
 public struct ColorWellView<Label: View>: View {
     /// A type-erased optional label that is displayed adjacent

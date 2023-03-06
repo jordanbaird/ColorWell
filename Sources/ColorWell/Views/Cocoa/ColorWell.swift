@@ -10,16 +10,16 @@ import SwiftUI
 
 /// A control that displays a user-selectable color value.
 ///
-/// Color wells provide an interface for choosing custom colors directly
-/// within your app's user interface. A color well displays the currently
-/// selected color, and provides options for selecting new colors. There
-/// are a number of styles to choose from, each of which provides a
-/// different appearance and set of behaviors.
+/// Color wells provide a means for choosing custom colors directly within
+/// your app's user interface. A color well displays the currently selected
+/// color, and provides options for selecting new colors. There are a number
+/// of styles to choose from, each of which provides a different appearance
+/// and set of behaviors.
 public class ColorWell: _ColorWellBaseView {
 
     // MARK: Static Properties
 
-    /// Shared storage for every color well instance.
+    /// Storage shared between every `ColorWell` instance.
     private static let storage = Storage()
 
     /// A base value to use when computing the width of lines drawn as

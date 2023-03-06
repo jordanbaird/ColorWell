@@ -182,12 +182,12 @@ extension ColorWellSegment {
 extension ColorWellSegment {
     /// Returns the default path that will be used to draw the segment.
     func updateCachedPath<Path: ConstructablePath>(for rect: NSRect, cached: inout CachedPath<Path>) {
-        if cached.rect != rect {
+        if cached.bounds != rect {
             switch colorWell?.style {
             case .swatches, .colorPanel:
-                cached = CachedPath(rect: rect, side: nil)
+                cached = CachedPath(bounds: rect, side: nil)
             default:
-                cached = CachedPath(rect: rect, side: side)
+                cached = CachedPath(bounds: rect, side: side)
             }
         }
     }

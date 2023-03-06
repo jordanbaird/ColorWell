@@ -258,10 +258,10 @@ extension ConstructablePath {
 
 // MARK: - MutableConstructablePath
 
-/// A constructable path type whose instances can be altered with
-/// path components after their creation.
+/// A constructable path type whose instances can be mutated
+/// after their creation.
 protocol MutableConstructablePath: ConstructablePath {
-    /// Creates an empty mutable constructable path.
+    /// Creates an empty path.
     init()
 
     /// Applies the given path component to this path.
@@ -270,30 +270,36 @@ protocol MutableConstructablePath: ConstructablePath {
 
 // MARK: - CachedPath
 
-/// A type that contains a cached graphics path, along with
-/// the rectangle that was used to create it.
+/// A type that caches a graphics path alongside the bounds
+/// that were used in its creation.
 struct CachedPath<Path: ConstructablePath> where Path.Constructed == Path {
-    /// The rectangle used to create this instance's path.
-    let rect: CGRect
+    /// The bounds used to create this instance's path.
+    let bounds: CGRect
 
     /// The cached path of this instance.
     let path: Path
 
-    /// Creates an instance with the given rectangle and path.
-    init(rect: CGRect, path: Path) {
-        self.rect = rect
+    /// Creates an instance with the given bounds and path.
+    init(bounds: CGRect, path: Path) {
+        self.bounds = bounds
         self.path = path
     }
 
     /// Creates an instance, constructing its path from the
-    /// given rectangle and side.
-    init(rect: CGRect, side: Side?) {
-        self.init(rect: rect, path: .colorWellSegment(rect: rect, side: side))
+    /// given bounds and side.
+    init(bounds: CGRect, side: Side?) {
+        self.init(
+            bounds: bounds,
+            path: .colorWellSegment(rect: bounds, side: side)
+        )
     }
 
-    /// Creates an instance with an empty rectangle and path.
+    /// Creates an instance with an empty bounds and path.
     init() {
-        self.init(rect: .zero, path: Path.MutablePath().asConstructedType)
+        self.init(
+            bounds: .zero,
+            path: Path.MutablePath().asConstructedType
+        )
     }
 }
 

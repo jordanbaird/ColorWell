@@ -9,17 +9,13 @@ import Cocoa
 
 /// A view that provides the layout for a popover's color swatches.
 class ColorWellPopoverSwatchView: NSGridView {
-    /// The central context for the popover and its elements.
-    weak var context: ColorWellPopoverContext?
+    private weak var context: ColorWellPopoverContext?
 
     /// The swatch that is currently selected, if any.
     var selectedSwatch: ColorSwatch? {
         context?.swatches.first { $0.isSelected }
     }
 
-    /// Creates a swatch view with the specified context, using
-    /// the `swatchColors` property of the context's color well
-    /// to construct a grid of swatches.
     init(context: ColorWellPopoverContext) {
         self.context = context
 
@@ -41,7 +37,6 @@ class ColorWellPopoverSwatchView: NSGridView {
 
 // MARK: ColorWellPopoverSwatchView Instance Methods
 extension ColorWellPopoverSwatchView {
-    /// Converts the view's swatches into rows.
     private func makeRows() -> [[ColorSwatch]] {
         guard let context else {
             return []
@@ -101,8 +96,7 @@ extension ColorWellPopoverSwatchView {
 /// When a swatch is clicked, the color well's color value is set
 /// to the color value of the swatch.
 class ColorSwatch: NSView {
-    /// The central context for the popover and its elements.
-    weak var context: ColorWellPopoverContext?
+    private weak var context: ColorWellPopoverContext?
 
     /// The swatch's color value.
     let color: NSColor
@@ -183,7 +177,7 @@ class ColorSwatch: NSView {
 // MARK: ColorSwatch Static Methods
 extension ColorSwatch {
     /// Returns the correct size for a swatch based on the row count that
-    /// is passed into it. Bigger row counts result in smaller swatches.
+    /// is passed into it. Higher row counts result in smaller swatches.
     static func size(forRowCount rowCount: Int) -> NSSize {
         if rowCount < 6 {
             return NSSize(width: 37, height: 20)
