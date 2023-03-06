@@ -193,10 +193,7 @@ extension ConstructablePathComponent: ExpressibleByArrayLiteral {
 
 /// A type that can produce a version of itself that can be constructed
 /// from `ConstructablePathComponent` values.
-protocol ConstructablePath
-    where Constructed.Constructed == Constructed,
-          MutablePath.Constructed == Constructed
-{
+protocol ConstructablePath where MutablePath.Constructed == Constructed {
     /// The constructed result of this path type.
     associatedtype Constructed: ConstructablePath
 
@@ -243,7 +240,7 @@ extension ConstructablePath {
             return .rightAngleCurve(around: corner, ofRect: rect, radius: 5)
         }
         components.append(.close)
-        return .construct(with: components)
+        return construct(with: components)
     }
 
     /// Produces a color well segment path for the specified side of
