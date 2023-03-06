@@ -8,7 +8,7 @@ import SwiftUI
 
 /// An `NSViewRepresentable` wrapper around a `ColorWell`.
 @available(macOS 10.15, *)
-internal struct ColorWellRepresentable: NSViewRepresentable {
+struct ColorWellRepresentable: NSViewRepresentable {
     /// The configuration used to create the color well.
     let configuration: ColorWellConfiguration
 

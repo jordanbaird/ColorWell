@@ -6,7 +6,7 @@
 import Cocoa
 
 /// A popover that contains a grid of selectable color swatches.
-internal class ColorWellPopover: NSPopover {
+class ColorWellPopover: NSPopover {
     /// The central context for the popover and its elements.
     weak var context: ColorWellPopoverContext?
 

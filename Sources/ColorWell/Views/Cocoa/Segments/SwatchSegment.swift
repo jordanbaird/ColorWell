@@ -7,7 +7,7 @@ import Cocoa
 
 /// A segment that displays a color swatch with the color well's
 /// current color selection.
-internal class SwatchSegment: ColorWellSegment {
+class SwatchSegment: ColorWellSegment {
 
     // MARK: Properties
 

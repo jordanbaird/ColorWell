@@ -6,7 +6,7 @@
 import Cocoa
 
 /// A central context for the elements of a color well's popover.
-internal class ColorWellPopoverContext {
+class ColorWellPopoverContext {
     private(set) weak var colorWell: ColorWell?
 
     private(set) lazy var popover = ColorWellPopover(context: self)

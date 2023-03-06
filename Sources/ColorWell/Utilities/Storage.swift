@@ -6,7 +6,7 @@
 import Foundation
 
 /// A type that uses object association to store external values.
-internal class Storage<Object: AnyObject, Value> {
+class Storage<Object: AnyObject, Value> {
     /// The association policy that this storage object uses to
     /// create its associations.
     private let policy: objc_AssociationPolicy

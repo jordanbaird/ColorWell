@@ -6,7 +6,7 @@
 import Cocoa
 
 /// A grid view that displays color well segments side by side.
-internal class ColorWellLayoutView: NSGridView {
+class ColorWellLayoutView: NSGridView {
 
     // MARK: Properties
 

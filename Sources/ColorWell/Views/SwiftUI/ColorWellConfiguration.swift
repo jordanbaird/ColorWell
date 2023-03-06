@@ -10,7 +10,7 @@ import SwiftUI
 
 /// A type containing information used to create a color well.
 @available(macOS 10.15, *)
-internal struct ColorWellConfiguration {
+struct ColorWellConfiguration {
 
     // MARK: Properties
 
@@ -69,7 +69,7 @@ internal struct ColorWellConfiguration {
 @available(macOS 10.15, *)
 extension ColorWellConfiguration {
     /// A type that modifies a value in a `ColorWellConfiguration`.
-    internal enum Modifier {
+    enum Modifier {
         /// Sets the configuration's color to the given value.
         case color(NSColor)
 

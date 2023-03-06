@@ -8,7 +8,7 @@ import Cocoa
 // MARK: - Corner
 
 /// A type that represents a corner of a rectangle.
-internal enum Corner {
+enum Corner {
     /// The top left corner of a rectangle.
     case topLeft
 
@@ -66,7 +66,7 @@ extension Corner {
 // MARK: - Side
 
 /// A type that represents a side of a rectangle.
-internal struct Side {
+struct Side {
     /// The corners that, when connected by a path, make up this side.
     let corners: [Corner]
 
@@ -108,7 +108,7 @@ extension Side {
 // MARK: - ConstructablePathComponent
 
 /// A type that represents a component in a constructable path.
-internal enum ConstructablePathComponent {
+enum ConstructablePathComponent {
     /// Closes the path.
     case close
 
@@ -193,7 +193,7 @@ extension ConstructablePathComponent: ExpressibleByArrayLiteral {
 
 /// A type that can produce a version of itself that can be constructed
 /// from `ConstructablePathComponent` values.
-internal protocol ConstructablePath
+protocol ConstructablePath
     where Constructed.Constructed == Constructed,
           MutablePath.Constructed == Constructed
 {
@@ -215,13 +215,13 @@ internal protocol ConstructablePath
 
 // MARK: ConstructablePath (Constructed == Self)
 extension ConstructablePath where Constructed == Self {
-    internal var asConstructedType: Constructed { self }
+    var asConstructedType: Constructed { self }
 }
 
 // MARK: ConstructablePath Static Methods
 extension ConstructablePath {
     // Documented in protocol definition.
-    internal static func construct(with components: [ConstructablePathComponent]) -> Constructed {
+    static func construct(with components: [ConstructablePathComponent]) -> Constructed {
         let path = MutablePath()
         for component in components {
             path.apply(component)
@@ -235,7 +235,7 @@ extension ConstructablePath {
     ///   - rect: The rectangle to draw the path in.
     ///   - corners: The corners that should be drawn with sharp right
     ///     angles. Corners not provided here will be rounded.
-    internal static func colorWellPath(rect: CGRect, squaredCorners corners: [Corner] = []) -> Constructed {
+    static func colorWellPath(rect: CGRect, squaredCorners corners: [Corner] = []) -> Constructed {
         var components: [ConstructablePathComponent] = Corner.clockwiseOrder.map { corner in
             if corners.contains(corner) {
                 return .line(to: corner.point(forRect: rect))
@@ -254,7 +254,7 @@ extension ConstructablePath {
     ///   - side: The side of `rect` that the path should be drawn in. This parameter
     ///     provides information about which corners should be rounded and which corners
     ///     should be drawn with sharp right angles.
-    internal static func colorWellSegment(rect: CGRect, side: Side?) -> Constructed {
+    static func colorWellSegment(rect: CGRect, side: Side?) -> Constructed {
         colorWellPath(rect: rect, squaredCorners: side?.opposite.corners ?? [])
     }
 }
@@ -263,7 +263,7 @@ extension ConstructablePath {
 
 /// A constructable path type whose instances can be altered with
 /// path components after their creation.
-internal protocol MutableConstructablePath: ConstructablePath {
+protocol MutableConstructablePath: ConstructablePath {
     /// Creates an empty mutable constructable path.
     init()
 
@@ -275,7 +275,7 @@ internal protocol MutableConstructablePath: ConstructablePath {
 
 /// A type that contains a cached graphics path, along with
 /// the rectangle that was used to create it.
-internal struct CachedPath<Path: ConstructablePath> where Path.Constructed == Path {
+struct CachedPath<Path: ConstructablePath> where Path.Constructed == Path {
     /// The rectangle used to create this instance's path.
     let rect: CGRect
 
@@ -302,9 +302,9 @@ internal struct CachedPath<Path: ConstructablePath> where Path.Constructed == Pa
 
 // MARK: NSBezierPath: MutableConstructablePath
 extension NSBezierPath: MutableConstructablePath {
-    internal typealias MutablePath = NSBezierPath
+    typealias MutablePath = NSBezierPath
 
-    internal func apply(_ component: ConstructablePathComponent) {
+    func apply(_ component: ConstructablePathComponent) {
         switch component {
         case .close:
             close()
@@ -338,7 +338,7 @@ extension NSBezierPath: MutableConstructablePath {
 
 // MARK: CGMutablePath: MutableConstructablePath
 extension CGMutablePath: MutableConstructablePath {
-    internal func apply(_ component: ConstructablePathComponent) {
+    func apply(_ component: ConstructablePathComponent) {
         switch component {
         case .close:
             closeSubpath()
@@ -372,5 +372,5 @@ extension CGMutablePath: MutableConstructablePath {
 
 // MARK: CGPath: ConstructablePath
 extension CGPath: ConstructablePath {
-    internal typealias MutablePath = CGMutablePath
+    typealias MutablePath = CGMutablePath
 }

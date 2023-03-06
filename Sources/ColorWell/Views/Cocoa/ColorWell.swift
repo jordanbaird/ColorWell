@@ -24,23 +24,23 @@ public class ColorWell: _ColorWellBaseView {
 
     /// A base value to use when computing the width of lines drawn as
     /// part of a color well or its elements.
-    internal static let lineWidth: CGFloat = 1
+    static let lineWidth: CGFloat = 1
 
     /// The default frame for a color well.
-    internal static let defaultFrame = NSRect(x: 0, y: 0, width: 64, height: 28)
+    static let defaultFrame = NSRect(x: 0, y: 0, width: 64, height: 28)
 
     /// The color shown by color wells that were not initialized with
     /// an initial value.
     ///
     /// Currently, this color is an RGBA white.
-    internal static let defaultColor = NSColor(red: 1, green: 1, blue: 1, alpha: 1)
+    static let defaultColor = NSColor(red: 1, green: 1, blue: 1, alpha: 1)
 
     /// The default style for a color well.
-    internal static let defaultStyle = ColorWell.Style.expanded
+    static let defaultStyle = ColorWell.Style.expanded
 
     /// Hexadecimal strings used to construct the default colors shown
     /// in a color well's popover.
-    internal static let defaultHexStrings = [
+    static let defaultHexStrings = [
         "56C1FF", "72FDEA", "88FA4F", "FFF056", "FF968D", "FF95CA",
         "00A1FF", "15E6CF", "60D937", "FFDA31", "FF644E", "FF42A1",
         "0076BA", "00AC8E", "1FB100", "FEAE00", "ED220D", "D31876",
@@ -49,7 +49,7 @@ public class ColorWell: _ColorWellBaseView {
     ]
 
     /// The default colors shown in a color well's popover.
-    internal static let defaultSwatchColors = defaultHexStrings.compactMap { string in
+    static let defaultSwatchColors = defaultHexStrings.compactMap { string in
         NSColor(hexString: string)
     }
 
@@ -145,18 +145,18 @@ public class ColorWell: _ColorWellBaseView {
     // MARK: Internal Properties
 
     /// The color well's change handlers.
-    internal var changeHandlers = [(NSColor) -> Void]()
+    var changeHandlers = [(NSColor) -> Void]()
 
     /// The popover context associated with the color well.
-    internal var popoverContext: ColorWellPopoverContext?
+    var popoverContext: ColorWellPopoverContext?
 
     /// The segment that shows the color well's color.
-    internal var swatchSegment: SwatchSegment? {
+    var swatchSegment: SwatchSegment? {
         layoutView.swatchSegment
     }
 
     /// The segment that toggles the color well's color panel.
-    internal var toggleSegment: ToggleSegment? {
+    var toggleSegment: ToggleSegment? {
         switch style {
         case .expanded:
             return layoutView.toggleSegment
@@ -497,7 +497,7 @@ extension ColorWell {
 extension ColorWell {
     /// Performs the specified block of code, ensuring that the color
     /// well's stored change handlers are not executed.
-    internal func withoutExecutingChangeHandlers<T>(_ body: (ColorWell) throws -> T) rethrows -> T {
+    func withoutExecutingChangeHandlers<T>(_ body: (ColorWell) throws -> T) rethrows -> T {
         let cached = canExecuteChangeHandlers
         canExecuteChangeHandlers = false
         defer {
@@ -508,7 +508,7 @@ extension ColorWell {
 
     /// Performs the specified block of code, ensuring that the color
     /// well's color panel is not synchronized.
-    internal func withoutSynchronizingColorPanel<T>(_ body: (ColorWell) throws -> T) rethrows -> T {
+    func withoutSynchronizingColorPanel<T>(_ body: (ColorWell) throws -> T) rethrows -> T {
         let cached = canSynchronizeColorPanel
         canSynchronizeColorPanel = false
         defer {
@@ -519,14 +519,14 @@ extension ColorWell {
 
     /// Activates the color well, automatically verifying whether it
     /// should be activated in an exclusive state.
-    internal func activateAutoVerifyingExclusive() {
+    func activateAutoVerifyingExclusive() {
         let exclusive = !(NSEvent.modifierFlags.contains(.shift) && allowsMultipleSelection)
         activate(exclusive: exclusive)
     }
 
     /// Sets the color panel's color to be equal to the color
     /// well's color.
-    internal func synchronizeColorPanel(force: Bool = false) {
+    func synchronizeColorPanel(force: Bool = false) {
         guard !force else {
             colorPanel.color = color
             return
@@ -615,11 +615,11 @@ extension ColorWell {
 
 // MARK: Overrides
 extension ColorWell {
-    internal override var customAlignmentRectInsets: NSEdgeInsets {
+    override var customAlignmentRectInsets: NSEdgeInsets {
         NSEdgeInsets(top: 2, left: 3, bottom: 2, right: 3)
     }
 
-    internal override var customIntrinsicContentSize: NSSize {
+    override var customIntrinsicContentSize: NSSize {
         let result: NSSize
 
         switch style {
@@ -635,21 +635,21 @@ extension ColorWell {
         return result.applying(insets: alignmentRectInsets)
     }
 
-    internal override var customAccessibilityChildren: [Any]? {
+    override var customAccessibilityChildren: [Any]? {
         toggleSegment
             .map(CollectionOfOne.init)
             .map(Array.init)
     }
 
-    internal override var customAccessibilityEnabled: Bool {
+    override var customAccessibilityEnabled: Bool {
         isEnabled
     }
 
-    internal override var customAccessibilityValue: Any? {
+    override var customAccessibilityValue: Any? {
         color.createAccessibilityValue()
     }
 
-    internal override var customAccessibilityPerformPress: () -> Bool {
+    override var customAccessibilityPerformPress: () -> Bool {
         swatchSegment?.performAction ?? { false }
     }
 }

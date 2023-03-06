@@ -6,7 +6,7 @@
 import Cocoa
 
 /// A segment that, when pressed, toggles the color panel.
-internal class ToggleSegment: ColorWellSegment {
+class ToggleSegment: ColorWellSegment {
 
     // MARK: Static Properties
 

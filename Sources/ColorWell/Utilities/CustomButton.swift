@@ -6,7 +6,7 @@
 import Cocoa
 
 /// A button that takes a closure for its action.
-internal class CustomButton: NSButton {
+class CustomButton: NSButton {
     /// The button's stored action.
     private let _action: () -> Void
 

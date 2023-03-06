@@ -8,7 +8,7 @@ import Cocoa
 // MARK: - ColorWellPopoverSwatchView
 
 /// A view that provides the layout for a popover's color swatches.
-internal class ColorWellPopoverSwatchView: NSGridView {
+class ColorWellPopoverSwatchView: NSGridView {
     /// The central context for the popover and its elements.
     weak var context: ColorWellPopoverContext?
 
@@ -100,7 +100,7 @@ extension ColorWellPopoverSwatchView {
 ///
 /// When a swatch is clicked, the color well's color value is set
 /// to the color value of the swatch.
-internal class ColorSwatch: NSView {
+class ColorSwatch: NSView {
     /// The central context for the popover and its elements.
     weak var context: ColorWellPopoverContext?
 

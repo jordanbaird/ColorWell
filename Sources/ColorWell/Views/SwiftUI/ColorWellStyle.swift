@@ -10,7 +10,7 @@
 /// Values that configure a color well's style.
 public struct _ColorWellStyleConfiguration {
     /// The underlying style of the color well.
-    internal var style: ColorWell.Style?
+    var style: ColorWell.Style?
 }
 
 // MARK: - ColorWellStyle

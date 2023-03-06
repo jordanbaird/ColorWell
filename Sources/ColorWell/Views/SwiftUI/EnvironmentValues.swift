@@ -35,19 +35,19 @@ private struct SwatchColorsKey: EnvironmentKey {
 @available(macOS 10.15, *)
 extension EnvironmentValues {
     /// The change handlers to add to the color wells in this environment.
-    internal var changeHandlers: [(NSColor) -> Void] {
+    var changeHandlers: [(NSColor) -> Void] {
         get { self[ChangeHandlersKey.self] }
         set { self[ChangeHandlersKey.self] = newValue }
     }
 
     /// The style configuration to apply to the color wells in this environment.
-    internal var colorWellStyleConfiguration: _ColorWellStyleConfiguration {
+    var colorWellStyleConfiguration: _ColorWellStyleConfiguration {
         get { self[ColorWellStyleConfigurationKey.self] }
         set { self[ColorWellStyleConfigurationKey.self] = newValue }
     }
 
     /// The swatch colors to apply to the color wells in this environment.
-    internal var swatchColors: [NSColor]? {
+    var swatchColors: [NSColor]? {
         get { self[SwatchColorsKey.self] }
         set { self[SwatchColorsKey.self] = newValue }
     }

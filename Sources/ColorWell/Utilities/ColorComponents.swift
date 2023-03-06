@@ -6,7 +6,7 @@
 import Cocoa
 
 /// A type that contains information about the color components for a color.
-internal enum ColorComponents {
+enum ColorComponents {
     case rgb(red: Double, green: Double, blue: Double, alpha: Double)
     case cmyk(cyan: Double, magenta: Double, yellow: Double, black: Double, alpha: Double)
     case grayscale(white: Double, alpha: Double)

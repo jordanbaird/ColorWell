@@ -6,7 +6,7 @@
 import Cocoa
 
 /// A view that draws a segmented portion of a color well.
-internal class ColorWellSegment: NSView {
+class ColorWellSegment: NSView {
 
     // MARK: Properties
 

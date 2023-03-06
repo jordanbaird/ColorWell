@@ -20,7 +20,7 @@ extension _ColorWellBaseView {
     ///
     /// To be overridden by the main ``ColorWell`` class.
     @objc dynamic
-    internal var customAlignmentRectInsets: NSEdgeInsets {
+    var customAlignmentRectInsets: NSEdgeInsets {
         super.alignmentRectInsets
     }
 
@@ -28,7 +28,7 @@ extension _ColorWellBaseView {
     ///
     /// To be overridden by the main ``ColorWell`` class.
     @objc dynamic
-    internal var customIntrinsicContentSize: NSSize {
+    var customIntrinsicContentSize: NSSize {
         super.intrinsicContentSize
     }
 
@@ -36,7 +36,7 @@ extension _ColorWellBaseView {
     ///
     /// To be overridden by the main ``ColorWell`` class.
     @objc dynamic
-    internal var customAccessibilityChildren: [Any]? {
+    var customAccessibilityChildren: [Any]? {
         super.accessibilityChildren()
     }
 
@@ -45,7 +45,7 @@ extension _ColorWellBaseView {
     ///
     /// To be overridden by the main ``ColorWell`` class.
     @objc dynamic
-    internal var customAccessibilityEnabled: Bool {
+    var customAccessibilityEnabled: Bool {
         super.isAccessibilityEnabled()
     }
 
@@ -53,7 +53,7 @@ extension _ColorWellBaseView {
     ///
     /// To be overridden by the main ``ColorWell`` class.
     @objc dynamic
-    internal var customAccessibilityValue: Any? {
+    var customAccessibilityValue: Any? {
         super.accessibilityValue()
     }
 
@@ -61,7 +61,7 @@ extension _ColorWellBaseView {
     ///
     /// To be overridden by the main ``ColorWell`` class.
     @objc dynamic
-    internal var customAccessibilityPerformPress: () -> Bool {
+    var customAccessibilityPerformPress: () -> Bool {
         super.accessibilityPerformPress
     }
 }

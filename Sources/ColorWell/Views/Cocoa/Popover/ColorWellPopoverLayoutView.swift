@@ -6,7 +6,7 @@
 import Cocoa
 
 /// A view that provides the layout for a color well's popover.
-internal class ColorWellPopoverLayoutView: NSGridView {
+class ColorWellPopoverLayoutView: NSGridView {
     /// The central context for the popover and its elements.
     weak var context: ColorWellPopoverContext?
 

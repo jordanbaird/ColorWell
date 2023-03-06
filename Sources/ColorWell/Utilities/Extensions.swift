@@ -10,7 +10,7 @@ import Cocoa
 extension CGPoint {
     /// Returns a new point resulting from a translation of the current
     /// point by the given x and y amounts.
-    internal func translating(x: CGFloat = 0, y: CGFloat = 0) -> Self {
+    func translating(x: CGFloat = 0, y: CGFloat = 0) -> Self {
         applying(CGAffineTransform(translationX: x, y: y))
     }
 }
@@ -20,7 +20,7 @@ extension CGPoint {
 extension CGRect {
     /// Returns a rectangle that is the result of centering the current
     /// rectangle within the bounds of another rectangle.
-    internal func centered(in otherRect: Self) -> Self {
+    func centered(in otherRect: Self) -> Self {
         var new = self
         new.origin.x = otherRect.midX - (new.width / 2)
         new.origin.y = otherRect.midY - (new.height / 2)
@@ -33,7 +33,7 @@ extension CGRect {
 extension CGSize {
     /// Returns the size that is the result of subtracting the specified
     /// edge insets from the current size.
-    internal func applying(insets: NSEdgeInsets) -> Self {
+    func applying(insets: NSEdgeInsets) -> Self {
         Self(width: width - insets.horizontal, height: height - insets.vertical)
     }
 }
@@ -42,7 +42,7 @@ extension CGSize {
 
 extension Comparable {
     /// Returns this comparable value, clamped to the given limiting range.
-    internal func clamped(to limits: ClosedRange<Self>) -> Self {
+    func clamped(to limits: ClosedRange<Self>) -> Self {
         min(max(self, limits.lowerBound), limits.upperBound)
     }
 }
@@ -55,7 +55,7 @@ extension Dictionary where Key == ObjectIdentifier, Value: ExpressibleByArrayLit
     ///
     /// In the event that no value is stored for `type`, an empty value
     /// will be created and returned.
-    internal subscript<T>(for type: T.Type) -> Value {
+    subscript<T>(for type: T.Type) -> Value {
         get { self[ObjectIdentifier(type), default: []] }
         set { self[ObjectIdentifier(type)] = newValue }
     }
@@ -81,7 +81,7 @@ extension NSAppearance {
     }
 
     /// Whether the current appearance is a dark appearance.
-    internal var isDarkAppearance: Bool {
+    var isDarkAppearance: Bool {
         systemDarkNames.contains(name) || nameIndicatesDarkAppearance
     }
 }
@@ -91,7 +91,7 @@ extension NSAppearance {
 extension NSApplication {
     /// A Boolean value that indicates whether the application's current
     /// effective appearance is a dark appearance.
-    internal var effectiveAppearanceIsDarkAppearance: Bool {
+    var effectiveAppearanceIsDarkAppearance: Bool {
         if #available(macOS 10.14, *) {
             return effectiveAppearance.isDarkAppearance
         } else {
@@ -104,7 +104,7 @@ extension NSApplication {
 
 extension NSColor {
     /// The default fill color for a color well segment.
-    internal static var colorWellSegmentColor: NSColor {
+    static var colorWellSegmentColor: NSColor {
         if NSApp.effectiveAppearanceIsDarkAppearance {
             return .selectedControlColor
         } else {
@@ -113,7 +113,7 @@ extension NSColor {
     }
 
     /// The fill color for a highlighted color well segment.
-    internal static var highlightedColorWellSegmentColor: NSColor {
+    static var highlightedColorWellSegmentColor: NSColor {
         if NSApp.effectiveAppearanceIsDarkAppearance {
             return colorWellSegmentColor.blendedAndClamped(withFraction: 0.2, of: .highlightColor)
         } else {
@@ -122,7 +122,7 @@ extension NSColor {
     }
 
     /// The fill color for a selected color well segment.
-    internal static var selectedColorWellSegmentColor: NSColor {
+    static var selectedColorWellSegmentColor: NSColor {
         if NSApp.effectiveAppearanceIsDarkAppearance {
             return colorWellSegmentColor.withAlphaComponent(colorWellSegmentColor.alphaComponent + 0.25)
         } else {
@@ -131,13 +131,13 @@ extension NSColor {
     }
 
     /// A version of this color that is suitable for disabled controls.
-    internal var disabled: NSColor {
+    var disabled: NSColor {
         withAlphaComponent(max(alphaComponent - 0.5, 0.1))
     }
 
     /// Returns the average of this color's red, green, and blue components,
     /// approximating the brightness of the color.
-    internal var averageBrightness: CGFloat {
+    var averageBrightness: CGFloat {
         guard let sRGB = usingColorSpace(.sRGB) else {
             return 0
         }
@@ -145,7 +145,7 @@ extension NSColor {
     }
 
     /// Creates a color from a hexadecimal string.
-    internal convenience init?(hexString: String) {
+    convenience init?(hexString: String) {
         let hexString = hexString.trimmingCharacters(in: ["#"]).lowercased()
         let count = hexString.count
 
@@ -194,7 +194,7 @@ extension NSColor {
     /// - Returns: The blended color, if successful. If either color is unable
     ///   to be converted, or if `fraction > 0`, the current color is returned
     ///   unaltered. If `fraction < 1`, `color` is returned unaltered.
-    internal func blendedAndClamped(withFraction fraction: CGFloat, of color: NSColor) -> NSColor {
+    func blendedAndClamped(withFraction fraction: CGFloat, of color: NSColor) -> NSColor {
         guard fraction > 0 else {
             return self
         }
@@ -243,7 +243,7 @@ extension NSColor {
     ///   - tolerance: A threshold value that alters how strict the comparison is.
     ///
     /// - Returns: `true` if this color is "close enough" to `other`. False otherwise.
-    internal func resembles(_ other: NSColor, using colorSpace: NSColorSpace, tolerance: CGFloat) -> Bool {
+    func resembles(_ other: NSColor, using colorSpace: NSColorSpace, tolerance: CGFloat) -> Bool {
         guard
             let first = usingColorSpace(colorSpace),
             let second = other.usingColorSpace(colorSpace)
@@ -283,7 +283,7 @@ extension NSColor {
     ///   - tolerance: A threshold value that alters how strict the comparison is.
     ///
     /// - Returns: `true` if this color is "close enough" to `other`. False otherwise.
-    internal func resembles(_ other: NSColor, tolerance: CGFloat = 0.0001) -> Bool {
+    func resembles(_ other: NSColor, tolerance: CGFloat = 0.0001) -> Bool {
         if self == other {
             return true
         }
@@ -311,7 +311,7 @@ extension NSColor {
 
     /// Creates a value containing a description of the color
     /// for use with voice-over and other accessibility features.
-    internal func createAccessibilityValue() -> String {
+    func createAccessibilityValue() -> String {
         String(describing: ColorComponents(color: self))
     }
 }
@@ -324,7 +324,7 @@ extension NSColorPanel {
 
     /// The color wells that are currently active and share this color panel.
     @objc dynamic
-    internal var activeColorWells: Set<ColorWell> {
+    var activeColorWells: Set<ColorWell> {
         get {
             Self.colorWellStorage.value(forObject: self) ?? []
         }
@@ -342,12 +342,12 @@ extension NSColorPanel {
 
 extension NSEdgeInsets {
     /// The combined left and right insets of this instance.
-    internal var horizontal: Double {
+    var horizontal: Double {
         left + right
     }
 
     /// The combined top and bottom insets of this instance.
-    internal var vertical: Double {
+    var vertical: Double {
         top + bottom
     }
 }
@@ -357,7 +357,7 @@ extension NSEdgeInsets {
 extension NSGraphicsContext {
     /// Executes a block of code on the current graphics context, restoring
     /// the graphics state after the block returns.
-    internal static func withCachedGraphicsState<T>(_ body: (NSGraphicsContext?) throws -> T) rethrows -> T {
+    static func withCachedGraphicsState<T>(_ body: (NSGraphicsContext?) throws -> T) rethrows -> T {
         let current = current
         current?.saveGraphicsState()
         defer {
@@ -368,7 +368,7 @@ extension NSGraphicsContext {
 
     /// Executes a block of code on the current graphics context, restoring
     /// the graphics state after the block returns.
-    internal static func withCachedGraphicsState<T>(_ body: () throws -> T) rethrows -> T {
+    static func withCachedGraphicsState<T>(_ body: () throws -> T) rethrows -> T {
         try withCachedGraphicsState { _ in try body() }
     }
 }
@@ -377,7 +377,7 @@ extension NSGraphicsContext {
 
 extension NSImage {
     /// Creates an image by drawing a swatch in the given color and size.
-    internal convenience init(color: NSColor, size: NSSize, radius: CGFloat = 0) {
+    convenience init(color: NSColor, size: NSSize, radius: CGFloat = 0) {
         self.init(size: size, flipped: false) { bounds in
             NSBezierPath(roundedRect: bounds, xRadius: radius, yRadius: radius).addClip()
             color.drawSwatch(in: bounds)
@@ -401,7 +401,7 @@ extension NSImage {
     ///
     /// Basically, this method uses `NSColor`'s `drawSwatch(in:)` method
     /// to draw an image, then clips the image instead of the swatch path.
-    internal static func drawSwatch(with color: NSColor, in rect: NSRect, clippingTo clippingPath: NSBezierPath? = nil) {
+    static func drawSwatch(with color: NSColor, in rect: NSRect, clippingTo clippingPath: NSBezierPath? = nil) {
         NSGraphicsContext.withCachedGraphicsState {
             clippingPath?.addClip()
             NSImage(color: color, size: rect.size).draw(in: rect)
@@ -410,7 +410,7 @@ extension NSImage {
 
     /// Returns a new image created by clipping the current image to
     /// the given rectangle.
-    internal func clipped(to rect: NSRect) -> NSImage {
+    func clipped(to rect: NSRect) -> NSImage {
         NSImage(size: rect.size, flipped: false) { bounds in
             NSGraphicsContext.withCachedGraphicsState {
                 let destFrame = NSRect(origin: .zero, size: bounds.size)
@@ -423,7 +423,7 @@ extension NSImage {
 
     /// Returns a new image by clipping the current image so that its
     /// longest side is equal in length to its shortest side.
-    internal func clippedToSquare() -> NSImage {
+    func clippedToSquare() -> NSImage {
         let originalFrame = NSRect(origin: .zero, size: size)
         let insetDimension = min(size.width, size.height)
 
@@ -436,7 +436,7 @@ extension NSImage {
     }
 
     /// Returns a new image that has been tinted to the given color.
-    internal func tinted(to color: NSColor, amount: CGFloat) -> NSImage {
+    func tinted(to color: NSColor, amount: CGFloat) -> NSImage {
         guard let cgImage = cgImage(forProposedRect: nil, context: nil, hints: nil) else {
             return self
         }
@@ -469,7 +469,7 @@ extension NSImage {
 extension NSView {
     /// Returns this view's frame, converted to the coordinate system
     /// of its window.
-    internal var frameConvertedToWindow: NSRect {
+    var frameConvertedToWindow: NSRect {
         superview?.convert(frame, to: nil) ?? frame
     }
 }
@@ -482,7 +482,7 @@ extension RangeReplaceableCollection {
     ///
     /// - Parameter elements: The sequence of optional elements for the
     ///   new collection. `elements` must be finite.
-    internal init<S: Sequence>(compacting elements: S) where S.Element == Element? {
+    init<S: Sequence>(compacting elements: S) where S.Element == Element? {
         self.init(elements.compactMap { $0 })
     }
 }
@@ -499,7 +499,7 @@ extension Set where Element == NSKeyValueObservation {
     ///   - options: The options describing the behavior of the observation.
     ///   - changeHandler: A change handler that will be performed when the
     ///     value at `object.<(keyPath)>` changes.
-    internal mutating func observe<Object: NSObject, Value>(
+    mutating func observe<Object: NSObject, Value>(
         _ object: Object,
         keyPath: KeyPath<Object, Value>,
         options: NSKeyValueObservingOptions = [],
@@ -518,7 +518,7 @@ import SwiftUI
 @available(macOS 10.15, *)
 extension View {
     /// Returns a type-erased version of this view.
-    internal func erased() -> AnyView {
+    func erased() -> AnyView {
         AnyView(self)
     }
 }
