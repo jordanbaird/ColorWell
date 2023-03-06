@@ -319,20 +319,20 @@ extension NSColor {
 // MARK: - NSColorPanel
 
 extension NSColorPanel {
-    /// Backing storage for the `activeColorWells` instance property.
-    private static let colorWellStorage = Storage<NSColorPanel, Set<ColorWell>>()
+    /// Shared storage for `NSColorPanel`.
+    private static let storage = Storage()
 
     /// The color wells that are currently active and share this color panel.
     @objc dynamic
     var activeColorWells: Set<ColorWell> {
         get {
-            Self.colorWellStorage.value(forObject: self) ?? []
+            Self.storage.value(forObject: self) ?? []
         }
         set {
             if newValue.isEmpty {
-                Self.colorWellStorage.removeValue(forObject: self)
+                Self.storage.removeValue(ofType: Set<ColorWell>.self, forObject: self)
             } else {
-                Self.colorWellStorage.set(newValue, forObject: self)
+                Self.storage.set(newValue, forObject: self)
             }
         }
     }

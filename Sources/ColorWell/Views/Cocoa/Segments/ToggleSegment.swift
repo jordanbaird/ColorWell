@@ -10,8 +10,8 @@ class ToggleSegment: ColorWellSegment {
 
     // MARK: Static Properties
 
-    /// Shared storage for the `cachedImage` property.
-    private static let cachedImageStorage = Storage<ToggleSegment, NSImage>()
+    /// Shared storage for every toggle segment instance.
+    private static let storage = Storage()
 
     /// The default width for a toggle segment.
     static let defaultWidth: CGFloat = 20
@@ -25,7 +25,7 @@ class ToggleSegment: ColorWellSegment {
     /// An image that indicates that the segment toggles the
     /// color panel, cached for efficient retrieval.
     private var cachedImage: NSImage {
-        Self.cachedImageStorage.value(forObject: self, default: {
+        Self.storage.value(forObject: self, default: {
             // Force unwrap is okay here, as the image is an AppKit builtin.
             let image = NSImage(named: NSImage.touchBarColorPickerFillName)!
             return image.clippedToSquare()

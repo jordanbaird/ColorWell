@@ -19,8 +19,8 @@ public class ColorWell: _ColorWellBaseView {
 
     // MARK: Static Properties
 
-    /// Shared storage for the layout views of every color well instance.
-    private static let layoutViewStorage = Storage<ColorWell, ColorWellLayoutView>()
+    /// Shared storage for every color well instance.
+    private static let storage = Storage()
 
     /// A base value to use when computing the width of lines drawn as
     /// part of a color well or its elements.
@@ -136,7 +136,7 @@ public class ColorWell: _ColorWellBaseView {
 
     /// A view that manages the layout of the color well's segments.
     private var layoutView: ColorWellLayoutView {
-        Self.layoutViewStorage.value(
+        Self.storage.value(
             forObject: self,
             default: ColorWellLayoutView(colorWell: self)
         )
