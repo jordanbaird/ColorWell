@@ -20,7 +20,7 @@ ColorWell is designed to mimic the appearance and behavior of the new color well
 Add the following dependency to your `Package.swift` file:
 
 ```swift
-.package(url: "https://github.com/jordanbaird/ColorWell", from: "0.1.0")
+.package(url: "https://github.com/jordanbaird/ColorWell", from: "0.1.1")
 ```
 
 ## Usage
