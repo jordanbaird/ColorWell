@@ -140,6 +140,6 @@ extension ColorComponents {
 // MARK: CustomStringConvertible
 extension ColorComponents: CustomStringConvertible {
     var description: String {
-        ([colorSpaceName] + extractedComponentStrings).joined(separator: " ")
+        (CollectionOfOne(colorSpaceName) + extractedComponentStrings).joined(separator: " ")
     }
 }

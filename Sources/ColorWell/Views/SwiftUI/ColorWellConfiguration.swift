@@ -14,24 +14,26 @@ struct ColorWellConfiguration {
 
     // MARK: Properties
 
-    /// The color well's color.
+    /// The color well's initial color value.
     let color: NSColor?
 
     /// An optional action to add to the color well.
     let action: ((NSColor) -> Void)?
 
-    /// An optional label that is displayed adjacent to the color well.
+    /// An optional label view that is displayed adjacent to
+    /// the color well.
     let label: AnyView?
 
-    /// A closure to update the color well's `showsAlpha` value.
+    /// A closure to update whether the color well is able to
+    /// work with alpha values.
     let updateShowsAlpha: (ColorWell) -> Void
 
     // MARK: Initializers
 
     /// Creates a configuration using the specified modifiers.
     ///
-    /// If more than one of the same modifier is provided, the one
-    /// which occurs last will be used.
+    /// If more than one of the same modifier is provided, the
+    /// one which occurs last will be used.
     init(modifiers: [Modifier?]) {
         typealias Values = (
             color: NSColor?,

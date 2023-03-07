@@ -3,7 +3,47 @@
 // ColorWell
 //
 
-import Foundation
+import ObjectiveC
+
+// MARK: - StorageContext
+
+/// A private context that uses object association to store external
+/// values using the Objective-C runtime.
+///
+/// The object associations managed by instances of this type maintain
+/// strong references to their objects, and are made non-atomically.
+private class StorageContext<Object: AnyObject, Value> {
+    private var key: UnsafeRawPointer {
+        UnsafeRawPointer(Unmanaged.passUnretained(self).toOpaque())
+    }
+
+    func getValue(forObject object: Object) -> Value? {
+        objc_getAssociatedObject(object, key) as? Value
+    }
+
+    func setValue(_ value: Value?, forObject object: Object) {
+        objc_setAssociatedObject(object, key, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+    }
+
+    func removeValue(forObject object: Object) {
+        setValue(nil, forObject: object)
+    }
+}
+
+// MARK: - StorageKey
+
+/// A key created from the `Object` and `Value` types of a storage
+/// context, enabling efficient lookup based on the type of value
+/// being retrieved, and the type of object that is retrieving it.
+private struct StorageKey: Hashable {
+    let objectKey: UInt64
+    let valueKey: UInt64
+
+    init<Object: AnyObject, Value>(_ objectType: Object.Type, _ valueType: Value.Type) {
+        objectKey = UInt64(UInt(bitPattern: ObjectIdentifier(objectType)))
+        valueKey = UInt64(UInt(bitPattern: ObjectIdentifier(valueType)))
+    }
+}
 
 // MARK: - Storage
 
@@ -85,7 +125,7 @@ struct Storage {
         ofType valueType: Value.Type = Value.self,
         forObject object: Object
     ) -> Value? {
-        context(Object.self, valueType)?.value(forObject: object)
+        context(Object.self, valueType)?.getValue(forObject: object)
     }
 
     /// Accesses the value of the given type for the specified object, storing
@@ -106,10 +146,10 @@ struct Storage {
     /// Assigns a value to the specified object.
     func set<Object: AnyObject, Value>(_ value: Value?, forObject object: Object) {
         if let context = context(Object.self, Value.self) {
-            context.set(value, forObject: object)
+            context.setValue(value, forObject: object)
         } else {
             let context = StorageContext<Object, Value>()
-            context.set(value, forObject: object)
+            context.setValue(value, forObject: object)
             setContext(context, Object.self, Value.self)
         }
     }
@@ -118,46 +158,6 @@ struct Storage {
     func removeValue<Object: AnyObject, Value>(ofType valueType: Value.Type, forObject object: Object) {
         if let context = context(Object.self, valueType) {
             context.removeValue(forObject: object)
-        }
-    }
-}
-
-// MARK: - StorageKey
-
-extension Storage {
-    /// A key created from the `Object` and `Value` types of a storage
-    /// context, enabling efficient lookup based on the type of value
-    /// being retrieved, and the type of object that is retrieving it.
-    private struct StorageKey: Hashable {
-        let objectKey: UInt64
-        let valueKey: UInt64
-
-        init<Object: AnyObject, Value>(_ objectType: Object.Type, _ valueType: Value.Type) {
-            objectKey = UInt64(UInt(bitPattern: ObjectIdentifier(objectType)))
-            valueKey = UInt64(UInt(bitPattern: ObjectIdentifier(valueType)))
-        }
-    }
-}
-
-// MARK: - StorageContext
-
-extension Storage {
-    /// A context that uses object association to store external values.
-    private class StorageContext<Object: AnyObject, Value> {
-        private var key: UnsafeRawPointer {
-            UnsafeRawPointer(Unmanaged.passUnretained(self).toOpaque())
-        }
-
-        func value(forObject object: Object) -> Value? {
-            objc_getAssociatedObject(object, key) as? Value
-        }
-
-        func set(_ value: Value?, forObject object: Object) {
-            objc_setAssociatedObject(object, key, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-        }
-
-        func removeValue(forObject object: Object) {
-            set(nil, forObject: object)
         }
     }
 }
