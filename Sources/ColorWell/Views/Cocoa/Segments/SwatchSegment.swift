@@ -312,14 +312,19 @@ extension SwatchSegment {
 
     override func mouseDragged(with event: NSEvent) {
         super.mouseDragged(with: event)
+
         guard
             isValidDrag,
             let color = colorWell?.color
         else {
             return
         }
+
         state = .default
-        NSColorPanel.dragColor(color, with: event, from: self)
+
+        // Fall back to the original color if archiving fails
+        let colorForDragging = color.archivedCopy() ?? color
+        NSColorPanel.dragColor(colorForDragging, with: event, from: self)
     }
 
     override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {

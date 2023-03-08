@@ -314,6 +314,36 @@ extension NSColor {
     func createAccessibilityValue() -> String {
         String(describing: ColorComponents(color: self))
     }
+
+    /// Creates a copy of this color by passing it through an archiving
+    /// and unarchiving process, returning what is effectively the same
+    /// color, but cleared of any undesired context.
+    func archivedCopy() -> NSColor? {
+        let colorData: Data = {
+            // Don't require secure coding. This is the whole reason we even
+            // need this function. Apparently, some NSColor-backed SwiftUI
+            // colors don't fully support secure coding (bug on Apple's part).
+            //
+            // The NSColor that SwiftUI uses is actually a custom NSColor
+            // subclass, so there's not much we can do about it. The solution
+            // is to archive it where we know secure coding isn't needed, then
+            // create a "true" NSColor from the archived data. We could have
+            // gone the route of converting the color to RGB, but this method
+            // has the added benefit of preserving the original information
+            // of the color.
+            let archiver = NSKeyedArchiver(requiringSecureCoding: false)
+
+            encode(with: archiver)
+            return archiver.encodedData
+        }()
+
+        guard let unarchiver = try? NSKeyedUnarchiver(forReadingFrom: colorData) else {
+            return nil
+        }
+
+        let newColor = NSColor(coder: unarchiver)
+        return newColor
+    }
 }
 
 // MARK: - NSColorPanel

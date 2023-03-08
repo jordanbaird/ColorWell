@@ -8,10 +8,12 @@ import Cocoa
 /// A view that draws a segmented portion of a color well.
 class ColorWellSegment: NSView {
 
+    // MARK: Static Properties
+
     /// Storage shared between every `ColorWellSegment` instance.
     static let storage = Storage()
 
-    // MARK: Properties
+    // MARK: Instance Properties
 
     /// The segment's color well.
     weak var colorWell: ColorWell?
@@ -24,6 +26,10 @@ class ColorWellSegment: NSView {
 
     /// The accumulated offset of the current series of dragging events.
     private var draggingOffset = CGSize()
+
+    /// A Boolean value that indicates whether a drag is currently
+    /// in progress.
+    private var isDragging = false
 
     /// The cached default drawing path of the segment.
     var cachedDefaultPath: CachedPath<NSBezierPath> {
@@ -45,7 +51,7 @@ class ColorWellSegment: NSView {
     /// A Boolean value that indicates whether the current dragging event,
     /// if any, is valid for starting a dragging session.
     var isValidDrag: Bool {
-        max(abs(draggingOffset.width), abs(draggingOffset.height)) >= 2
+        hypot(draggingOffset.width, draggingOffset.height) >= 4
     }
 
     /// The segment's current state.
@@ -185,6 +191,12 @@ extension ColorWellSegment {
         draggingOffset.width += event.deltaX
         draggingOffset.height += event.deltaY
     }
+
+    /// Resets the information that the segment associates with drag events.
+    private func resetDraggingInformation() {
+        draggingOffset = .zero
+        isDragging = false
+    }
 }
 
 // MARK: Internal Instance Methods
@@ -277,6 +289,9 @@ extension ColorWellSegment {
 
     override func mouseDown(with event: NSEvent) {
         super.mouseDown(with: event)
+        defer {
+            resetDraggingInformation()
+        }
         guard colorWellIsEnabled else {
             return
         }
@@ -285,9 +300,12 @@ extension ColorWellSegment {
 
     override func mouseUp(with event: NSEvent) {
         super.mouseUp(with: event)
-        draggingOffset = .zero
+        defer {
+            resetDraggingInformation()
+        }
         guard
             colorWellIsEnabled,
+            !isDragging,
             frameConvertedToWindow.contains(event.locationInWindow)
         else {
             return
@@ -303,6 +321,7 @@ extension ColorWellSegment {
         }
 
         updateDraggingOffset(with: event)
+        isDragging = true
 
         guard
             !isActive,
@@ -316,6 +335,11 @@ extension ColorWellSegment {
         } else {
             state = .default
         }
+    }
+
+    override func draggingExited(_ sender: NSDraggingInfo?) {
+        super.draggingExited(sender)
+        draggingOffset = .zero
     }
 
     override func updateTrackingAreas() {
