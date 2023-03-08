@@ -10,9 +10,6 @@ class ToggleSegment: ColorWellSegment {
 
     // MARK: Static Properties
 
-    /// Storage shared between every `ToggleSegment` instance.
-    private static let storage = Storage()
-
     /// The default width for a toggle segment.
     static let defaultWidth: CGFloat = 20
 

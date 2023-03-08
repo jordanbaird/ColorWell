@@ -8,6 +8,9 @@ import Cocoa
 /// A view that draws a segmented portion of a color well.
 class ColorWellSegment: NSView {
 
+    /// Storage shared between every `ColorWellSegment` instance.
+    static let storage = Storage()
+
     // MARK: Properties
 
     /// The segment's color well.
@@ -23,10 +26,16 @@ class ColorWellSegment: NSView {
     private var draggingOffset = CGSize()
 
     /// The cached default drawing path of the segment.
-    var cachedDefaultPath = CachedPath<NSBezierPath>()
+    var cachedDefaultPath: CachedPath<NSBezierPath> {
+        get { Self.storage.value(forObject: self, default: CachedPath()) }
+        set { Self.storage.set(newValue, forObject: self) }
+    }
 
     /// The cached drawing path of the segment's shadow.
-    var cachedShadowPath = CachedPath<CGPath>()
+    var cachedShadowPath: CachedPath<CGPath> {
+        get { Self.storage.value(forObject: self, default: CachedPath()) }
+        set { Self.storage.set(newValue, forObject: self) }
+    }
 
     /// Whether the segment's color well is currently active.
     var isActive: Bool {
@@ -128,7 +137,7 @@ class ColorWellSegment: NSView {
         needsDisplay = true
     }
 
-    /// Invoked to update the segment to indicate that is is
+    /// Invoked to update the segment to indicate that it is
     /// not being hovered over.
     @objc dynamic
     func removeHoverIndicator() {
