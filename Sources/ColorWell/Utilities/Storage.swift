@@ -38,10 +38,12 @@ private class StorageContext<Object: AnyObject, Value> {
 private struct StorageKey: Hashable {
     let objectKey: UInt64
     let valueKey: UInt64
+    let variant: AnyHashable?
 
-    init<Object: AnyObject, Value>(_ objectType: Object.Type, _ valueType: Value.Type) {
-        objectKey = UInt64(UInt(bitPattern: ObjectIdentifier(objectType)))
-        valueKey = UInt64(UInt(bitPattern: ObjectIdentifier(valueType)))
+    init<Object: AnyObject, Value>(_ objectType: Object.Type, _ valueType: Value.Type, _ variant: AnyHashable?) {
+        self.objectKey = UInt64(UInt(bitPattern: ObjectIdentifier(objectType)))
+        self.valueKey = UInt64(UInt(bitPattern: ObjectIdentifier(valueType)))
+        self.variant = variant
     }
 }
 
@@ -50,14 +52,17 @@ private struct StorageKey: Hashable {
 /// A type that interfaces with a collection of value-storing contexts.
 struct Storage {
 
+    // MARK: Types
+
+    private typealias Accessors = (get: () -> [StorageKey: Any], set: ([StorageKey: Any]) -> Void)
+
     // MARK: Properties
 
     private let lifetime: AnyObject
 
-    private let accessors: (
-        get: () -> [StorageKey: Any],
-        set: ([StorageKey: Any]) -> Void
-    )
+    private let variant: AnyHashable?
+
+    private let accessors: Accessors
 
     private var contexts: [StorageKey: Any] {
         get {
@@ -70,8 +75,15 @@ struct Storage {
 
     // MARK: Initializers
 
-    /// Creates a storage instance.
-    init() {
+    /// A private initializer for others to delegate to.
+    private init(lifetime: AnyObject, variant: AnyHashable?, accessors: Accessors) {
+        self.lifetime = lifetime
+        self.variant = variant
+        self.accessors = accessors
+    }
+
+    /// Creates a storage instance with the given variant value.
+    init(variant: AnyHashable? = nil) {
         class Lifetime<T> {
             let pointer: UnsafeMutablePointer<T>
 
@@ -95,8 +107,12 @@ struct Storage {
         }
 
         let lifetime = Lifetime<[StorageKey: Any]>(value: [:])
-        self.lifetime = lifetime
-        self.accessors = (lifetime.getPointee, lifetime.setPointee)
+
+        self.init(
+            lifetime: lifetime,
+            variant: variant,
+            accessors: (lifetime.getPointee, lifetime.setPointee)
+        )
     }
 
     // MARK: Private Methods
@@ -106,7 +122,7 @@ struct Storage {
         _ objectType: Object.Type,
         _ valueType: Value.Type
     ) -> StorageContext<Object, Value>? {
-        contexts[StorageKey(objectType, valueType)] as? StorageContext<Object, Value>
+        contexts[StorageKey(objectType, valueType, variant)] as? StorageContext<Object, Value>
     }
 
     /// Sets the storage context for the given object and value types.
@@ -115,10 +131,38 @@ struct Storage {
         _ objectType: Object.Type,
         _ valueType: Value.Type
     ) {
-        contexts[StorageKey(objectType, valueType)] = context
+        contexts[StorageKey(objectType, valueType, variant)] = context
     }
 
     // MARK: Internal Methods
+
+    /// Returns a storage instance that has been assigned the specified
+    /// variant value.
+    func variant<Variant: Hashable>(_ variant: Variant) -> Self {
+        Self(lifetime: lifetime, variant: variant, accessors: accessors)
+    }
+
+    /// Returns a storage instance that has been assigned the specified
+    /// variant string.
+    func variant(_ variant: String = #function) -> Self {
+        self.variant(variant as AnyHashable)
+    }
+
+    /// Returns a storage instance that has been assigned the specified
+    /// variant value.
+    ///
+    /// Equivalent to calling `variant(_:)`.
+    func callAsFunction<Variant: Hashable>(variant: Variant) -> Self {
+        self.variant(variant)
+    }
+
+    /// Returns a storage instance that has been assigned the specified
+    /// variant string.
+    ///
+    /// Equivalent to calling `variant(_:)`.
+    func callAsFunction(variant: String = #function) -> Self {
+        self.variant(variant)
+    }
 
     /// Accesses the value of the given type for the specified object.
     func value<Object: AnyObject, Value>(

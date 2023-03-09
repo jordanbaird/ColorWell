@@ -7,40 +7,17 @@ import Cocoa
 
 /// A view that draws a segmented portion of a color well.
 class ColorWellSegment: NSView {
-
-    // MARK: Static Properties
-
-    /// Storage shared between every `ColorWellSegment` instance.
-    static let storage = Storage()
-
-    // MARK: Instance Properties
-
     /// The segment's color well.
     weak var colorWell: ColorWell?
-
-    /// The layer that displays the segment's shadow.
-    private var shadowLayer: CALayer?
 
     /// A tracking area for tracking mouse enter/exit events.
     private var trackingArea: NSTrackingArea?
 
     /// The current dragging information associated with the segment.
-    var draggingInformation: DraggingInformation {
-        get { Self.storage.value(forObject: self, default: DraggingInformation()) }
-        set { Self.storage.set(newValue, forObject: self) }
-    }
+    var draggingInformation = DraggingInformation()
 
     /// The cached default drawing path of the segment.
-    var cachedDefaultPath: CachedPath<NSBezierPath> {
-        get { Self.storage.value(forObject: self, default: CachedPath()) }
-        set { Self.storage.set(newValue, forObject: self) }
-    }
-
-    /// The cached drawing path of the segment's shadow.
-    var cachedShadowPath: CachedPath<CGPath> {
-        get { Self.storage.value(forObject: self, default: CachedPath()) }
-        set { Self.storage.set(newValue, forObject: self) }
-    }
+    var defaultPath = CachedPath<NSBezierPath>()
 
     /// Whether the segment's color well is currently active.
     var isActive: Bool {
@@ -50,27 +27,30 @@ class ColorWellSegment: NSView {
     /// The segment's current state.
     var state = State.default {
         didSet {
+            var needsDisplay = (oldValue: false, newValue: false)
             switch oldValue {
             case .hover:
-                removeHoverIndicator()
+                needsDisplay.oldValue = removeHoverIndicator()
             case .highlight:
-                removeHighlightIndicator()
+                needsDisplay.oldValue = removeHighlightIndicator()
             case .pressed:
-                removePressedIndicator()
+                needsDisplay.oldValue = removePressedIndicator()
             case .default:
-                break
+                needsDisplay.oldValue = true
             }
             switch state {
             case .hover:
-                drawHoverIndicator()
+                needsDisplay.newValue = drawHoverIndicator()
             case .highlight:
-                drawHighlightIndicator()
+                needsDisplay.newValue = drawHighlightIndicator()
             case .pressed:
-                drawPressedIndicator()
+                needsDisplay.newValue = drawPressedIndicator()
             case .default:
-                break
+                needsDisplay.newValue = true
             }
-            needsDisplay = true
+            if needsDisplay.oldValue || needsDisplay.newValue {
+                self.needsDisplay = true
+            }
         }
     }
 
@@ -91,7 +71,7 @@ class ColorWellSegment: NSView {
     /// A closure that provides a value for the `fillColor` property.
     ///
     /// Setting this value automatically redraws the segment.
-    private var fillColorGetter: () -> NSColor {
+    var fillColorGetter: () -> NSColor {
         didSet {
             needsDisplay = true
         }
@@ -132,44 +112,32 @@ class ColorWellSegment: NSView {
     /// Invoked to update the segment to indicate that it is
     /// being hovered over.
     @objc dynamic
-    func drawHoverIndicator() {
-        needsDisplay = true
-    }
+    func drawHoverIndicator() -> Bool { false }
 
     /// Invoked to update the segment to indicate that it is
     /// not being hovered over.
     @objc dynamic
-    func removeHoverIndicator() {
-        needsDisplay = true
-    }
+    func removeHoverIndicator() -> Bool { false }
 
     /// Invoked to update the segment to indicate that it is
     /// being highlighted.
     @objc dynamic
-    func drawHighlightIndicator() {
-        fillColorGetter = { .highlightedColorWellSegmentColor }
-    }
+    func drawHighlightIndicator() -> Bool { false }
 
     /// Invoked to update the segment to indicate that it is
     /// not being highlighted.
     @objc dynamic
-    func removeHighlightIndicator() {
-        fillColorGetter = { .colorWellSegmentColor }
-    }
+    func removeHighlightIndicator() -> Bool { false }
 
     /// Invoked to update the segment to indicate that it is
     /// being pressed.
     @objc dynamic
-    func drawPressedIndicator() {
-        fillColorGetter = { .selectedColorWellSegmentColor }
-    }
+    func drawPressedIndicator() -> Bool { false }
 
     /// Invoked to update the segment to indicate that it is
     /// not being pressed.
     @objc dynamic
-    func removePressedIndicator() {
-        fillColorGetter = { .colorWellSegmentColor }
-    }
+    func removePressedIndicator() -> Bool { false }
 
     /// Invoked to perform the segment's action.
     @objc dynamic
@@ -178,7 +146,8 @@ class ColorWellSegment: NSView {
 
 // MARK: Internal Instance Methods
 extension ColorWellSegment {
-    /// Returns the default path that will be used to draw the segment.
+    /// Updates the cached path for the specified rectangle,
+    /// depending on the style of the segment's color well.
     func updateCachedPath<Path: ConstructablePath>(for rect: NSRect, cached: inout CachedPath<Path>) {
         if cached.bounds != rect {
             switch colorWell?.style {
@@ -190,78 +159,86 @@ extension ColorWellSegment {
         }
     }
 
-    /// Updates the shadow layer for the given rectangle.
+    /// Updates the shadow layer for the specified rectangle.
     func updateShadowLayer(_ dirtyRect: NSRect) {
-        shadowLayer?.removeFromSuperlayer()
-        shadowLayer = nil
+        struct ShadowLayerStorage {
+            private static let storage = Storage(variant: ObjectIdentifier(Self.self))
 
-        guard let layer else {
-            return
+            let segment: ColorWellSegment
+
+            let dirtyRect: NSRect
+
+            private var shadowLayer: CALayer? {
+                get {
+                    Self.storage.value(forObject: segment)
+                }
+                nonmutating set {
+                    shadowLayer?.removeFromSuperlayer()
+                    Self.storage.set(newValue, forObject: segment)
+                }
+            }
+
+            var cachedShadowPath: CachedPath<CGPath> {
+                get {
+                    Self.storage.value(forObject: segment, default: CachedPath())
+                }
+                nonmutating set {
+                    Self.storage.set(newValue, forObject: segment)
+                }
+            }
+
+            func updateShadowLayer() {
+                shadowLayer = nil
+
+                guard let segmentLayer = segment.layer else {
+                    return
+                }
+
+                segment.updateCachedPath(for: dirtyRect, cached: &cachedShadowPath)
+
+                let shadowRadius = 0.75
+                let shadowOffset = CGSize(width: 0, height: -0.25)
+
+                let shadowLayer = CALayer()
+                shadowLayer.shadowRadius = shadowRadius
+                shadowLayer.shadowOffset = shadowOffset
+                shadowLayer.shadowPath = cachedShadowPath.path
+                shadowLayer.shadowOpacity = 0.5
+
+                let mutablePath = CGMutablePath()
+                mutablePath.addRect(
+                    dirtyRect.insetBy(
+                        dx: -(shadowRadius * 2) + shadowOffset.width,
+                        dy: -(shadowRadius * 2) + shadowOffset.height
+                    )
+                )
+                mutablePath.addPath(cachedShadowPath.path)
+                mutablePath.closeSubpath()
+
+                let maskLayer = CAShapeLayer()
+                maskLayer.path = mutablePath
+                maskLayer.fillRule = .evenOdd
+
+                shadowLayer.mask = maskLayer
+
+                segmentLayer.masksToBounds = false
+                segmentLayer.addSublayer(shadowLayer)
+
+                self.shadowLayer = shadowLayer
+            }
         }
 
-        let shadowLayer = CALayer()
-
-        let shadowOffset = NSSize(width: 0, height: 0)
-        let shadowRadius = ColorWell.lineWidth * 0.75
-
-        updateCachedPath(for: dirtyRect, cached: &cachedShadowPath)
-
-        shadowLayer.shadowOffset = shadowOffset
-        shadowLayer.shadowOpacity = 0.25
-        shadowLayer.shadowRadius = shadowRadius
-        shadowLayer.shadowPath = cachedShadowPath.path
-        shadowLayer.shadowColor = NSColor.shadowColor.cgColor
-
-        let mutablePath = CGMutablePath()
-        mutablePath.addRect(
-            dirtyRect.insetBy(
-                dx: -(shadowRadius * 2) + shadowOffset.width,
-                dy: -(shadowRadius * 2) + shadowOffset.height
-            )
-        )
-        mutablePath.addPath(cachedShadowPath.path)
-        mutablePath.closeSubpath()
-
-        let maskLayer = CAShapeLayer()
-        maskLayer.path = mutablePath
-        maskLayer.fillRule = .evenOdd
-
-        shadowLayer.mask = maskLayer
-
-        layer.addSublayer(shadowLayer)
-        layer.masksToBounds = false
-
-        self.shadowLayer = shadowLayer
+        ShadowLayerStorage(segment: self, dirtyRect: dirtyRect).updateShadowLayer()
     }
 }
 
 // MARK: Overrides
 extension ColorWellSegment {
     override func draw(_ dirtyRect: NSRect) {
-        updateCachedPath(for: dirtyRect, cached: &cachedDefaultPath)
+        updateCachedPath(for: dirtyRect, cached: &defaultPath)
         displayColor.setFill()
-        cachedDefaultPath.path.fill()
+        defaultPath.path.fill()
         updateShadowLayer(dirtyRect)
-    }
-
-    override func mouseEntered(with event: NSEvent) {
-        super.mouseEntered(with: event)
-        guard colorWellIsEnabled else {
-            return
-        }
-        if state == .default {
-            state = .hover
-        }
-    }
-
-    override func mouseExited(with event: NSEvent) {
-        super.mouseExited(with: event)
-        guard colorWellIsEnabled else {
-            return
-        }
-        if state == .hover {
-            state = .default
-        }
     }
 
     override func mouseDown(with event: NSEvent) {
@@ -298,25 +275,20 @@ extension ColorWellSegment {
         }
 
         draggingInformation.updateOffset(with: event)
-        draggingInformation.isDragging = true
 
-        guard
-            !isActive,
-            draggingInformation.isValid
-        else {
+        guard draggingInformation.isValid else {
             return
         }
 
+        draggingInformation.isDragging = true
+
         if frameConvertedToWindow.contains(event.locationInWindow) {
             state = .highlight
+        } else if isActive {
+            state = .pressed
         } else {
             state = .default
         }
-    }
-
-    override func draggingExited(_ sender: NSDraggingInfo?) {
-        super.draggingExited(sender)
-        draggingInformation.offset = .zero
     }
 
     override func updateTrackingAreas() {

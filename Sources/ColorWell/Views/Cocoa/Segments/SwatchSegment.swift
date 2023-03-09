@@ -8,12 +8,6 @@ import Cocoa
 /// A segment that displays a color swatch with the color well's
 /// current color selection.
 class SwatchSegment: ColorWellSegment {
-
-    // MARK: Properties
-
-    /// The cached drawing path of the segment's border.
-    private var cachedBorderPath = CachedPath<NSBezierPath>()
-
     /// A Boolean value that indicates whether the clicking
     /// the segment can show the popover.
     private var canShowPopover = false
@@ -32,16 +26,6 @@ class SwatchSegment: ColorWellSegment {
         }
     }
 
-    /// The color of the segment's border.
-    private var borderColor: NSColor {
-        let displayColor = displayColor // Avoid repeated access to reduce computation overhead
-        let normalizedBrightness = min(displayColor.averageBrightness, displayColor.alphaComponent)
-        let alpha = min(normalizedBrightness, 0.2)
-        return NSColor(white: 1 - alpha, alpha: alpha)
-    }
-
-    // MARK: Property Overrides
-
     override var side: Side { .left }
 
     override var fillColor: NSColor {
@@ -51,8 +35,6 @@ class SwatchSegment: ColorWellSegment {
     override var displayColor: NSColor {
         super.displayColor.usingColorSpace(.sRGB) ?? super.displayColor
     }
-
-    // MARK: Initializer Overrides
 
     override init?(colorWell: ColorWell?) {
         super.init(colorWell: colorWell)
@@ -130,13 +112,13 @@ extension SwatchSegment {
         }
 
         NSGraphicsContext.withCachedGraphicsState {
-            updateCachedPath(for: dirtyRect, cached: &cachedDefaultPath)
+            updateCachedPath(for: dirtyRect, cached: &defaultPath)
             switch colorWell.style {
             case .expanded, .swatches:
                 NSImage.drawSwatch(
                     with: displayColor,
                     in: dirtyRect,
-                    clippingTo: cachedDefaultPath.path
+                    clippingTo: defaultPath.path
                 )
             case .colorPanel:
                 var backgroundColor = defaultDisplayColor
@@ -153,7 +135,7 @@ extension SwatchSegment {
                 }
 
                 backgroundColor.setFill()
-                cachedDefaultPath.path.fill()
+                defaultPath.path.fill()
 
                 NSImage.drawSwatch(
                     with: displayColor,
@@ -170,20 +152,48 @@ extension SwatchSegment {
 
     /// Draws the segment's border in the given rectangle.
     private func drawBorder(_ dirtyRect: NSRect) {
-        NSGraphicsContext.withCachedGraphicsState {
-            let lineWidth = ColorWell.lineWidth
+        struct BorderStorage {
+            private static let storage = Storage(variant: ObjectIdentifier(Self.self))
 
-            updateCachedPath(
-                for: dirtyRect.insetBy(dx: lineWidth / 4, dy: lineWidth / 2),
-                cached: &cachedBorderPath
-            )
+            let segment: SwatchSegment
 
-            if colorWell?.style != .colorPanel {
-                borderColor.setStroke()
-                cachedBorderPath.path.lineWidth = lineWidth
-                cachedBorderPath.path.stroke()
+            let dirtyRect: NSRect
+
+            private var borderPath: CachedPath<NSBezierPath> {
+                get {
+                    Self.storage.value(forObject: segment, default: CachedPath())
+                }
+                nonmutating set {
+                    Self.storage.set(newValue, forObject: segment)
+                }
+            }
+
+            private var borderColor: NSColor {
+                let displayColor = segment.displayColor
+                let normalizedBrightness = min(displayColor.averageBrightness, displayColor.alphaComponent)
+                let alpha = min(normalizedBrightness, 0.2)
+                return NSColor(white: 1 - alpha, alpha: alpha)
+            }
+
+            func drawBorder() {
+                NSGraphicsContext.withCachedGraphicsState {
+                    let lineWidth = ColorWell.lineWidth
+
+                    segment.updateCachedPath(
+                        for: dirtyRect.insetBy(dx: lineWidth / 4, dy: lineWidth / 2),
+                        cached: &borderPath
+                    )
+
+                    if segment.colorWell?.style != .colorPanel {
+                        borderColor.setStroke()
+                        borderPath.path.lineWidth = lineWidth
+                        borderPath.path.stroke()
+                    }
+                }
             }
         }
+
+        BorderStorage(segment: self, dirtyRect: dirtyRect).drawBorder()
     }
 
     /// Draws a downward-facing caret inside the segment's layer.
@@ -268,33 +278,29 @@ extension SwatchSegment {
         updateShadowLayer(dirtyRect)
     }
 
-    override func drawHoverIndicator() {
-        needsDisplay = true
-    }
+    override func drawHoverIndicator() -> Bool { true }
 
-    override func removeHoverIndicator() {
-        needsDisplay = true
-    }
-
-    override func drawHighlightIndicator() {
-        needsDisplay = true
-    }
-
-    override func removeHighlightIndicator() {
-        needsDisplay = true
-    }
-
-    override func drawPressedIndicator() {
-        needsDisplay = true
-    }
-
-    override func removePressedIndicator() {
-        needsDisplay = true
-    }
+    override func removeHoverIndicator() -> Bool { true }
 
     override func performAction() -> Bool {
         let action = action(forStyle: colorWell?.style)
         return action()
+    }
+
+    override func mouseEntered(with event: NSEvent) {
+        super.mouseEntered(with: event)
+        guard colorWellIsEnabled else {
+            return
+        }
+        state = .hover
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        super.mouseExited(with: event)
+        guard colorWellIsEnabled else {
+            return
+        }
+        state = .default
     }
 
     override func mouseDown(with event: NSEvent) {

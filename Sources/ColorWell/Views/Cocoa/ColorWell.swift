@@ -408,6 +408,8 @@ public class ColorWell: _ColorWellBaseView {
 extension ColorWell {
     /// Shared code to execute on a color well's initialization.
     private func sharedInit() {
+        wantsLayer = true
+        layer?.masksToBounds = false
         addSubview(layoutView)
 
         layoutView.translatesAutoresizingMaskIntoConstraints = false
@@ -627,7 +629,7 @@ extension ColorWell {
             result = Self.defaultFrame.size
         case .swatches, .colorPanel:
             result = NSSize(
-                width: Self.defaultFrame.width - ToggleSegment.defaultWidth,
+                width: Self.defaultFrame.width - ToggleSegment.widthConstant,
                 height: Self.defaultFrame.height
             )
         }
