@@ -314,7 +314,7 @@ extension SwatchSegment {
         super.mouseDragged(with: event)
 
         guard
-            isValidDrag,
+            draggingInformation.isValid,
             let color = colorWell?.color
         else {
             return

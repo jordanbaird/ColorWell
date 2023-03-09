@@ -24,12 +24,11 @@ class ColorWellSegment: NSView {
     /// A tracking area for tracking mouse enter/exit events.
     private var trackingArea: NSTrackingArea?
 
-    /// The accumulated offset of the current series of dragging events.
-    private var draggingOffset = CGSize()
-
-    /// A Boolean value that indicates whether a drag is currently
-    /// in progress.
-    private var isDragging = false
+    /// The current dragging information associated with the segment.
+    var draggingInformation: DraggingInformation {
+        get { Self.storage.value(forObject: self, default: DraggingInformation()) }
+        set { Self.storage.set(newValue, forObject: self) }
+    }
 
     /// The cached default drawing path of the segment.
     var cachedDefaultPath: CachedPath<NSBezierPath> {
@@ -46,12 +45,6 @@ class ColorWellSegment: NSView {
     /// Whether the segment's color well is currently active.
     var isActive: Bool {
         colorWell?.isActive ?? false
-    }
-
-    /// A Boolean value that indicates whether the current dragging event,
-    /// if any, is valid for starting a dragging session.
-    var isValidDrag: Bool {
-        hypot(draggingOffset.width, draggingOffset.height) >= 4
     }
 
     /// The segment's current state.
@@ -183,22 +176,6 @@ class ColorWellSegment: NSView {
     func performAction() -> Bool { false }
 }
 
-// MARK: Private Instance Methods
-extension ColorWellSegment {
-    /// Updates the segment's dragging offset according to the x and y
-    /// deltas of the given event.
-    private func updateDraggingOffset(with event: NSEvent) {
-        draggingOffset.width += event.deltaX
-        draggingOffset.height += event.deltaY
-    }
-
-    /// Resets the information that the segment associates with drag events.
-    private func resetDraggingInformation() {
-        draggingOffset = .zero
-        isDragging = false
-    }
-}
-
 // MARK: Internal Instance Methods
 extension ColorWellSegment {
     /// Returns the default path that will be used to draw the segment.
@@ -290,7 +267,7 @@ extension ColorWellSegment {
     override func mouseDown(with event: NSEvent) {
         super.mouseDown(with: event)
         defer {
-            resetDraggingInformation()
+            draggingInformation.reset()
         }
         guard colorWellIsEnabled else {
             return
@@ -301,11 +278,11 @@ extension ColorWellSegment {
     override func mouseUp(with event: NSEvent) {
         super.mouseUp(with: event)
         defer {
-            resetDraggingInformation()
+            draggingInformation.reset()
         }
         guard
+            !draggingInformation.isDragging,
             colorWellIsEnabled,
-            !isDragging,
             frameConvertedToWindow.contains(event.locationInWindow)
         else {
             return
@@ -320,12 +297,12 @@ extension ColorWellSegment {
             return
         }
 
-        updateDraggingOffset(with: event)
-        isDragging = true
+        draggingInformation.updateOffset(with: event)
+        draggingInformation.isDragging = true
 
         guard
             !isActive,
-            isValidDrag
+            draggingInformation.isValid
         else {
             return
         }
@@ -339,7 +316,7 @@ extension ColorWellSegment {
 
     override func draggingExited(_ sender: NSDraggingInfo?) {
         super.draggingExited(sender)
-        draggingOffset = .zero
+        draggingInformation.offset = .zero
     }
 
     override func updateTrackingAreas() {
@@ -395,5 +372,64 @@ extension ColorWellSegment {
 
         /// The default, idle state of a segment.
         case `default`
+    }
+}
+
+// MARK: - ColorWellSegment DraggingInformation
+
+extension ColorWellSegment {
+    /// Dragging information associated with a color well segment.
+    struct DraggingInformation {
+        /// The default values for this instance.
+        private let defaults: (threshold: CGFloat, isDragging: Bool, offset: CGSize)
+
+        /// The amount of movement that must occur before a dragging
+        /// session can start.
+        var threshold: CGFloat
+
+        /// A Boolean value that indicates whether a drag is currently
+        /// in progress.
+        var isDragging: Bool
+
+        /// The accumulated offset of the current series of dragging
+        /// events.
+        var offset: CGSize
+
+        /// A Boolean value that indicates whether the current dragging
+        /// information is valid for starting a dragging session.
+        var isValid: Bool {
+            hypot(offset.width, offset.height) >= threshold
+        }
+
+        /// Creates an instance with the given values.
+        ///
+        /// The values that are provided here will be cached, and used
+        /// to reset the instance.
+        init(
+            threshold: CGFloat = 4,
+            isDragging: Bool = false,
+            offset: CGSize = CGSize()
+        ) {
+            self.defaults = (threshold, isDragging, offset)
+            self.threshold = threshold
+            self.isDragging = isDragging
+            self.offset = offset
+        }
+
+        /// Resets the dragging information to its default values.
+        mutating func reset() {
+            self = DraggingInformation(
+                threshold: defaults.threshold,
+                isDragging: defaults.isDragging,
+                offset: defaults.offset
+            )
+        }
+
+        /// Updates the segment's dragging offset according to the x and y
+        /// deltas of the given event.
+        mutating func updateOffset(with event: NSEvent) {
+            offset.width += event.deltaX
+            offset.height += event.deltaY
+        }
     }
 }
