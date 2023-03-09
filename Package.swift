@@ -18,5 +18,9 @@ let package = Package(
             name: "ColorWell",
             dependencies: []
         ),
+        .testTarget(
+            name: "ColorWellTests",
+            dependencies: ["ColorWell"]
+        ),
     ]
 )
