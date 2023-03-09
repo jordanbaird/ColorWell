@@ -322,8 +322,7 @@ extension SwatchSegment {
 
         state = .default
 
-        // Fall back to the original color if archiving fails
-        let colorForDragging = color.archivedCopy() ?? color
+        let colorForDragging = color.createArchivedCopy()
         NSColorPanel.dragColor(colorForDragging, with: event, from: self)
     }
 

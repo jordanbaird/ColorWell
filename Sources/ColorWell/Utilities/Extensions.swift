@@ -318,7 +318,7 @@ extension NSColor {
     /// Creates a copy of this color by passing it through an archiving
     /// and unarchiving process, returning what is effectively the same
     /// color, but cleared of any undesired context.
-    func archivedCopy() -> NSColor? {
+    func createArchivedCopy() -> NSColor {
         let colorData: Data = {
             // Don't require secure coding. This is the whole reason we even
             // need this function. Apparently, some NSColor-backed SwiftUI
@@ -337,12 +337,15 @@ extension NSColor {
             return archiver.encodedData
         }()
 
-        guard let unarchiver = try? NSKeyedUnarchiver(forReadingFrom: colorData) else {
-            return nil
+        guard
+            let unarchiver = try? NSKeyedUnarchiver(forReadingFrom: colorData),
+            let copy = NSColor(coder: unarchiver)
+        else {
+            // Fall back to the original color if copying fails
+            return self
         }
 
-        let newColor = NSColor(coder: unarchiver)
-        return newColor
+        return copy
     }
 }
 
