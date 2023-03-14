@@ -11,25 +11,52 @@ class ColorWellLayoutView: NSGridView {
     // MARK: Properties
 
     /// A constructor for the layout view's swatch segment.
-    private let makeSwatchSegment: () -> SwatchSegment?
+    private var makeColorPanelSwatchSegment: () -> ColorPanelSwatchSegment? = { nil }
+
+    /// A constructor for the layout view's swatch segment.
+    private var makePullDownSwatchSegment: () -> PullDownSwatchSegment? = { nil }
 
     /// A constructor for the layout view's toggle segment.
-    private let makeToggleSegment: () -> ToggleSegment?
+    private var makeToggleSegment: () -> ToggleSegment? = { nil }
 
     /// Backing storage for the layout view's swatch segment.
-    private var cachedSwatchSegment: SwatchSegment?
+    private var cachedColorPanelSwatchSegment: ColorPanelSwatchSegment?
+
+    /// Backing storage for the layout view's swatch segment.
+    private var cachedPullDownSwatchSegment: PullDownSwatchSegment?
 
     /// Backing storage for the layout view's toggle segment.
     private var cachedToggleSegment: ToggleSegment?
 
+    /// The row that contains the layout view's segments.
+    private var row: NSGridRow?
+
+    /// A layer that enables the color well to mimic the appearance of a
+    /// native macOS UI element by drawing a small bezel around the edge
+    /// of the layout view.
+    private var cachedBezelLayer: CAGradientLayer?
+
+    /// The key-value observations retained by the layout view.
+    private var observations = Set<NSKeyValueObservation>()
+
     /// A segment that displays a color swatch with the color well's
     /// current color selection.
-    var swatchSegment: SwatchSegment? {
-        if let cachedSwatchSegment {
-            return cachedSwatchSegment
+    var colorPanelSwatchSegment: ColorPanelSwatchSegment? {
+        if let cachedColorPanelSwatchSegment {
+            return cachedColorPanelSwatchSegment
         }
-        cachedSwatchSegment = makeSwatchSegment()
-        return cachedSwatchSegment
+        cachedColorPanelSwatchSegment = makeColorPanelSwatchSegment()
+        return cachedColorPanelSwatchSegment
+    }
+
+    /// A segment that displays a color swatch with the color well's
+    /// current color selection.
+    var pullDownSwatchSegment: PullDownSwatchSegment? {
+        if let cachedPullDownSwatchSegment {
+            return cachedPullDownSwatchSegment
+        }
+        cachedPullDownSwatchSegment = makePullDownSwatchSegment()
+        return cachedPullDownSwatchSegment
     }
 
     /// A segment that, when pressed, toggles the color panel.
@@ -41,29 +68,33 @@ class ColorWellLayoutView: NSGridView {
         return cachedToggleSegment
     }
 
-    /// The row that contains the layout view's segments.
-    private var row: NSGridRow?
-
-    /// A layer that enables the color well to mimic the appearance of a
-    /// native macOS UI element by drawing a small bezel around the edge
-    /// of the layout view.
-    private var bezelLayer: CAGradientLayer?
-
-    /// The key-value observations retained by the layout view.
-    private var observations = Set<NSKeyValueObservation>()
+    /// The current segments in the layout view.
+    var currentSegments: [ColorWellSegment] {
+        let rangeOfRows = 0..<numberOfRows
+        let rangeOfColumns = 0..<numberOfColumns
+        return rangeOfRows.flatMap { rowIndex in
+            rangeOfColumns.compactMap { columnIndex in
+                let cell = cell(atColumnIndex: columnIndex, rowIndex: rowIndex)
+                return cell.contentView as? ColorWellSegment
+            }
+        }
+    }
 
     // MARK: Initializers
 
     /// Creates a layout view with the given color well.
     init(colorWell: ColorWell) {
-        makeSwatchSegment = { [weak colorWell] in
-            SwatchSegment(colorWell: colorWell)
-        }
-        makeToggleSegment = { [weak colorWell] in
-            ToggleSegment(colorWell: colorWell)
-        }
-
         super.init(frame: .zero)
+
+        makeColorPanelSwatchSegment = { [weak colorWell, weak self] in
+            ColorPanelSwatchSegment(colorWell: colorWell, layoutView: self)
+        }
+        makePullDownSwatchSegment = { [weak colorWell, weak self] in
+            PullDownSwatchSegment(colorWell: colorWell, layoutView: self)
+        }
+        makeToggleSegment = { [weak colorWell, weak self] in
+            ToggleSegment(colorWell: colorWell, layoutView: self)
+        }
 
         wantsLayer = true
         columnSpacing = 0
@@ -103,25 +134,31 @@ extension ColorWellLayoutView {
         switch style {
         case .expanded:
             guard
-                let swatchSegment,
+                let pullDownSwatchSegment,
                 let toggleSegment
             else {
                 return
             }
-            row = addRow(with: [swatchSegment, toggleSegment])
-        case .swatches, .colorPanel:
+            row = addRow(with: [pullDownSwatchSegment, toggleSegment])
+        case .swatches:
             cachedToggleSegment = nil
-            guard let swatchSegment else {
+            guard let pullDownSwatchSegment else {
                 return
             }
-            row = addRow(with: [swatchSegment])
+            row = addRow(with: [pullDownSwatchSegment])
+        case .colorPanel:
+            cachedToggleSegment = nil
+            guard let colorPanelSwatchSegment else {
+                return
+            }
+            row = addRow(with: [colorPanelSwatchSegment])
         }
     }
 
     /// Updates the bezel layer for the given rectangle.
-    func updateBezelLayer(_ dirtyRect: NSRect) {
-        bezelLayer?.removeFromSuperlayer()
-        bezelLayer = nil
+    func updateBezelLayer() {
+        cachedBezelLayer?.removeFromSuperlayer()
+        cachedBezelLayer = nil
 
         guard let layer else {
             return
@@ -153,7 +190,7 @@ extension ColorWellLayoutView {
         layer.addSublayer(bezelLayer)
         bezelLayer.zPosition += 1
 
-        self.bezelLayer = bezelLayer
+        cachedBezelLayer = bezelLayer
     }
 }
 
@@ -161,6 +198,6 @@ extension ColorWellLayoutView {
 extension ColorWellLayoutView {
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
-        updateBezelLayer(dirtyRect)
+        updateBezelLayer()
     }
 }

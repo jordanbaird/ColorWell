@@ -9,12 +9,26 @@ import Cocoa
 class ToggleSegment: ColorWellSegment {
     static let widthConstant: CGFloat = 20
 
+    private var cachedImageLayer: CALayer?
+
     override var side: Side { .right }
 
-    override init?(colorWell: ColorWell?) {
-        super.init(colorWell: colorWell)
-        // Constraining this segment's width will force the other
-        // segment to fill the remaining space.
+    override var rawColor: NSColor {
+        switch state {
+        case .highlight:
+            return .highlightedColorWellSegmentColor
+        case .pressed:
+            return .selectedColorWellSegmentColor
+        default:
+            return .colorWellSegmentColor
+        }
+    }
+
+    override init?(colorWell: ColorWell?, layoutView: ColorWellLayoutView?) {
+        super.init(colorWell: colorWell, layoutView: layoutView)
+
+        // Constraining this segment's width will force
+        // the other segment to fill the remaining space.
         translatesAutoresizingMaskIntoConstraints = false
         widthAnchor.constraint(equalToConstant: Self.widthConstant).isActive = true
     }
@@ -25,67 +39,75 @@ extension ToggleSegment {
     /// Adds a layer that contains an image indicating that the
     /// segment toggles the color panel.
     private func updateImageLayer(_ dirtyRect: NSRect) {
-        struct ImageLayerStorage {
-            private static let storage = Storage(variant: ObjectIdentifier(Self.self))
+        enum Cache {
+            private static let defaultImage: NSImage = {
+                // Force unwrap is okay here, as the image is an AppKit builtin.
+                let image = NSImage(named: NSImage.touchBarColorPickerFillName)!
+                return image.clippedToSquare()
+            }()
 
-            let segment: ToggleSegment
+            static let defaultContents = {
+                let scale = defaultImage.recommendedLayerContentsScale(0.0)
+                return defaultImage.layerContents(forContentsScale: scale)
+            }()
 
-            let dirtyRect: NSRect
+            static let tintedForDarkAppearance = {
+                let image = defaultImage.tinted(to: .white, amount: 0.33)
+                let scale = image.recommendedLayerContentsScale(0.0)
+                return image.layerContents(forContentsScale: scale)
+            }()
 
-            private var imageLayer: CALayer? {
-                get {
-                    Self.storage.value(forObject: segment)
-                }
-                nonmutating set {
-                    imageLayer?.removeFromSuperlayer()
-                    Self.storage.set(newValue, forObject: segment)
-                }
-            }
-
-            func updateImageLayer() {
-                imageLayer = nil
-
-                guard let segmentLayer = segment.layer else {
-                    return
-                }
-
-                let dimension = min(dirtyRect.width, dirtyRect.height) - 5.5
-                let imageLayer = CALayer()
-
-                imageLayer.frame = NSRect(
-                    x: 0,
-                    y: 0,
-                    width: dimension,
-                    height: dimension
-                ).centered(in: dirtyRect)
-
-                // Cache the image if this is the first time we're accessing
-                // it, for more efficient retrieval in the future.
-                var image = Self.storage.value(forObject: segment, default: {
-                    // Force unwrap is okay here, as the image is an AppKit builtin.
-                    let image = NSImage(named: NSImage.touchBarColorPickerFillName)!
-                    return image.clippedToSquare()
-                }())
-
-                if segment.state == .highlight {
-                    image = NSApp.effectiveAppearanceIsDarkAppearance
-                        ? image.tinted(to: .white, amount: 0.33)
-                        : image.tinted(to: .black, amount: 0.2)
-                }
-
-                imageLayer.contents = image
-
-                if !segment.colorWellIsEnabled {
-                    imageLayer.opacity = 0.5
-                }
-
-                segmentLayer.addSublayer(imageLayer)
-
-                self.imageLayer = imageLayer
-            }
+            static let tintedForLightAppearance = {
+                let image = defaultImage.tinted(to: .black, amount: 0.20)
+                let scale = image.recommendedLayerContentsScale(0.0)
+                return image.layerContents(forContentsScale: scale)
+            }()
         }
 
-        ImageLayerStorage(segment: self, dirtyRect: dirtyRect).updateImageLayer()
+        cachedImageLayer?.removeFromSuperlayer()
+        cachedImageLayer = nil
+
+        guard let layer else {
+            return
+        }
+
+        let dimension = min(dirtyRect.width, dirtyRect.height) - 6
+        let imageLayer = CALayer()
+
+        imageLayer.frame = NSRect(
+            x: 0,
+            y: 0,
+            width: dimension,
+            height: dimension
+        ).centered(in: dirtyRect)
+
+        if state == .highlight {
+            if effectiveAppearance.isDarkAppearance {
+                imageLayer.contents = Cache.tintedForDarkAppearance
+            } else {
+                imageLayer.contents = Cache.tintedForLightAppearance
+            }
+        } else {
+            imageLayer.contents = Cache.defaultContents
+        }
+
+        layer.addSublayer(imageLayer)
+        cachedImageLayer = imageLayer
+    }
+}
+
+// MARK: Perform Action
+extension ToggleSegment {
+    override class func performAction(for segment: ColorWellSegment) -> Bool {
+        guard let colorWell = segment.colorWell else {
+            return false
+        }
+        if colorWell.isActive {
+            colorWell.deactivate()
+        } else {
+            colorWell.activateAutoVerifyingExclusive()
+        }
+        return true
     }
 }
 
@@ -96,38 +118,29 @@ extension ToggleSegment {
         updateImageLayer(dirtyRect)
     }
 
-    override func drawHighlightIndicator() -> Bool {
-        fillColorGetter = { .highlightedColorWellSegmentColor }
-        return true
+    override func mouseDragged(with event: NSEvent) {
+        super.mouseDragged(with: event)
+
+        guard isEnabled else {
+            return
+        }
+
+        if frameConvertedToWindow.contains(event.locationInWindow) {
+            state = .highlight
+        } else if isActive {
+            state = .pressed
+        } else {
+            state = .default
+        }
     }
 
-    override func removeHighlightIndicator() -> Bool {
-        fillColorGetter = { .colorWellSegmentColor }
-        return true
-    }
-
-    override func drawPressedIndicator() -> Bool {
-        fillColorGetter = { .selectedColorWellSegmentColor }
-        return true
-    }
-
-    override func removePressedIndicator() -> Bool {
-        fillColorGetter = { .colorWellSegmentColor }
-        return true
-    }
-
-    override func performAction() -> Bool {
-        guard let action = colorWell?.swatchSegment?.action(forStyle: .colorPanel) else {
+    override func needsDisplayOnStateChange(_ state: State) -> Bool {
+        switch state {
+        case .highlight, .pressed, .default:
+            return true
+        case .hover:
             return false
         }
-        return action()
-    }
-
-    override func mouseUp(with event: NSEvent) {
-        // Dragging shouldn't prevent mouse up from working on this
-        // segment, so set isDragging to false before calling super.
-        draggingInformation.isDragging = false
-        super.mouseUp(with: event)
     }
 }
 

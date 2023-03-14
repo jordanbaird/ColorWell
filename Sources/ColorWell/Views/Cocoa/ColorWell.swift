@@ -36,7 +36,7 @@ public class ColorWell: _ColorWellBaseView {
     static let defaultColor = NSColor(red: 1, green: 1, blue: 1, alpha: 1)
 
     /// The default style for a color well.
-    static let defaultStyle = ColorWell.Style.expanded
+    static let defaultStyle = Style.expanded
 
     /// Hexadecimal strings used to construct the default colors shown
     /// in a color well's popover.
@@ -150,12 +150,29 @@ public class ColorWell: _ColorWellBaseView {
     /// The popover context associated with the color well.
     var popoverContext: ColorWellPopoverContext?
 
-    /// The segment that shows the color well's color.
-    var swatchSegment: SwatchSegment? {
-        layoutView.swatchSegment
+    /// A segment that shows the color well's color, and
+    /// toggles the color panel when pressed.
+    var colorPanelSwatchSegment: ColorPanelSwatchSegment? {
+        switch style {
+        case .colorPanel:
+            return layoutView.colorPanelSwatchSegment
+        case .expanded, .swatches:
+            return nil
+        }
     }
 
-    /// The segment that toggles the color well's color panel.
+    /// A segment that shows the color well's color, and
+    /// triggers a pull down action when pressed.
+    var pullDownSwatchSegment: PullDownSwatchSegment? {
+        switch style {
+        case .expanded, .swatches:
+            return layoutView.pullDownSwatchSegment
+        case .colorPanel:
+            return nil
+        }
+    }
+
+    /// A segment that toggles the color panel when pressed.
     var toggleSegment: ToggleSegment? {
         switch style {
         case .expanded:
@@ -232,7 +249,8 @@ public class ColorWell: _ColorWellBaseView {
             if isActive {
                 synchronizeColorPanel()
             }
-            swatchSegment?.needsDisplay = true
+            colorPanelSwatchSegment?.needsDisplay = true
+            pullDownSwatchSegment?.needsDisplay = true
         }
     }
 
@@ -580,7 +598,7 @@ extension ColorWell {
         synchronizeColorPanel()
         setUpColorPanelObservations()
         colorPanel.orderFront(self)
-        swatchSegment?.state = .pressed
+        colorPanelSwatchSegment?.state = .pressed
         toggleSegment?.state = .pressed
     }
 
@@ -590,7 +608,7 @@ extension ColorWell {
     /// panel will not affect its state.
     public func deactivate() {
         colorPanel.activeColorWells.remove(self)
-        swatchSegment?.state = .default
+        colorPanelSwatchSegment?.state = .default
         toggleSegment?.state = .default
         removeColorPanelObservations()
     }
@@ -627,10 +645,15 @@ extension ColorWell {
         switch style {
         case .expanded:
             result = Self.defaultFrame.size
-        case .swatches, .colorPanel:
-            result = NSSize(
-                width: Self.defaultFrame.width - ToggleSegment.widthConstant,
-                height: Self.defaultFrame.height
+        case .swatches:
+            result = Self.defaultFrame.size.insetBy(
+                dx: ToggleSegment.widthConstant / 2,
+                dy: 0
+            )
+        case .colorPanel:
+            result = Self.defaultFrame.size.insetBy(
+                dx: (ToggleSegment.widthConstant / 3) + 0.5,
+                dy: 0.5
             )
         }
 
@@ -652,6 +675,11 @@ extension ColorWell {
     }
 
     override var customAccessibilityPerformPress: () -> Bool {
-        swatchSegment?.performAction ?? { false }
+        if let colorPanelSwatchSegment {
+            return colorPanelSwatchSegment.performAction
+        } else if let pullDownSwatchSegment {
+            return pullDownSwatchSegment.performAction
+        }
+        return { false }
     }
 }

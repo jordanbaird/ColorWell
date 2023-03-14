@@ -36,6 +36,20 @@ extension CGSize {
     func applying(insets: NSEdgeInsets) -> Self {
         Self(width: width - insets.horizontal, height: height - insets.vertical)
     }
+
+    /// Returns a new size by applying the given insets to this size.
+    ///
+    /// The returned size is calculated according to the following
+    /// expression, where `w` and `h` represent the width and height
+    /// of the original size:
+    ///
+    ///     (w - (dx * 2), h - (dy * 2))
+    ///
+    /// If `dx` and `dy` are positive values, the size is decreased.
+    /// If they are negative values, the size is increased.
+    func insetBy(dx: CGFloat, dy: CGFloat) -> Self {
+        Self(width: width - (dx * 2), height: height - (dy * 2))
+    }
 }
 
 // MARK: - Comparable
@@ -105,11 +119,7 @@ extension NSApplication {
 extension NSColor {
     /// The default fill color for a color well segment.
     static var colorWellSegmentColor: NSColor {
-        if NSApp.effectiveAppearanceIsDarkAppearance {
-            return .selectedControlColor
-        } else {
-            return .controlColor
-        }
+        .controlColor
     }
 
     /// The fill color for a highlighted color well segment.
