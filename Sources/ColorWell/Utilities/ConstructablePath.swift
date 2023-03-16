@@ -63,10 +63,6 @@ extension Corner {
     }
 }
 
-extension Corner: Equatable { }
-
-extension Corner: Hashable { }
-
 // MARK: - Side
 
 /// A type that represents a side of a rectangle.
@@ -108,10 +104,6 @@ extension Side {
         Self(corners.map { $0.opposite })
     }
 }
-
-extension Side: Equatable { }
-
-extension Side: Hashable { }
 
 // MARK: - ConstructablePathComponent
 

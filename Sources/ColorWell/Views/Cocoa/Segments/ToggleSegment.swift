@@ -51,19 +51,19 @@ extension ToggleSegment {
                 return defaultImage.layerContents(forContentsScale: scale)
             }()
 
-            static let tintedForEnabledDarkAppearance = {
+            static let enabledTintedForDarkAppearance = {
                 let image = defaultImage.tinted(to: .white, amount: 0.33)
                 let scale = image.recommendedLayerContentsScale(0.0)
                 return image.layerContents(forContentsScale: scale)
             }()
 
-            static let tintedForEnabledLightAppearance = {
+            static let enabledTintedForLightAppearance = {
                 let image = defaultImage.tinted(to: .black, amount: 0.20)
                 let scale = image.recommendedLayerContentsScale(0.0)
                 return image.layerContents(forContentsScale: scale)
             }()
 
-            static let tintedForDisabledDarkAppearance = {
+            static let disabledTintedForDarkAppearance = {
                 let image = NSImage(size: defaultImage.size, flipped: false) { bounds in
                     defaultImage
                         .tinted(to: .gray, amount: 0.33)
@@ -74,7 +74,7 @@ extension ToggleSegment {
                 return image.layerContents(forContentsScale: scale)
             }()
 
-            static let tintedForDisabledLightAppearance = {
+            static let disabledTintedForLightAppearance = {
                 let image = NSImage(size: defaultImage.size, flipped: false) { bounds in
                     defaultImage
                         .tinted(to: .gray, amount: 0.20)
@@ -85,18 +85,18 @@ extension ToggleSegment {
                 return image.layerContents(forContentsScale: scale)
             }()
 
-            static func tintedForDarkAppearance(isEnabled: Bool) -> Any {
+            static func tintedForDarkAppearance(_ isEnabled: Bool) -> Any {
                 guard isEnabled else {
-                    return tintedForDisabledDarkAppearance
+                    return disabledTintedForDarkAppearance
                 }
-                return tintedForEnabledDarkAppearance
+                return enabledTintedForDarkAppearance
             }
 
-            static func tintedForLightAppearance(isEnabled: Bool) -> Any {
+            static func tintedForLightAppearance(_ isEnabled: Bool) -> Any {
                 guard isEnabled else {
-                    return tintedForDisabledLightAppearance
+                    return disabledTintedForLightAppearance
                 }
-                return tintedForEnabledLightAppearance
+                return enabledTintedForLightAppearance
             }
         }
 
@@ -119,9 +119,9 @@ extension ToggleSegment {
 
         if state == .highlight || !isEnabled {
             if effectiveAppearance.isDarkAppearance {
-                imageLayer.contents = Cache.tintedForDarkAppearance(isEnabled: isEnabled)
+                imageLayer.contents = Cache.tintedForDarkAppearance(isEnabled)
             } else {
-                imageLayer.contents = Cache.tintedForLightAppearance(isEnabled: isEnabled)
+                imageLayer.contents = Cache.tintedForLightAppearance(isEnabled)
             }
         } else {
             imageLayer.contents = Cache.defaultContents

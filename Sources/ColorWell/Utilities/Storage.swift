@@ -40,8 +40,8 @@ private struct StorageKey: Hashable {
     let valueKey: UInt64
 
     init<Object: AnyObject, Value>(_ objectType: Object.Type, _ valueType: Value.Type) {
-        self.objectKey = UInt64(UInt(bitPattern: ObjectIdentifier(objectType)))
-        self.valueKey = UInt64(UInt(bitPattern: ObjectIdentifier(valueType)))
+        objectKey = UInt64(UInt(bitPattern: ObjectIdentifier(objectType)))
+        valueKey = UInt64(UInt(bitPattern: ObjectIdentifier(valueType)))
     }
 }
 
@@ -49,16 +49,9 @@ private struct StorageKey: Hashable {
 
 /// A type that interfaces with a collection of value-storing contexts.
 struct Storage {
-
-    // MARK: Types
-
-    private typealias Accessors = (get: () -> [StorageKey: Any], set: ([StorageKey: Any]) -> Void)
-
-    // MARK: Properties
-
     private let lifetime: AnyObject
 
-    private let accessors: Accessors
+    private let accessors: (get: () -> [StorageKey: Any], set: ([StorageKey: Any]) -> Void)
 
     private var contexts: [StorageKey: Any] {
         get {
