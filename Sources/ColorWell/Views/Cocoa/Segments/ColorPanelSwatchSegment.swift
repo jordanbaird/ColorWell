@@ -5,18 +5,30 @@
 
 import Cocoa
 
+/// A segment that displays a color swatch with the color well's
+/// current color selection, and that toggles the color panel
+/// when pressed.
 class ColorPanelSwatchSegment: SwatchSegment {
     var bezelColor: NSColor {
+        let bezelColor: NSColor
+
         switch state {
         case .highlight, .pressed:
             if NSApp.effectiveAppearanceIsDarkAppearance {
-                return .highlightColor
+                bezelColor = .highlightColor
             } else {
-                return .selectedColorWellSegmentColor
+                bezelColor = .selectedColorWellSegmentColor
             }
         default:
-            return .colorWellSegmentColor
+            bezelColor = .colorWellSegmentColor
         }
+
+        guard isEnabled else {
+            let alphaComponent = max(bezelColor.alphaComponent - 0.5, 0.1)
+            return bezelColor.withAlphaComponent(alphaComponent)
+        }
+
+        return bezelColor
     }
 
     override var side: Side { .null }

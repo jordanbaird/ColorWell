@@ -58,14 +58,6 @@ public class ColorWell: _ColorWellBaseView {
     /// The observations associated with the color well.
     private var observations = [ObjectIdentifier: Set<NSKeyValueObservation>]()
 
-    /// A Boolean value that indicates whether the color well can
-    /// currently perform synchronization with its color panel.
-    private var canSynchronizeColorPanel = true
-
-    /// A Boolean value that indicates whether the color well can
-    /// currently execute its change handlers.
-    private var canExecuteChangeHandlers = true
-
     /// A Boolean value that indicates whether the `showsAlpha` value
     /// should be synchronized the next time `synchronizeColorPanel()`
     /// is called.
@@ -246,8 +238,11 @@ public class ColorWell: _ColorWellBaseView {
             guard oldValue != color else {
                 return
             }
-            if isActive {
-                synchronizeColorPanel()
+            if
+                isActive,
+                colorPanel.color != color
+            {
+                colorPanel.color = color
             }
             colorPanelSwatchSegment?.needsDisplay = true
             pullDownSwatchSegment?.needsDisplay = true
@@ -289,8 +284,13 @@ public class ColorWell: _ColorWellBaseView {
     @objc dynamic
     public var isEnabled: Bool = true {
         didSet {
-            updateActiveState()
-            needsDisplay = true
+            switch style {
+            case .expanded:
+                toggleSegment?.needsDisplay = true
+            case .swatches: break
+            case .colorPanel:
+                colorPanelSwatchSegment?.needsDisplay = true
+            }
         }
     }
 
@@ -456,9 +456,6 @@ extension ColorWell {
     /// Iterates through the color well's stored change handlers,
     /// executing them in the order that they were created.
     private func executeChangeHandlers() {
-        guard canExecuteChangeHandlers else {
-            return
-        }
         for handler in changeHandlers {
             handler(color)
         }
@@ -467,7 +464,7 @@ extension ColorWell {
     /// Updates the `isActive` property of the color well to the
     /// current accurate value.
     private func updateActiveState() {
-        _isActive = isEnabled && colorPanel.activeColorWells.contains(self)
+        _isActive = colorPanel.activeColorWells.contains(self)
     }
 
     /// Removes all observations for the color panel.
@@ -489,8 +486,13 @@ extension ColorWell {
             guard let newValue = change.newValue else {
                 return
             }
-            // ???: Should every active color well be updated, even if their color already matches?
-            for colorWell in colorPanel.activeColorWells where colorWell.color != newValue {
+
+            let predicate: (ColorWell) -> Bool = { colorWell in
+                colorWell.isEnabled &&
+                colorWell.color != newValue
+            }
+
+            for colorWell in colorPanel.activeColorWells where predicate(colorWell) {
                 colorWell.color = newValue
             }
         }
@@ -515,47 +517,17 @@ extension ColorWell {
 
 // MARK: Internal Instance Methods
 extension ColorWell {
-    /// Performs the specified block of code, ensuring that the color
-    /// well's stored change handlers are not executed.
-    func withoutExecutingChangeHandlers<T>(_ body: (ColorWell) throws -> T) rethrows -> T {
-        let cached = canExecuteChangeHandlers
-        canExecuteChangeHandlers = false
-        defer {
-            canExecuteChangeHandlers = cached
-        }
-        return try body(self)
-    }
-
-    /// Performs the specified block of code, ensuring that the color
-    /// well's color panel is not synchronized.
-    func withoutSynchronizingColorPanel<T>(_ body: (ColorWell) throws -> T) rethrows -> T {
-        let cached = canSynchronizeColorPanel
-        canSynchronizeColorPanel = false
-        defer {
-            canSynchronizeColorPanel = cached
-        }
-        return try body(self)
-    }
-
-    /// Activates the color well, automatically verifying whether it
-    /// should be activated in an exclusive state.
+    /// Activates the color well, automatically determining whether
+    /// it should be activated in an exclusive state.
     func activateAutoVerifyingExclusive() {
         let exclusive = !(NSEvent.modifierFlags.contains(.shift) && allowsMultipleSelection)
         activate(exclusive: exclusive)
     }
 
     /// Sets the color panel's color to be equal to the color
-    /// well's color.
-    func synchronizeColorPanel(force: Bool = false) {
-        guard !force else {
-            colorPanel.color = color
-            return
-        }
-
-        guard canSynchronizeColorPanel else {
-            return
-        }
-
+    /// well's color, and the color panel's `showsAlpha` value
+    /// to be equal to the color well's `showsAlpha` value.
+    func synchronizeColorPanel() {
         if shouldSynchronizeShowsAlpha {
             colorPanel.showsAlpha = showsAlpha
             shouldSynchronizeShowsAlpha = false
@@ -566,7 +538,7 @@ extension ColorWell {
         }
 
         if colorPanel.activeColorWells == [self] {
-            synchronizeColorPanel(force: true)
+            colorPanel.color = color
         } else {
             color = colorPanel.color
         }

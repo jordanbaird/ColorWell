@@ -5,7 +5,7 @@
 
 import Cocoa
 
-/// A segment that, when pressed, toggles the color panel.
+/// A segment that toggles the color panel when pressed.
 class ToggleSegment: ColorWellSegment {
     static let widthConstant: CGFloat = 20
 
@@ -51,17 +51,53 @@ extension ToggleSegment {
                 return defaultImage.layerContents(forContentsScale: scale)
             }()
 
-            static let tintedForDarkAppearance = {
+            static let tintedForEnabledDarkAppearance = {
                 let image = defaultImage.tinted(to: .white, amount: 0.33)
                 let scale = image.recommendedLayerContentsScale(0.0)
                 return image.layerContents(forContentsScale: scale)
             }()
 
-            static let tintedForLightAppearance = {
+            static let tintedForEnabledLightAppearance = {
                 let image = defaultImage.tinted(to: .black, amount: 0.20)
                 let scale = image.recommendedLayerContentsScale(0.0)
                 return image.layerContents(forContentsScale: scale)
             }()
+
+            static let tintedForDisabledDarkAppearance = {
+                let image = NSImage(size: defaultImage.size, flipped: false) { bounds in
+                    defaultImage
+                        .tinted(to: .gray, amount: 0.33)
+                        .draw(in: bounds, from: bounds, operation: .copy, fraction: 0.5)
+                    return true
+                }
+                let scale = image.recommendedLayerContentsScale(0.0)
+                return image.layerContents(forContentsScale: scale)
+            }()
+
+            static let tintedForDisabledLightAppearance = {
+                let image = NSImage(size: defaultImage.size, flipped: false) { bounds in
+                    defaultImage
+                        .tinted(to: .gray, amount: 0.20)
+                        .draw(in: bounds, from: bounds, operation: .copy, fraction: 0.5)
+                    return true
+                }
+                let scale = image.recommendedLayerContentsScale(0.0)
+                return image.layerContents(forContentsScale: scale)
+            }()
+
+            static func tintedForDarkAppearance(isEnabled: Bool) -> Any {
+                guard isEnabled else {
+                    return tintedForDisabledDarkAppearance
+                }
+                return tintedForEnabledDarkAppearance
+            }
+
+            static func tintedForLightAppearance(isEnabled: Bool) -> Any {
+                guard isEnabled else {
+                    return tintedForDisabledLightAppearance
+                }
+                return tintedForEnabledLightAppearance
+            }
         }
 
         cachedImageLayer?.removeFromSuperlayer()
@@ -81,11 +117,11 @@ extension ToggleSegment {
             height: dimension
         ).centered(in: dirtyRect)
 
-        if state == .highlight {
+        if state == .highlight || !isEnabled {
             if effectiveAppearance.isDarkAppearance {
-                imageLayer.contents = Cache.tintedForDarkAppearance
+                imageLayer.contents = Cache.tintedForDarkAppearance(isEnabled: isEnabled)
             } else {
-                imageLayer.contents = Cache.tintedForLightAppearance
+                imageLayer.contents = Cache.tintedForLightAppearance(isEnabled: isEnabled)
             }
         } else {
             imageLayer.contents = Cache.defaultContents

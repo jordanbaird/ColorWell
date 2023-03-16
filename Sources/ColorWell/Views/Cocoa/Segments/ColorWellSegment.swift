@@ -44,11 +44,9 @@ class ColorWellSegment: NSView {
         .colorWellSegmentColor
     }
 
-    /// The color that is displayed directly in the segment,
-    /// altered from `rawColor` to reflect whether the color
-    /// well is currently enabled or disabled.
+    /// The color that is displayed directly in the segment.
     var colorForDisplay: NSColor {
-        isEnabled ? rawColor : rawColor.disabled
+        rawColor
     }
 
     // MARK: Initializers

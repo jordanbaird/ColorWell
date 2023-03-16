@@ -91,6 +91,7 @@ extension SwatchSegment {
 
     override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
         guard
+            isEnabled,
             let types = sender.draggingPasteboard.types,
             types.contains(where: { registeredDraggedTypes.contains($0) })
         else {
@@ -100,8 +101,11 @@ extension SwatchSegment {
     }
 
     override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
-        if let color = NSColor(from: sender.draggingPasteboard) {
-            colorWell?.color = color
+        if
+            let colorWell,
+            let color = NSColor(from: sender.draggingPasteboard)
+        {
+            colorWell.color = color
             return true
         }
         return false

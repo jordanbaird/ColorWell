@@ -140,11 +140,6 @@ extension NSColor {
         }
     }
 
-    /// A version of this color that is suitable for disabled controls.
-    var disabled: NSColor {
-        withAlphaComponent(max(alphaComponent - 0.5, 0.1))
-    }
-
     /// Returns the average of this color's red, green, and blue components,
     /// approximating the brightness of the color.
     var averageBrightness: CGFloat {

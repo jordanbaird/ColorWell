@@ -288,24 +288,10 @@ extension ColorSwatch {
     /// Performs the swatch's action, setting the color well's color to
     /// that of the swatch, and closing the popover.
     func performAction() {
-        guard
-            let context,
-            let colorWell = context.colorWell
-        else {
+        guard let context else {
             return
         }
-
-        if colorWell.isActive {
-            colorWell.withoutSynchronizingColorPanel { colorWell in
-                colorWell.color = color
-            }
-            colorWell.withoutExecutingChangeHandlers { colorWell in
-                colorWell.synchronizeColorPanel(force: true)
-            }
-        } else {
-            colorWell.color = color
-        }
-
+        context.colorWell?.color = color
         context.popover.close()
     }
 }
