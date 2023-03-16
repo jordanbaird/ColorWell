@@ -49,6 +49,9 @@ private struct StorageKey: Hashable {
 
 /// A type that interfaces with a collection of value-storing contexts.
 struct Storage {
+
+    // MARK: Properties
+
     private let lifetime: AnyObject
 
     private let accessors: (get: () -> [StorageKey: Any], set: ([StorageKey: Any]) -> Void)

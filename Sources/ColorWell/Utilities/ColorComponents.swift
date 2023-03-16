@@ -5,7 +5,7 @@
 
 import Cocoa
 
-/// A type that contains information about the color components for a color.
+/// A type that contains information about the components of a color.
 enum ColorComponents {
     case rgb(red: Double, green: Double, blue: Double, alpha: Double)
     case cmyk(cyan: Double, magenta: Double, yellow: Double, black: Double, alpha: Double)
@@ -71,7 +71,7 @@ extension ColorComponents {
         }
     }
 
-    /// String representations of the raw components extracted from this instance.
+    /// String representations of the components extracted from this instance.
     var extractedComponentStrings: [String] {
         let formatter = NumberFormatter()
         formatter.minimumIntegerDigits = 1
@@ -89,7 +89,7 @@ extension ColorComponents {
 
 // MARK: Initializers
 extension ColorComponents {
-    /// Creates color components from the specified color.
+    /// Creates an instance from the specified color.
     init(color: NSColor) {
         switch color.type {
         case .componentBased:

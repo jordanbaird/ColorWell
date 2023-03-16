@@ -21,20 +21,14 @@ enum Corner {
     /// The bottom right corner of a rectangle.
     case bottomRight
 
-    /// The valid corners that can be used during path construction.
-    ///
-    /// - Important: The order of elements in the array is the order that is
-    ///   used during color well path construction, starting at the top left
-    ///   and moving clockwise around the color well's border.
+    /// All corners, ordered for use in color well path construction, starting
+    /// at the top left and moving clockwise around the color well's border.
     static let clockwiseOrder: [Self] = [.topLeft, .topRight, .bottomRight, .bottomLeft]
 }
 
 // MARK: Corner Helpers
 extension Corner {
-    /// The corner at the opposite end of the rectangle from this corner.
-    ///
-    /// For example, if this corner is `Corner.topLeft`, its `opposite`
-    /// corner will be `Corner.bottomRight`.
+    /// The corner on the opposite end of the rectangle.
     var opposite: Self {
         switch self {
         case .topLeft:
@@ -97,9 +91,6 @@ extension Side {
 // MARK: Side Helpers
 extension Side {
     /// The side on the opposite end of the rectangle.
-    ///
-    /// For example, if this side is `Side.top`, its `opposite`
-    /// side will be `Side.bottom`.
     var opposite: Self {
         Self(corners.map { $0.opposite })
     }
@@ -123,13 +114,14 @@ enum ConstructablePathComponent {
     case curve(to: CGPoint, control1: CGPoint, control2: CGPoint)
 
     /// Draws an arc in the path from its current point, through the given
-    /// midpoint, to the given endpoint, curving the path to the specified
-    /// radius.
+    /// midpoint, to the given endpoint, curving the path according to the
+    /// specified radius.
     case arc(through: CGPoint, to: CGPoint, radius: CGFloat)
 
     /// A component that nests other components.
     ///
-    /// This case can be created using array literal syntax.
+    /// This case can also be created using array literal syntax.
+    /// In the following example, `c1` and `c2` are equivalent.
     ///
     /// ```swift
     /// let c1 = ConstructablePathComponent.compound([
@@ -150,7 +142,7 @@ enum ConstructablePathComponent {
 // MARK: ConstructablePathComponent Helpers
 extension ConstructablePathComponent {
     /// Returns a compound component that constructs a right angle curve around
-    /// the given corner of the provided rectangle, using the provided radius.
+    /// the given corner of the provided rectangle, using the specified radius.
     static func rightAngleCurve(around corner: Corner, ofRect rect: CGRect, radius: CGFloat) -> Self {
         let mid = corner.point(forRect: rect)
 
@@ -194,10 +186,11 @@ extension ConstructablePathComponent: ExpressibleByArrayLiteral {
 /// A type that can produce a version of itself that can be constructed
 /// from `ConstructablePathComponent` values.
 protocol ConstructablePath where MutablePath.Constructed == Constructed {
-    /// The constructed result of this path type.
+    /// The constructed result type of this path type.
     associatedtype Constructed: ConstructablePath
 
-    /// A mutable version of this type, that produces the same constructed result.
+    /// A mutable version of this path type that produces the same
+    /// constructed result.
     associatedtype MutablePath: MutableConstructablePath
 
     /// This path, as its constructed result type.
@@ -270,8 +263,8 @@ protocol MutableConstructablePath: ConstructablePath {
 
 // MARK: - CachedPath
 
-/// A type that caches a graphics path alongside the bounds
-/// that were used in its creation.
+/// A type that caches a constructable path alongside the bounds
+/// that were used in its construction.
 struct CachedPath<Path: ConstructablePath> where Path.Constructed == Path {
     /// The bounds used to create this instance's path.
     let bounds: CGRect

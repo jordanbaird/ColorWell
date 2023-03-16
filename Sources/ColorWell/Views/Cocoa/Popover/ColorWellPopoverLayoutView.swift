@@ -11,7 +11,7 @@ class ColorWellPopoverLayoutView: NSGridView {
 
     /// A button that, when pressed, activates the color well
     /// and closes the popover.
-    var activateButton: CustomButton? {
+    var activateButton: ActionButton? {
         didSet {
             oldValue?.setAccessibilityParent(nil)
             activateButton?.setAccessibilityParent(self)
@@ -27,7 +27,7 @@ class ColorWellPopoverLayoutView: NSGridView {
 
         switch context.colorWell?.style {
         case .swatches:
-            let activateButton = CustomButton(title: "Show More Colors…") { [weak context] in
+            let activateButton = ActionButton(title: "Show More Colors…") { [weak context] in
                 context?.colorWell?.activateAutoVerifyingExclusive()
                 context?.popover.close()
             }

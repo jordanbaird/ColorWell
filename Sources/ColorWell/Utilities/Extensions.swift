@@ -536,7 +536,7 @@ extension Set where Element == NSKeyValueObservation {
     ///   - keyPath: A keypath to the observed property.
     ///   - options: The options describing the behavior of the observation.
     ///   - changeHandler: A change handler that will be performed when the
-    ///     value at `object.<(keyPath)>` changes.
+    ///     value at `object./keyPath/` changes.
     mutating func observe<Object: NSObject, Value>(
         _ object: Object,
         keyPath: KeyPath<Object, Value>,
