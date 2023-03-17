@@ -54,7 +54,7 @@ struct ColorWellConfiguration {
                 values.label = label.erased()
             case .showsAlpha(let showsAlpha):
                 values.updateShowsAlpha = { colorWell in
-                    colorWell.showsAlpha = showsAlpha.wrappedValue
+                    colorWell._showsAlpha = showsAlpha.wrappedValue
                 }
             }
         }
@@ -135,6 +135,12 @@ extension ColorWellConfiguration.Modifier {
     /// using the given localized string key.
     static func titleKey(_ titleKey: LocalizedStringKey) -> Self {
         Self.label(Text(titleKey))
+    }
+
+    /// Sets the value of the configuration's `showsAlpha` property
+    /// to a constant binding derived from the given Boolean value.
+    static func supportsOpacity(_ supportsOpacity: Bool) -> Self {
+        Self.showsAlpha(.constant(supportsOpacity))
     }
 }
 #endif

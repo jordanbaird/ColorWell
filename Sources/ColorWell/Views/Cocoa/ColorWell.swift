@@ -80,7 +80,7 @@ public class ColorWell: _ColorWellBaseView {
     /// in a call to `synchronizeColorPanel()`. If the color well is not
     /// active when this property is set, the next call to `synchronizeColorPanel()`
     /// will set its color panel's `showsAlpha` to this value.
-    private lazy var _showsAlpha = NSColorPanel.shared.showsAlpha {
+    lazy var _showsAlpha = NSColorPanel.shared.showsAlpha {
         didSet {
             shouldSynchronizeShowsAlpha = true
             if isActive {
@@ -185,16 +185,16 @@ public class ColorWell: _ColorWellBaseView {
     /// popover sessions, the next popover that is displayed will reflect the
     /// changes.
     ///
-    /// - Note: If the array is empty, the color well's ``colorPanel`` will be
-    ///   shown instead of a popover.
+    /// - Note: If the array is empty, the system color panel will be shown
+    ///   instead of the popover.
     @objc dynamic
     public var swatchColors = defaultSwatchColors
 
     /// The color well's color.
     ///
-    /// Setting this value immediately updates the visual state of both
-    /// the color well and its color panel, and executes all change
-    /// handlers stored by the color well.
+    /// Setting this value immediately updates the visual state of the color well
+    /// and executes its change handlers. If the color well is active, the system
+    /// color panel's color is updated to match the new value.
     @objc dynamic
     public var color: NSColor {
         didSet {
@@ -226,7 +226,7 @@ public class ColorWell: _ColorWellBaseView {
     /// A Boolean value that indicates whether the color well is enabled.
     ///
     /// If `false`, the color well will not react to mouse events, open
-    /// its color panel, or show its popover.
+    /// the system color panel, or show the color selection popover.
     ///
     /// Default value is `true`.
     @objc dynamic
@@ -240,14 +240,6 @@ public class ColorWell: _ColorWellBaseView {
                 colorPanelSwatchSegment?.needsDisplay = true
             }
         }
-    }
-
-    /// A Boolean value indicating whether the color well's color panel
-    /// shows alpha values and an opacity slider.
-    @objc dynamic
-    public var showsAlpha: Bool {
-        get { _showsAlpha }
-        set { _showsAlpha = newValue }
     }
 
     /// The appearance and behavior style to apply to the color well.
@@ -476,7 +468,7 @@ extension ColorWell {
     /// to be equal to the color well's `showsAlpha` value.
     func synchronizeColorPanel() {
         if shouldSynchronizeShowsAlpha {
-            NSColorPanel.shared.showsAlpha = showsAlpha
+            NSColorPanel.shared.showsAlpha = _showsAlpha
             shouldSynchronizeShowsAlpha = false
         }
 
@@ -494,14 +486,13 @@ extension ColorWell {
 
 // MARK: Public Instance Methods
 extension ColorWell {
-    /// Activates the color well and displays its color panel.
+    /// Activates the color well and displays the system color panel.
     ///
     /// Both elements will remain synchronized until either the color panel
     /// is closed, or the color well is deactivated.
     ///
     /// - Parameter exclusive: If this value is `true`, all other active
-    ///   color wells attached to this color well's color panel will be
-    ///   deactivated.
+    ///   color wells attached to the color panel will be deactivated.
     public func activate(exclusive: Bool) {
         guard isEnabled else {
             return
@@ -522,10 +513,11 @@ extension ColorWell {
         toggleSegment?.state = .pressed
     }
 
-    /// Deactivates the color well, detaching it from its color panel.
+    /// Deactivates the color well, detaching it from the system color
+    /// panel.
     ///
-    /// Until the color well is activated again, changes to its color
-    /// panel will not affect its state.
+    /// Until the color well is activated again, changes to the color
+    /// panel will not affect the color well's state.
     public func deactivate() {
         NSColorPanel.shared.activeColorWells.remove(self)
         colorPanelSwatchSegment?.state = .default
@@ -535,12 +527,10 @@ extension ColorWell {
 
     /// Adds an action to perform when the color well's color changes.
     ///
+    /// Use this method to synchronize the state of other elements in
+    /// your user interface that rely on the color well's color.
+    ///
     /// ```swift
-    /// let colorWell = ColorWell()
-    /// let textView = NSTextView()
-    /// // ...
-    /// // ...
-    /// // ...
     /// colorWell.onColorChange { color in
     ///     textView.textColor = color
     /// }

@@ -4,58 +4,39 @@
 
 ### Creating a color well with an initial color
 
-- ``init(color:)``
-- ``init(color:showsAlpha:)``
-- ``init(cgColor:)``
-- ``init(cgColor:showsAlpha:)``
+- ``init(color:supportsOpacity:)``
+- ``init(cgColor:supportsOpacity:)``
 
 ### Creating a color well with a color and action
 
-- ``init(color:action:)``
-- ``init(color:showsAlpha:action:)``
-- ``init(cgColor:action:)``
-- ``init(cgColor:showsAlpha:action:)``
+- ``init(color:supportsOpacity:action:)``
+- ``init(cgColor:supportsOpacity:action:)``
 
 ### Creating a color well with a color and label
 
-- ``init(color:label:)``
-- ``init(showsAlpha:color:label:)``
-- ``init(cgColor:label:)``
-- ``init(showsAlpha:cgColor:label:)``
-- ``init(_:color:)-9vor5``
-- ``init(_:color:showsAlpha:)-9n2ku``
-- ``init(_:color:)-x43r``
-- ``init(_:color:showsAlpha:)-8w0wq``
-- ``init(_:cgColor:)-4ptzb``
-- ``init(_:cgColor:showsAlpha:)-669gg``
-- ``init(_:cgColor:)-6sdq1``
-- ``init(_:cgColor:showsAlpha:)-7u0cq``
+- ``init(supportsOpacity:color:label:)``
+- ``init(supportsOpacity:cgColor:label:)``
+- ``init(_:color:supportsOpacity:)-4e9vl``
+- ``init(_:cgColor:supportsOpacity:)-1zr5r``
+- ``init(_:color:supportsOpacity:)-2js4x``
+- ``init(_:cgColor:supportsOpacity:)-91mdm``
 
 ### Creating a color well with a label and action
 
-- ``init(label:action:)``
-- ``init(showsAlpha:label:action:)``
-- ``init(_:action:)-k9g0``
-- ``init(_:showsAlpha:action:)-8jhlo``
-- ``init(_:action:)-9c6rx``
-- ``init(_:showsAlpha:action:)-2v1oy``
+- ``init(supportsOpacity:label:action:)``
+- ``init(_:supportsOpacity:action:)-4ijj0``
+- ``init(_:supportsOpacity:action:)-1dho9``
 
 ### Creating a color well with a color, label, and action
 
-- ``init(color:label:action:)``
-- ``init(showsAlpha:color:label:action:)``
-- ``init(cgColor:label:action:)``
-- ``init(showsAlpha:cgColor:label:action:)``
-- ``init(_:color:action:)-8ghst``
-- ``init(_:color:showsAlpha:action:)-68zal``
-- ``init(_:color:action:)-3s0o1``
-- ``init(_:color:showsAlpha:action:)-60wmk``
-- ``init(_:cgColor:action:)-62zw9``
-- ``init(_:cgColor:showsAlpha:action:)-8ra6i``
-- ``init(_:cgColor:action:)-3tub``
-- ``init(_:cgColor:showsAlpha:action:)-5v4z6``
+- ``init(supportsOpacity:color:label:action:)``
+- ``init(supportsOpacity:cgColor:label:action:)``
+- ``init(_:color:supportsOpacity:action:)-7turx``
+- ``init(_:cgColor:supportsOpacity:action:)-78agl``
+- ``init(_:color:supportsOpacity:action:)-6lguj``
+- ``init(_:cgColor:supportsOpacity:action:)-3f573``
 
-### Modifying a color well
+### Modifying color wells
 
 - ``colorWellStyle(_:)``
 - ``swatchColors(_:)``
@@ -82,3 +63,7 @@ If you apply the style to a container view, as in the example above, all the col
 ### A color well's content view
 
 - ``body``
+
+### Deprecated
+
+- <doc:ColorWellView.Deprecated>

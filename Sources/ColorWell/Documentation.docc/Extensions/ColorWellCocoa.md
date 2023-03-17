@@ -24,7 +24,6 @@
 - ``color``
 - ``isActive``
 - ``isEnabled``
-- ``showsAlpha``
 - ``style-swift.property``
 - ``swatchColors``
 
@@ -41,3 +40,4 @@
 ### Deprecated
 
 - ``colorPanel``
+- ``showsAlpha``
