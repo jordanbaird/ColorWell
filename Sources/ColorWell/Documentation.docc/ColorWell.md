@@ -35,7 +35,7 @@ let colorWell3 = ColorWell(frame: NSRect(x: 0, y: 0, width: 400, height: 200))
 // And more...
 ```
 
-Observe color changes using the `onColorChange(perform:)` method.
+Observe color changes using the ``ColorWell/ColorWell/onColorChange(perform:)`` method.
 
 ```swift
 let colorWell = ColorWell()
