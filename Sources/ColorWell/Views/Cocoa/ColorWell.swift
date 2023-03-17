@@ -19,9 +19,6 @@ public class ColorWell: _ColorWellBaseView {
 
     // MARK: Static Properties
 
-    /// Storage shared between every `ColorWell` instance.
-    private static let storage = Storage()
-
     /// A base value to use when computing the width of lines drawn as
     /// part of a color well or its elements.
     static let lineWidth: CGFloat = 1
@@ -128,7 +125,10 @@ public class ColorWell: _ColorWellBaseView {
 
     /// A view that manages the layout of the color well's segments.
     private var layoutView: ColorWellLayoutView {
-        Self.storage.value(
+        enum Cache {
+            static let storage = Storage()
+        }
+        return Cache.storage.value(
             forObject: self,
             default: ColorWellLayoutView(colorWell: self)
         )
@@ -453,8 +453,7 @@ extension ColorWell {
         }
     }
 
-    /// Iterates through the color well's stored change handlers,
-    /// executing them in the order that they were created.
+    /// Executes each of the color well's stored change handlers.
     private func executeChangeHandlers() {
         for handler in changeHandlers {
             handler(color)

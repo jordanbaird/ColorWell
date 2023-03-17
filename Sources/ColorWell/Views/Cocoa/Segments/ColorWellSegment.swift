@@ -7,6 +7,9 @@ import Cocoa
 
 /// A view that draws a segmented portion of a color well.
 class ColorWellSegment: NSView {
+
+    // MARK: Properties
+
     weak var colorWell: ColorWell?
 
     weak var layoutView: ColorWellLayoutView?
@@ -40,14 +43,10 @@ class ColorWellSegment: NSView {
     }
 
     /// The unaltered fill color of the segment.
-    var rawColor: NSColor {
-        .colorWellSegmentColor
-    }
+    var rawColor: NSColor { .colorWellSegmentColor }
 
     /// The color that is displayed directly in the segment.
-    var colorForDisplay: NSColor {
-        rawColor
-    }
+    var displayColor: NSColor { rawColor }
 
     // MARK: Initializers
 
@@ -144,7 +143,7 @@ extension ColorWellSegment {
 // MARK: Overrides
 extension ColorWellSegment {
     override func draw(_ dirtyRect: NSRect) {
-        colorForDisplay.setFill()
+        displayColor.setFill()
         defaultPath(dirtyRect).fill()
         updateShadowLayer(dirtyRect)
     }

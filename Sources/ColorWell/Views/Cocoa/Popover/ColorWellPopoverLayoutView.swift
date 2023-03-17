@@ -11,10 +11,10 @@ class ColorWellPopoverLayoutView: NSGridView {
 
     /// A button that, when pressed, activates the color well
     /// and closes the popover.
-    var activateButton: ActionButton? {
+    var activationButton: ActionButton? {
         didSet {
             oldValue?.setAccessibilityParent(nil)
-            activateButton?.setAccessibilityParent(self)
+            activationButton?.setAccessibilityParent(self)
         }
     }
 
@@ -27,17 +27,17 @@ class ColorWellPopoverLayoutView: NSGridView {
 
         switch context.colorWell?.style {
         case .swatches:
-            let activateButton = ActionButton(title: "Show More Colors…") { [weak context] in
+            let activationButton = ActionButton(title: "Show More Colors…") { [weak context] in
                 context?.colorWell?.activateAutoVerifyingExclusive()
                 context?.popover.close()
             }
-            self.activateButton = activateButton
+            self.activationButton = activationButton
 
-            activateButton.bezelStyle = .recessed
-            activateButton.controlSize = .small
+            activationButton.bezelStyle = .recessed
+            activationButton.controlSize = .small
             
-            addRow(with: [activateButton])
-            cell(for: activateButton)?.xPlacement = .fill
+            addRow(with: [activationButton])
+            cell(for: activationButton)?.xPlacement = .fill
         default:
             break
         }
@@ -46,9 +46,10 @@ class ColorWellPopoverLayoutView: NSGridView {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+}
 
-    // MARK: Accessibility
-
+// MARK: Accessibility
+extension ColorWellPopoverLayoutView {
     override func accessibilityParent() -> Any? {
         context?.containerView
     }
@@ -58,8 +59,8 @@ class ColorWellPopoverLayoutView: NSGridView {
         if let swatchView = context?.swatchView {
             result.append(swatchView)
         }
-        if let activateButton {
-            result.append(activateButton)
+        if let activationButton {
+            result.append(activationButton)
         }
         return result.isEmpty ? nil : result
     }

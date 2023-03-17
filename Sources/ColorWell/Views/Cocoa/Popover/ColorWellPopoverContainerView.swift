@@ -23,25 +23,26 @@ class ColorWellPopoverContainerView: NSView {
         layoutView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
 
         // Padding should vary based on the style.
-        let constant: CGFloat
+        let padding: CGFloat
         switch context.colorWell?.style {
         case .swatches:
-            constant = 15
+            padding = 15
         default:
-            constant = 20
+            padding = 20
         }
         translatesAutoresizingMaskIntoConstraints = false
-        widthAnchor.constraint(equalTo: layoutView.widthAnchor, constant: constant).isActive = true
-        heightAnchor.constraint(equalTo: layoutView.heightAnchor, constant: constant).isActive = true
+        widthAnchor.constraint(equalTo: layoutView.widthAnchor, constant: padding).isActive = true
+        heightAnchor.constraint(equalTo: layoutView.heightAnchor, constant: padding).isActive = true
     }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+}
 
-    // MARK: Accessibility
-
+// MARK: Accessibility
+extension ColorWellPopoverContainerView {
     override func accessibilityChildren() -> [Any]? {
         context.map { [$0.layoutView] }
     }

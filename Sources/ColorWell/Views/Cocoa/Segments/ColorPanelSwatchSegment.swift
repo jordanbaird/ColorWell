@@ -54,7 +54,7 @@ extension ColorPanelSwatchSegment {
         )
 
         swatchPath.addClip()
-        colorForDisplay.drawSwatch(in: dirtyRect)
+        displayColor.drawSwatch(in: dirtyRect)
 
         borderColor.setStroke()
         swatchPath.stroke()

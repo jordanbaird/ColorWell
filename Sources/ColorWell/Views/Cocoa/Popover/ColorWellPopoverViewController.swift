@@ -5,8 +5,7 @@
 
 import Cocoa
 
-/// A view controller that controls a view that contains a grid
-/// of selectable color swatches.
+/// A view controller that controls a color well popover's container view.
 class ColorWellPopoverViewController: NSViewController {
     private weak var context: ColorWellPopoverContext?
 

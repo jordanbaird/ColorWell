@@ -7,7 +7,12 @@ import Cocoa
 
 /// A segment that toggles the color panel when pressed.
 class ToggleSegment: ColorWellSegment {
+
+    // MARK: Static Properties
+
     static let widthConstant: CGFloat = 20
+
+    // MARK: Instance Properties
 
     private var cachedImageLayer: CALayer?
 
@@ -24,11 +29,12 @@ class ToggleSegment: ColorWellSegment {
         }
     }
 
+    // MARK: Initializers
+
     override init?(colorWell: ColorWell?, layoutView: ColorWellLayoutView?) {
         super.init(colorWell: colorWell, layoutView: layoutView)
-
-        // Constraining this segment's width will force
-        // the other segment to fill the remaining space.
+        // Constraining this segment's width will force the other
+        // segment to fill the remaining space.
         translatesAutoresizingMaskIntoConstraints = false
         widthAnchor.constraint(equalToConstant: Self.widthConstant).isActive = true
     }

@@ -8,11 +8,14 @@ import Cocoa
 /// A segment that displays a color swatch with the color well's
 /// current color selection.
 class SwatchSegment: ColorWellSegment {
+
+    // MARK: Properties
+
     var draggingInformation = DraggingInformation()
 
     var borderColor: NSColor {
-        let colorForDisplay = colorForDisplay
-        let normalizedBrightness = min(colorForDisplay.averageBrightness, colorForDisplay.alphaComponent)
+        let displayColor = displayColor
+        let normalizedBrightness = min(displayColor.averageBrightness, displayColor.alphaComponent)
         let alpha = min(normalizedBrightness, 0.2)
         return NSColor(white: 1 - alpha, alpha: alpha)
     }
@@ -21,9 +24,11 @@ class SwatchSegment: ColorWellSegment {
         colorWell?.color ?? super.rawColor
     }
 
-    override var colorForDisplay: NSColor {
-        super.colorForDisplay.usingColorSpace(.sRGB) ?? super.colorForDisplay
+    override var displayColor: NSColor {
+        super.displayColor.usingColorSpace(.sRGB) ?? super.displayColor
     }
+
+    // MARK: Initializers
 
     override init?(colorWell: ColorWell?, layoutView: ColorWellLayoutView?) {
         super.init(colorWell: colorWell, layoutView: layoutView)
@@ -37,7 +42,7 @@ extension SwatchSegment {
     @objc dynamic
     func drawSwatch(_ dirtyRect: NSRect) {
         NSImage.drawSwatch(
-            with: colorForDisplay,
+            with: displayColor,
             in: dirtyRect,
             clippingTo: defaultPath(dirtyRect)
         )

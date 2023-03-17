@@ -9,6 +9,9 @@ import Cocoa
 /// current color selection, and that triggers a pull down action
 /// when pressed.
 class PullDownSwatchSegment: SwatchSegment {
+
+    // MARK: Properties
+
     /// A cached tracking area for mouse enter/exit events.
     private var cachedTrackingArea: NSTrackingArea?
 

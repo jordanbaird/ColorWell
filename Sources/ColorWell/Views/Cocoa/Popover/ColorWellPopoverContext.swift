@@ -29,13 +29,12 @@ class ColorWellPopoverContext {
         }
     }()
 
-    /// Creates a context using the specified color well.
+    /// Creates a context for the specified color well.
     init(colorWell: ColorWell) {
         self.colorWell = colorWell
     }
 
-    /// Removes the strong reference to this instance from this
-    /// instance's color well.
+    /// Removes the strong reference to this instance from the color well.
     func removeStrongReference() {
         guard colorWell?.popoverContext === self else {
             return
