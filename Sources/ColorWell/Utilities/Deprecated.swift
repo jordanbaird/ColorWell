@@ -6,6 +6,10 @@
 import Cocoa
 
 extension ColorWell {
+    /// The color panel associated with the color well.
+    @available(*, deprecated, message: "'colorPanel' is no longer used and will be removed in a future release. Use 'NSColorPanel.shared' instead.")
+    public var colorPanel: NSColorPanel { .shared }
+
     /// A Boolean value that indicates whether the color well's color panel
     /// allows adjusting the selected color's opacity.
     @available(*, deprecated, renamed: "showsAlpha")

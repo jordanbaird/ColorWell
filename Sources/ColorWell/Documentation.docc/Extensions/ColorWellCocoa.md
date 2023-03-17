@@ -22,7 +22,6 @@
 
 - ``allowsMultipleSelection``
 - ``color``
-- ``colorPanel``
 - ``isActive``
 - ``isEnabled``
 - ``showsAlpha``
@@ -39,14 +38,9 @@
 
 - ``Style-swift.enum``
 
-### Partially Deprecated
-
-__Setters__
-
-- ``colorPanel``
-
 ### Deprecated
 
+- ``colorPanel``
 - ``supportsOpacity``
 - ``activate(_:)``
 - ``observeColor(onChange:)``

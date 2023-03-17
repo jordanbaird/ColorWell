@@ -60,40 +60,6 @@ public class ColorWell: _ColorWellBaseView {
     /// is called.
     private var shouldSynchronizeShowsAlpha = false
 
-    // FIXME: Only `NSColorPanel.shared` should be allowed as a value here.
-    //
-    /// The backing value for the public `colorPanel` property.
-    ///
-    /// Even though `NSColorPanel` is _supposed_ to be a singleton, it
-    /// lets you create custom instances using initializers inherited
-    /// from `NSObject`, `NSPanel`, etc. The problem is that `NSColorPanel`
-    /// internally manages its memory, and caches parts of its interface.
-    /// Color panels other than `NSColorPanel.shared` could get released,
-    /// leaving behind a slew of cached objects with no reference of what
-    /// they belong to.
-    ///
-    /// For now, we'll deprecate the public property's setter, but it
-    /// should eventually be made into a get-only property, a la:
-    ///
-    /// ```
-    /// public var colorPanel: NSColorPanel { .shared }
-    /// ```
-    private lazy var _colorPanel = NSColorPanel.shared {
-        willSet {
-            if isActive {
-                newValue.activeColorWells.insert(self)
-            }
-        }
-        didSet {
-            removeColorPanelObservations()
-            if isActive {
-                oldValue.activeColorWells.remove(self)
-                synchronizeColorPanel()
-                setUpColorPanelObservations()
-            }
-        }
-    }
-
     /// The backing value for the public `isActive` property.
     ///
     /// This enables key-value observation on the public property, while
@@ -114,7 +80,7 @@ public class ColorWell: _ColorWellBaseView {
     /// in a call to `synchronizeColorPanel()`. If the color well is not
     /// active when this property is set, the next call to `synchronizeColorPanel()`
     /// will set its color panel's `showsAlpha` to this value.
-    private lazy var _showsAlpha = colorPanel.showsAlpha {
+    private lazy var _showsAlpha = NSColorPanel.shared.showsAlpha {
         didSet {
             shouldSynchronizeShowsAlpha = true
             if isActive {
@@ -240,30 +206,12 @@ public class ColorWell: _ColorWellBaseView {
             }
             if
                 isActive,
-                colorPanel.color != color
+                NSColorPanel.shared.color != color
             {
-                colorPanel.color = color
+                NSColorPanel.shared.color = color
             }
             colorPanelSwatchSegment?.needsDisplay = true
             pullDownSwatchSegment?.needsDisplay = true
-        }
-    }
-
-    /// The color panel controlled by the color well.
-    ///
-    /// - Important: The setter for this property is deprecated, and will be
-    ///   removed in a future release. Using any other value besides `NSColorPanel.shared`
-    ///   will result in memory leaks.
-    @objc dynamic
-    public var colorPanel: NSColorPanel {
-        get {
-            _colorPanel
-        }
-        // Ideally, this would go in Deprecated.swift, but there isn't a way to make
-        // separate getter and setter declarations.
-        @available(*, deprecated, message: "Only the 'shared' instance of NSColorPanel is valid. Creation of additional instances causes memory leaks.")
-        set {
-            _colorPanel = newValue
         }
     }
 
@@ -446,7 +394,7 @@ extension ColorWell {
         }
 
         observations[for: Set<ColorWell>.self].observe(
-            colorPanel,
+            NSColorPanel.shared,
             keyPath: \.activeColorWells
         ) { [weak self] _, _ in
             self?.updateActiveState()
@@ -463,7 +411,7 @@ extension ColorWell {
     /// Updates the `isActive` property of the color well to the
     /// current accurate value.
     private func updateActiveState() {
-        _isActive = colorPanel.activeColorWells.contains(self)
+        _isActive = NSColorPanel.shared.activeColorWells.contains(self)
     }
 
     /// Removes all observations for the color panel.
@@ -478,7 +426,7 @@ extension ColorWell {
         removeColorPanelObservations()
 
         observations[for: NSColorPanel.self].observe(
-            colorPanel,
+            NSColorPanel.shared,
             keyPath: \.color,
             options: .new
         ) { colorPanel, change in
@@ -497,7 +445,7 @@ extension ColorWell {
         }
 
         observations[for: NSColorPanel.self].observe(
-            colorPanel,
+            NSColorPanel.shared,
             keyPath: \.isVisible,
             options: .new
         ) { [weak self] _, change in
@@ -528,18 +476,18 @@ extension ColorWell {
     /// to be equal to the color well's `showsAlpha` value.
     func synchronizeColorPanel() {
         if shouldSynchronizeShowsAlpha {
-            colorPanel.showsAlpha = showsAlpha
+            NSColorPanel.shared.showsAlpha = showsAlpha
             shouldSynchronizeShowsAlpha = false
         }
 
-        guard colorPanel.color != color else {
+        guard NSColorPanel.shared.color != color else {
             return
         }
 
-        if colorPanel.activeColorWells == [self] {
-            colorPanel.color = color
+        if NSColorPanel.shared.activeColorWells == [self] {
+            NSColorPanel.shared.color = color
         } else {
-            color = colorPanel.color
+            color = NSColorPanel.shared.color
         }
     }
 }
@@ -560,15 +508,16 @@ extension ColorWell {
         }
 
         if exclusive {
-            for colorWell in colorPanel.activeColorWells where colorWell !== self {
+            for colorWell in NSColorPanel.shared.activeColorWells where colorWell !== self {
                 colorWell.deactivate()
             }
         }
 
-        colorPanel.activeColorWells.insert(self)
+        NSColorPanel.shared.activeColorWells.insert(self)
         synchronizeColorPanel()
         setUpColorPanelObservations()
-        colorPanel.orderFront(self)
+        // ???: Should `NSApp.orderFrontColorPanel(self)` be used instead?
+        NSColorPanel.shared.orderFront(self)
         colorPanelSwatchSegment?.state = .pressed
         toggleSegment?.state = .pressed
     }
@@ -578,7 +527,7 @@ extension ColorWell {
     /// Until the color well is activated again, changes to its color
     /// panel will not affect its state.
     public func deactivate() {
-        colorPanel.activeColorWells.remove(self)
+        NSColorPanel.shared.activeColorWells.remove(self)
         colorPanelSwatchSegment?.state = .default
         toggleSegment?.state = .default
         removeColorPanelObservations()
