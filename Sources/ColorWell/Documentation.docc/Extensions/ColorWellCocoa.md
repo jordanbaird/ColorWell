@@ -41,6 +41,3 @@
 ### Deprecated
 
 - ``colorPanel``
-- ``supportsOpacity``
-- ``activate(_:)``
-- ``observeColor(onChange:)``
