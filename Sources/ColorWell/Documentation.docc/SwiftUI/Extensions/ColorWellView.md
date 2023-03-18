@@ -1,5 +1,31 @@
 # ``ColorWell/ColorWellView``
 
+You create a color well view by providing an initial color value and an action to perform when the color changes. The action can be a method, a closure-typed property, or a literal closure. You can provide a label for the color well in the form of a string, a `LocalizedStringKey`, or a custom view.
+
+```swift
+ColorWellView("Font Color", color: fontColor) { newColor in
+    fontColor = newColor
+}
+```
+
+By default, color wells support colors with opacity; to disable opacity support, set the `supportsOpacity` parameter to `false`.
+
+### Styling color wells
+
+You can customize a color well's appearance using one of the standard color well styles, like ``ColorWellStyle/swatches``, and apply the style with the ``colorWellStyle(_:)`` modifier:
+
+```swift
+HStack {
+    ColorWellView("Foreground", color: .blue)
+    ColorWellView("Background", color: .blue)
+}
+.colorWellStyle(.swatches)
+```
+
+If you apply the style to a container view, as in the example above, all the color wells in the container use the style:
+
+![Two color wells, both displayed in the swatches style](swatches-style)
+
 ## Topics
 
 ### Creating a color well with an initial color
@@ -42,27 +68,13 @@
 - ``swatchColors(_:)``
 - ``onColorChange(perform:)``
 
-### Styling color wells
-
-You can customize a color well's appearance using one of the standard color well styles, like ``ColorWellStyle/swatches``, and apply the style with the ``colorWellStyle(_:)`` modifier:
-
-```swift
-HStack {
-    ColorWellView("Foreground", color: .blue)
-    ColorWellView("Background", color: .blue)
-}
-.colorWellStyle(.swatches)
-```
-
-If you apply the style to a container view, as in the example above, all the color wells in the container use the style:
-
-![Two color wells, both displayed in the swatches style](swatches-style)
-
-- ``ColorWellStyle``
-
 ### A color well's content view
 
 - ``body``
+
+### Supporting Types
+
+- ``ColorWellStyle``
 
 ### Deprecated
 
