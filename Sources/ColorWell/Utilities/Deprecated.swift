@@ -15,8 +15,8 @@ extension ColorWell {
     @available(*, deprecated, message: "Use 'NSColorPanel.shared.showsAlpha' instead.")
     @objc dynamic
     public var showsAlpha: Bool {
-        get { _showsAlpha }
-        set { _showsAlpha = newValue }
+        get { NSColorPanel.shared.showsAlpha }
+        set { NSColorPanel.shared.showsAlpha = newValue }
     }
 }
 
