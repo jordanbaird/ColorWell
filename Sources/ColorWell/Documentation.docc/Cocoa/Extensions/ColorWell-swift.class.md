@@ -39,6 +39,4 @@
 
 ### Deprecated
 
-- ``colorPanel``
-- ``showsAlpha``
-- ``init(ciColor:)``
+- <doc:ColorWell-swift.class.Deprecated>
