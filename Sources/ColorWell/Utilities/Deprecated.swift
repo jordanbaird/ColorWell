@@ -18,6 +18,14 @@ extension ColorWell {
         get { NSColorPanel.shared.showsAlpha }
         set { NSColorPanel.shared.showsAlpha = newValue }
     }
+
+    /// Creates a color well with the specified Core Image color.
+    ///
+    /// - Parameter ciColor: The initial value of the color well's color.
+    @available(*, deprecated, renamed: "init(coreImageColor:)", message: "This initializer can result in unexpected runtime behavior. Use the failable 'init(coreImageColor:)' instead.")
+    public convenience init(ciColor: CIColor) {
+        self.init(color: NSColor(ciColor: ciColor))
+    }
 }
 
 #if canImport(SwiftUI)

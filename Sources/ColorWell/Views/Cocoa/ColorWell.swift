@@ -327,28 +327,22 @@ public class ColorWell: _ColorWellBaseView {
         self.init(color: color)
     }
 
+    // TODO: Replace this with an `init?(ciColor: CIColor)` signature.
+    // This is a workaround to replace `init(ciColor: CIColor)`, which
+    // is non-failable. Changing it to be failable, but with otherwise
+    // the same signature would be a breaking change, so we need to
+    // deprecate the original and wait at least one release to remove
+    // it. Once it's gone, we can deprecate this initializer and
+    // introduce the failable version of the original as a new API.
+    //
     /// Creates a color well with the specified Core Image color.
     ///
     /// - Parameter ciColor: The initial value of the color well's color.
-    public convenience init(ciColor: CIColor) {
-        // FIXME: This initializer should really be failable.
-        // It isn't because `NSColor(ciColor:)` also isn't (instead it
-        // raises an exception). Ideally, this should be deprecated and
-        // replaced with a failable version that attempts to create a
-        // CGColor, then delegates to `init(cgColor:)` if it succeeds.
-        //
-        // Something like this:
-        //
-        /// ```swift
-        /// public convenience init?(ciColor: CIColor) {
-        ///     guard let cgColor = CGColor(colorSpace: ciColor.colorSpace, components: ciColor.components) else {
-        ///         return nil
-        ///     }
-        ///     self.init(cgColor: cgColor)
-        /// }
-        /// ```
-        //
-        self.init(color: NSColor(ciColor: ciColor))
+    public convenience init?(coreImageColor ciColor: CIColor) {
+        guard let cgColor = CGColor(colorSpace: ciColor.colorSpace, components: ciColor.components) else {
+            return nil
+        }
+        self.init(cgColor: cgColor)
     }
 
     #if canImport(SwiftUI)
