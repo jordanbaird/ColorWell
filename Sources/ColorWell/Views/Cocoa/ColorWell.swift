@@ -55,11 +55,6 @@ public class ColorWell: _ColorWellBaseView {
     /// The observations associated with the color well.
     private var observations = [ObjectIdentifier: Set<NSKeyValueObservation>]()
 
-    /// A Boolean value that indicates whether the `showsAlpha` value
-    /// should be synchronized the next time `synchronizeColorPanel()`
-    /// is called.
-    private var shouldSynchronizeShowsAlpha = false
-
     /// The backing value for the public `isActive` property.
     ///
     /// This enables key-value observation on the public property, while
@@ -70,22 +65,6 @@ public class ColorWell: _ColorWellBaseView {
         }
         didSet {
             didChangeValue(for: \.isActive)
-        }
-    }
-
-    /// The backing value for the public `showsAlpha` property.
-    ///
-    /// If the color well is active when this property is set, the color
-    /// well's color panel's `showsAlpha` property is set to this value
-    /// in a call to `synchronizeColorPanel()`. If the color well is not
-    /// active when this property is set, the next call to `synchronizeColorPanel()`
-    /// will set its color panel's `showsAlpha` to this value.
-    lazy var _showsAlpha = NSColorPanel.shared.showsAlpha {
-        didSet {
-            shouldSynchronizeShowsAlpha = true
-            if isActive {
-                synchronizeColorPanel()
-            }
         }
     }
 
@@ -107,6 +86,17 @@ public class ColorWell: _ColorWellBaseView {
 
     /// The popover context associated with the color well.
     var popoverContext: ColorWellPopoverContext?
+
+    /// An optional Boolean value that, if set, will cause the system
+    /// color panel to show or hide its alpha controls during the next
+    /// call to `synchronizeColorPanel()`.
+    var showsAlphaForcedState: Bool? {
+        didSet {
+            if isActive {
+                synchronizeColorPanel()
+            }
+        }
+    }
 
     /// A segment that shows the color well's color, and
     /// toggles the color panel when pressed.
@@ -457,13 +447,11 @@ extension ColorWell {
         activate(exclusive: exclusive)
     }
 
-    /// Sets the color panel's color to be equal to the color
-    /// well's color, and the color panel's `showsAlpha` value
-    /// to be equal to the color well's `showsAlpha` value.
+    /// Synchronizes the state of the system color panel to match
+    /// the state of the color well.
     func synchronizeColorPanel() {
-        if shouldSynchronizeShowsAlpha {
-            NSColorPanel.shared.showsAlpha = _showsAlpha
-            shouldSynchronizeShowsAlpha = false
+        if let showsAlphaForcedState {
+            NSColorPanel.shared.showsAlpha = showsAlphaForcedState
         }
 
         guard NSColorPanel.shared.color != color else {

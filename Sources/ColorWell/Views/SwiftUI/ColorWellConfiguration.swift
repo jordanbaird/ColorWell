@@ -54,7 +54,7 @@ struct ColorWellConfiguration {
                 values.label = label.erased()
             case .showsAlpha(let showsAlpha):
                 values.updateShowsAlpha = { colorWell in
-                    colorWell._showsAlpha = showsAlpha.wrappedValue
+                    colorWell.showsAlphaForcedState = showsAlpha.wrappedValue
                 }
             }
         }

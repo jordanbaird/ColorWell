@@ -13,6 +13,12 @@ public struct _ColorWellStyleConfiguration {
     var style: ColorWell.Style?
 }
 
+extension _ColorWellStyleConfiguration: CustomStringConvertible {
+    public var description: String {
+        style.map(String.init) ?? "nil"
+    }
+}
+
 // MARK: - ColorWellStyle
 
 /// A type that specifies the appearance and behavior of a color well.
