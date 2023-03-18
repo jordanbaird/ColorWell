@@ -15,7 +15,7 @@
 - ``init()``
 - ``init(frame:color:)``
 - ``init(cgColor:)``
-- ``init(ciColor:)``
+- ``init(coreImageColor:)``
 - ``init(_:)``
 
 ### Instance Properties
@@ -41,3 +41,4 @@
 
 - ``colorPanel``
 - ``showsAlpha``
+- ``init(ciColor:)``
