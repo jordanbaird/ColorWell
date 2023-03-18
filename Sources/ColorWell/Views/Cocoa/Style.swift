@@ -31,13 +31,14 @@ extension ColorWell {
 
 extension ColorWell.Style: CustomStringConvertible {
     public var description: String {
+        let prefix = String(describing: Self.self) + "."
         switch self {
         case .expanded:
-            return "expanded"
+            return prefix + "expanded"
         case .swatches:
-            return "swatches"
+            return prefix + "swatches"
         case .colorPanel:
-            return "colorPanel"
+            return prefix + "colorPanel"
         }
     }
 }
