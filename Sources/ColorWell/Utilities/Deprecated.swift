@@ -40,6 +40,7 @@ extension ColorWellView {
     ///   - label: A view that describes the purpose of the color well.
     ///   - action: An action to perform when the color well's color changes.
     @available(*, deprecated, message: "Use 'init(supportsOpacity:label:action:)' instead.")
+    @_disfavoredOverload
     public init(
         @ViewBuilder label: () -> Label,
         action: @escaping (Color) -> Void
@@ -63,6 +64,7 @@ extension ColorWellView {
     ///   - label: A view that describes the purpose of the color well.
     ///   - action: An action to perform when the color well's color changes.
     @available(*, deprecated, message: "Use 'init(supportsOpacity:label:action:)' instead.")
+    @_disfavoredOverload
     public init(
         showsAlpha: Binding<Bool>,
         @ViewBuilder label: () -> Label,
@@ -87,6 +89,7 @@ extension ColorWellView {
     ///   - label: A view that describes the purpose of the color well.
     @available(*, deprecated, message: "Use 'init(supportsOpacity:color:label:)' instead.")
     @available(macOS 11.0, *)
+    @_disfavoredOverload
     public init(
         color: Color,
         @ViewBuilder label: () -> Label
@@ -111,6 +114,7 @@ extension ColorWellView {
     ///   - label: A view that describes the purpose of the color well.
     @available(*, deprecated, message: "Use 'init(supportsOpacity:color:label:)' instead.")
     @available(macOS 11.0, *)
+    @_disfavoredOverload
     public init(
         showsAlpha: Binding<Bool>,
         color: Color,
@@ -134,6 +138,7 @@ extension ColorWellView {
     ///   - cgColor: The initial value of the color well's color.
     ///   - label: A view that describes the purpose of the color well.
     @available(*, deprecated, message: "Use 'init(supportsOpacity:cgColor:label:)' instead.")
+    @_disfavoredOverload
     public init(
         cgColor: CGColor,
         @ViewBuilder label: () -> Label
@@ -157,6 +162,7 @@ extension ColorWellView {
     ///   - cgColor: The initial value of the color well's color.
     ///   - label: A view that describes the purpose of the color well.
     @available(*, deprecated, message: "Use 'init(supportsOpacity:cgColor:label:)' instead.")
+    @_disfavoredOverload
     public init(
         showsAlpha: Binding<Bool>,
         cgColor: CGColor,
@@ -183,6 +189,7 @@ extension ColorWellView {
     ///   - action: An action to perform when the color well's color changes.
     @available(*, deprecated, message: "Use 'init(supportsOpacity:color:label:action:)' instead.")
     @available(macOS 11.0, *)
+    @_disfavoredOverload
     public init(
         color: Color,
         @ViewBuilder label: () -> Label,
@@ -211,6 +218,7 @@ extension ColorWellView {
     ///   - action: An action to perform when the color well's color changes.
     @available(*, deprecated, message: "Use 'init(supportsOpacity:color:label:action:)' instead.")
     @available(macOS 11.0, *)
+    @_disfavoredOverload
     public init(
         showsAlpha: Binding<Bool>,
         color: Color,
@@ -244,6 +252,7 @@ extension ColorWellView {
     ///   - label: A view that describes the purpose of the color well.
     ///   - action: An action to perform when the color well's color changes.
     @available(*, deprecated, message: "Use 'init(supportsOpacity:cgColor:label:action:)' instead.")
+    @_disfavoredOverload
     public init(
         cgColor: CGColor,
         @ViewBuilder label: () -> Label,
@@ -277,6 +286,7 @@ extension ColorWellView {
     ///   - label: A view that describes the purpose of the color well.
     ///   - action: An action to perform when the color well's color changes.
     @available(*, deprecated, message: "Use 'init(supportsOpacity:cgColor:label:action:)' instead.")
+    @_disfavoredOverload
     public init(
         showsAlpha: Binding<Bool>,
         cgColor: CGColor,
@@ -303,6 +313,7 @@ extension ColorWellView where Label == Never {
     /// - Parameter color: The initial value of the color well's color.
     @available(*, deprecated, message: "Use 'init(color:supportsOpacity:)' instead.")
     @available(macOS 11.0, *)
+    @_disfavoredOverload
     public init(color: Color) {
         self.init(configuration: ColorWellConfiguration(modifiers: [.color(color)]))
     }
@@ -315,6 +326,7 @@ extension ColorWellView where Label == Never {
     ///     color well's color panel shows alpha values and an opacity slider.
     @available(*, deprecated, message: "Use 'init(color:supportsOpacity:)' instead.")
     @available(macOS 11.0, *)
+    @_disfavoredOverload
     public init(
         color: Color,
         showsAlpha: Binding<Bool>
@@ -333,6 +345,7 @@ extension ColorWellView where Label == Never {
     ///
     /// - Parameter cgColor: The initial value of the color well's color.
     @available(*, deprecated, message: "Use 'init(cgColor:supportsOpacity:)' instead.")
+    @_disfavoredOverload
     public init(cgColor: CGColor) {
         self.init(configuration: ColorWellConfiguration(modifiers: [.color(cgColor)]))
     }
@@ -344,6 +357,7 @@ extension ColorWellView where Label == Never {
     ///   - showsAlpha: A binding to a Boolean value indicating whether the
     ///     color well's color panel shows alpha values and an opacity slider.
     @available(*, deprecated, message: "Use 'init(cgColor:supportsOpacity:)' instead.")
+    @_disfavoredOverload
     public init(
         cgColor: CGColor,
         showsAlpha: Binding<Bool>
@@ -366,6 +380,7 @@ extension ColorWellView where Label == Never {
     ///   - action: An action to perform when the color well's color changes.
     @available(*, deprecated, message: "Use 'init(color:supportsOpacity:action:)' instead.")
     @available(macOS 11.0, *)
+    @_disfavoredOverload
     public init(
         color: Color,
         action: @escaping (Color) -> Void
@@ -390,6 +405,7 @@ extension ColorWellView where Label == Never {
     ///   - action: An action to perform when the color well's color changes.
     @available(*, deprecated, message: "Use 'init(color:supportsOpacity:action:)' instead.")
     @available(macOS 11.0, *)
+    @_disfavoredOverload
     public init(
         color: Color,
         showsAlpha: Binding<Bool>,
@@ -419,6 +435,7 @@ extension ColorWellView where Label == Never {
     ///   - cgColor: The initial value of the color well's color.
     ///   - action: An action to perform when the color well's color changes.
     @available(*, deprecated, message: "Use 'init(cgColor:supportsOpacity:action:)' instead.")
+    @_disfavoredOverload
     public init(
         cgColor: CGColor,
         action: @escaping (CGColor) -> Void
@@ -448,6 +465,7 @@ extension ColorWellView where Label == Never {
     ///     color well's color panel shows alpha values and an opacity slider.
     ///   - action: An action to perform when the color well's color changes.
     @available(*, deprecated, message: "Use 'init(cgColor:supportsOpacity:action:)' instead.")
+    @_disfavoredOverload
     public init(
         cgColor: CGColor,
         showsAlpha: Binding<Bool>,
@@ -475,6 +493,7 @@ extension ColorWellView where Label == Text {
     ///   - color: The initial value of the color well's color.
     @available(*, deprecated, message: "Use 'init(_:color:supportsOpacity:)' instead.")
     @available(macOS 11.0, *)
+    @_disfavoredOverload
     public init<S: StringProtocol>(
         _ title: S,
         color: Color
@@ -499,6 +518,7 @@ extension ColorWellView where Label == Text {
     ///     color well's color panel shows alpha values and an opacity slider.
     @available(*, deprecated, message: "Use 'init(_:color:supportsOpacity:)' instead.")
     @available(macOS 11.0, *)
+    @_disfavoredOverload
     public init<S: StringProtocol>(
         _ title: S,
         color: Color,
@@ -522,6 +542,7 @@ extension ColorWellView where Label == Text {
     ///   - title: A string that describes the purpose of the color well.
     ///   - cgColor: The initial value of the color well's color.
     @available(*, deprecated, message: "Use 'init(_:cgColor:supportsOpacity:)' instead.")
+    @_disfavoredOverload
     public init<S: StringProtocol>(
         _ title: S,
         cgColor: CGColor
@@ -545,6 +566,7 @@ extension ColorWellView where Label == Text {
     ///   - showsAlpha: A binding to a Boolean value indicating whether the
     ///     color well's color panel shows alpha values and an opacity slider.
     @available(*, deprecated, message: "Use 'init(_:cgColor:supportsOpacity:)' instead.")
+    @_disfavoredOverload
     public init<S: StringProtocol>(
         _ title: S,
         cgColor: CGColor,
@@ -568,6 +590,7 @@ extension ColorWellView where Label == Text {
     ///   - title: A string that describes the purpose of the color well.
     ///   - action: An action to perform when the color well's color changes.
     @available(*, deprecated, message: "Use 'init(_:supportsOpacity:action:)' instead.")
+    @_disfavoredOverload
     public init<S: StringProtocol>(
         _ title: S,
         action: @escaping (Color) -> Void
@@ -591,6 +614,7 @@ extension ColorWellView where Label == Text {
     ///     color well's color panel shows alpha values and an opacity slider.
     ///   - action: An action to perform when the color well's color changes.
     @available(*, deprecated, message: "Use 'init(_:supportsOpacity:action:)' instead.")
+    @_disfavoredOverload
     public init<S: StringProtocol>(
         _ title: S,
         showsAlpha: Binding<Bool>,
@@ -617,6 +641,7 @@ extension ColorWellView where Label == Text {
     ///   - action: An action to perform when the color well's color changes.
     @available(*, deprecated, message: "Use 'init(_:color:supportsOpacity:action:)' instead.")
     @available(macOS 11.0, *)
+    @_disfavoredOverload
     public init<S: StringProtocol>(
         _ title: S,
         color: Color,
@@ -645,6 +670,7 @@ extension ColorWellView where Label == Text {
     ///   - action: An action to perform when the color well's color changes.
     @available(*, deprecated, message: "Use 'init(_:color:supportsOpacity:action:)' instead.")
     @available(macOS 11.0, *)
+    @_disfavoredOverload
     public init<S: StringProtocol>(
         _ title: S,
         color: Color,
@@ -678,6 +704,7 @@ extension ColorWellView where Label == Text {
     ///   - cgColor: The initial value of the color well's color.
     ///   - action: An action to perform when the color well's color changes.
     @available(*, deprecated, message: "Use 'init(_:cgColor:supportsOpacity:action:)' instead.")
+    @_disfavoredOverload
     public init<S: StringProtocol>(
         _ title: S,
         cgColor: CGColor,
@@ -711,6 +738,7 @@ extension ColorWellView where Label == Text {
     ///     color well's color panel shows alpha values and an opacity slider.
     ///   - action: An action to perform when the color well's color changes.
     @available(*, deprecated, message: "Use 'init(_:cgColor:supportsOpacity:action:)' instead.")
+    @_disfavoredOverload
     public init<S: StringProtocol>(
         _ title: S,
         cgColor: CGColor,
@@ -737,6 +765,7 @@ extension ColorWellView where Label == Text {
     ///   - color: The initial value of the color well's color.
     @available(*, deprecated, message: "Use 'init(_:color:supportsOpacity:)' instead.")
     @available(macOS 11.0, *)
+    @_disfavoredOverload
     public init(
         _ titleKey: LocalizedStringKey,
         color: Color
@@ -761,6 +790,7 @@ extension ColorWellView where Label == Text {
     ///     color well's color panel shows alpha values and an opacity slider.
     @available(*, deprecated, message: "Use 'init(_:color:supportsOpacity:)' instead.")
     @available(macOS 11.0, *)
+    @_disfavoredOverload
     public init(
         _ titleKey: LocalizedStringKey,
         color: Color,
@@ -784,6 +814,7 @@ extension ColorWellView where Label == Text {
     ///   - titleKey: The key for the localized title of the color well.
     ///   - cgColor: The initial value of the color well's color.
     @available(*, deprecated, message: "Use 'init(_:cgColor:supportsOpacity:)' instead.")
+    @_disfavoredOverload
     public init(
         _ titleKey: LocalizedStringKey,
         cgColor: CGColor
@@ -807,6 +838,7 @@ extension ColorWellView where Label == Text {
     ///   - showsAlpha: A binding to a Boolean value indicating whether the
     ///     color well's color panel shows alpha values and an opacity slider.
     @available(*, deprecated, message: "Use 'init(_:cgColor:supportsOpacity:)' instead.")
+    @_disfavoredOverload
     public init(
         _ titleKey: LocalizedStringKey,
         cgColor: CGColor,
@@ -830,6 +862,7 @@ extension ColorWellView where Label == Text {
     ///   - titleKey: The key for the localized title of the color well.
     ///   - action: An action to perform when the color well's color changes.
     @available(*, deprecated, message: "Use 'init(_:supportsOpacity:action:)' instead.")
+    @_disfavoredOverload
     public init(
         _ titleKey: LocalizedStringKey,
         action: @escaping (Color) -> Void
@@ -853,6 +886,7 @@ extension ColorWellView where Label == Text {
     ///     color well's color panel shows alpha values and an opacity slider.
     ///   - action: An action to perform when the color well's color changes.
     @available(*, deprecated, message: "Use 'init(_:supportsOpacity:action:)' instead.")
+    @_disfavoredOverload
     public init(
         _ titleKey: LocalizedStringKey,
         showsAlpha: Binding<Bool>,
@@ -879,6 +913,7 @@ extension ColorWellView where Label == Text {
     ///   - action: An action to perform when the color well's color changes.
     @available(*, deprecated, message: "Use 'init(_:color:supportsOpacity:action:)' instead.")
     @available(macOS 11.0, *)
+    @_disfavoredOverload
     public init(
         _ titleKey: LocalizedStringKey,
         color: Color,
@@ -907,6 +942,7 @@ extension ColorWellView where Label == Text {
     ///   - action: An action to perform when the color well's color changes.
     @available(*, deprecated, message: "Use 'init(_:color:supportsOpacity:action:)' instead.")
     @available(macOS 11.0, *)
+    @_disfavoredOverload
     public init(
         _ titleKey: LocalizedStringKey,
         color: Color,
@@ -940,6 +976,7 @@ extension ColorWellView where Label == Text {
     ///   - cgColor: The initial value of the color well's color.
     ///   - action: An action to perform when the color well's color changes.
     @available(*, deprecated, message: "Use 'init(_:cgColor:supportsOpacity:action:)' instead.")
+    @_disfavoredOverload
     public init(
         _ titleKey: LocalizedStringKey,
         cgColor: CGColor,
@@ -973,6 +1010,7 @@ extension ColorWellView where Label == Text {
     ///     color well's color panel shows alpha values and an opacity slider.
     ///   - action: An action to perform when the color well's color changes.
     @available(*, deprecated, message: "Use 'init(_:cgColor:supportsOpacity:action:)' instead.")
+    @_disfavoredOverload
     public init(
         _ titleKey: LocalizedStringKey,
         cgColor: CGColor,
