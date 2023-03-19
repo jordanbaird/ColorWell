@@ -39,9 +39,9 @@ private struct StorageKey: Hashable {
     let objectKey: UInt64
     let valueKey: UInt64
 
-    init<Object: AnyObject, Value>(_ objectType: Object.Type, _ valueType: Value.Type) {
-        objectKey = UInt64(UInt(bitPattern: ObjectIdentifier(objectType)))
-        valueKey = UInt64(UInt(bitPattern: ObjectIdentifier(valueType)))
+    init<Object: AnyObject, Value>(_: Object.Type, _: Value.Type) {
+        objectKey = UInt64(UInt(bitPattern: ObjectIdentifier(Object.self)))
+        valueKey = UInt64(UInt(bitPattern: ObjectIdentifier(Value.self)))
     }
 }
 
@@ -100,40 +100,31 @@ struct Storage {
     // MARK: Private Methods
 
     /// Returns the storage context for the given object and value types.
-    private func context<Object: AnyObject, Value>(
-        _ objectType: Object.Type,
-        _ valueType: Value.Type
-    ) -> StorageContext<Object, Value>? {
-        contexts[StorageKey(objectType, valueType)] as? StorageContext<Object, Value>
+    private func context<Object: AnyObject, Value>(_: Object.Type, _: Value.Type) -> StorageContext<Object, Value>? {
+        contexts[StorageKey(Object.self, Value.self)] as? StorageContext<Object, Value>
     }
 
-    /// Sets the storage context for the given object and value types.
-    private func setContext<Object: AnyObject, Value>(
-        _ context: StorageContext<Object, Value>?,
-        _ objectType: Object.Type,
-        _ valueType: Value.Type
-    ) {
-        contexts[StorageKey(objectType, valueType)] = context
+    /// Stores the specified storage context using its object and value types.
+    private func store<Object: AnyObject, Value>(_ context: StorageContext<Object, Value>?) {
+        contexts[StorageKey(Object.self, Value.self)] = context
     }
 
     // MARK: Internal Methods
 
     /// Accesses the value of the given type for the specified object.
-    func value<Object: AnyObject, Value>(
-        ofType valueType: Value.Type = Value.self,
-        forObject object: Object
-    ) -> Value? {
-        context(Object.self, valueType)?.getValue(forObject: object)
+    func value<Object: AnyObject, Value>(ofType _: Value.Type = Value.self, forObject object: Object) -> Value? {
+        context(Object.self, Value.self)?.getValue(forObject: object)
     }
 
-    /// Accesses the value of the given type for the specified object, storing
-    /// and returning the specified default value if no value is currently stored.
+    /// Accesses the value of the given type for the specified object,
+    /// storing and returning the specified default value if no value
+    /// is currently stored.
     func value<Object: AnyObject, Value>(
-        ofType valueType: Value.Type = Value.self,
+        ofType _: Value.Type = Value.self,
         forObject object: Object,
         default defaultValue: @autoclosure () -> Value
     ) -> Value {
-        guard let value = value(ofType: valueType, forObject: object) else {
+        guard let value = value(ofType: Value.self, forObject: object) else {
             let value = defaultValue()
             set(value, forObject: object)
             return value
@@ -148,13 +139,13 @@ struct Storage {
         } else {
             let context = StorageContext<Object, Value>()
             context.setValue(value, forObject: object)
-            setContext(context, Object.self, Value.self)
+            store(context)
         }
     }
 
     /// Removes the value of the given type for the specified object.
-    func removeValue<Object: AnyObject, Value>(ofType valueType: Value.Type, forObject object: Object) {
-        if let context = context(Object.self, valueType) {
+    func removeValue<Object: AnyObject, Value>(ofType _: Value.Type, forObject object: Object) {
+        if let context = context(Object.self, Value.self) {
             context.removeValue(forObject: object)
         }
     }
