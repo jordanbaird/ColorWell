@@ -8,7 +8,7 @@ import SwiftUI
 
 // MARK: - ColorWellConfiguration
 
-/// A type containing information used to create a color well.
+/// A type containing information used to configure a color well.
 @available(macOS 10.15, *)
 struct ColorWellConfiguration {
 
@@ -24,8 +24,8 @@ struct ColorWellConfiguration {
     /// the color well.
     let label: AnyView?
 
-    /// A closure to update whether the color well is able to
-    /// work with alpha values.
+    /// A closure that informs the color well whether or not
+    /// it should support alpha values.
     let updateShowsAlpha: (ColorWell) -> Void
 
     // MARK: Initializers
@@ -101,7 +101,7 @@ extension ColorWellConfiguration.Modifier {
     ///
     /// - Note: If the conversion from `CGColor` to `NSColor`
     ///   fails, this modifier will return `nil`.
-    static func color(_ cgColor: CGColor) -> Self? {
+    static func cgColor(_ cgColor: CGColor) -> Self? {
         NSColor(cgColor: cgColor).map(Self.color)
     }
 

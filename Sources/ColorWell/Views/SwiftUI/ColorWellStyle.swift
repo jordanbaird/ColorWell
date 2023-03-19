@@ -77,7 +77,7 @@ extension ColorWellStyle where Self == SwatchesColorWellStyle {
     }
 }
 
-// MARK: - ColorPanelColorWellStyle
+// MARK: - PanelColorWellStyle
 
 /// A color well style that displays the color well's color inside of a
 /// rectangular control, and toggles the system color panel when clicked.

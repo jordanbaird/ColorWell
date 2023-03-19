@@ -6,31 +6,20 @@
 #if canImport(SwiftUI)
 import SwiftUI
 
-// MARK: - ChangeHandlersKey
-
-/// A key used to store a color well's change handlers in an environment.
 @available(macOS 10.15, *)
 private struct ChangeHandlersKey: EnvironmentKey {
     static let defaultValue = [(NSColor) -> Void]()
 }
 
-// MARK: - ColorWellStyleConfigurationKey
-
-/// A key used to store a color well's style configuration in an environment.
 @available(macOS 10.15, *)
 private struct ColorWellStyleConfigurationKey: EnvironmentKey {
     static let defaultValue = _ColorWellStyleConfiguration()
 }
 
-// MARK: - SwatchColorsKey
-
-/// A key used to store a color well's swatch colors in an environment.
 @available(macOS 10.15, *)
 private struct SwatchColorsKey: EnvironmentKey {
     static let defaultValue: [NSColor]? = nil
 }
-
-// MARK: - EnvironmentValues
 
 @available(macOS 10.15, *)
 extension EnvironmentValues {

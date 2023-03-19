@@ -146,7 +146,7 @@ extension ColorWellView {
         self.init(
             configuration: ColorWellConfiguration(
                 modifiers: [
-                    .color(cgColor),
+                    .cgColor(cgColor),
                     .label(label),
                 ]
             )
@@ -172,7 +172,7 @@ extension ColorWellView {
             configuration: ColorWellConfiguration(
                 modifiers: [
                     .showsAlpha(showsAlpha),
-                    .color(cgColor),
+                    .cgColor(cgColor),
                     .label(label),
                 ]
             )
@@ -261,7 +261,7 @@ extension ColorWellView {
         self.init(
             configuration: ColorWellConfiguration(
                 modifiers: [
-                    .color(cgColor),
+                    .cgColor(cgColor),
                     .label(label),
                     .action(action),
                 ]
@@ -297,7 +297,7 @@ extension ColorWellView {
             configuration: ColorWellConfiguration(
                 modifiers: [
                     .showsAlpha(showsAlpha),
-                    .color(cgColor),
+                    .cgColor(cgColor),
                     .label(label),
                     .action(action),
                 ]
@@ -347,7 +347,7 @@ extension ColorWellView where Label == Never {
     @available(*, deprecated, message: "Use 'init(cgColor:supportsOpacity:)' instead.")
     @_disfavoredOverload
     public init(cgColor: CGColor) {
-        self.init(configuration: ColorWellConfiguration(modifiers: [.color(cgColor)]))
+        self.init(configuration: ColorWellConfiguration(modifiers: [.cgColor(cgColor)]))
     }
 
     /// Creates a color well with an initial color value.
@@ -365,7 +365,7 @@ extension ColorWellView where Label == Never {
         self.init(
             configuration: ColorWellConfiguration(
                 modifiers: [
-                    .color(cgColor),
+                    .cgColor(cgColor),
                     .showsAlpha(showsAlpha),
                 ]
             )
@@ -443,7 +443,7 @@ extension ColorWellView where Label == Never {
         self.init(
             configuration: ColorWellConfiguration(
                 modifiers: [
-                    .color(cgColor),
+                    .cgColor(cgColor),
                     .action(action),
                 ]
             )
@@ -474,7 +474,7 @@ extension ColorWellView where Label == Never {
         self.init(
             configuration: ColorWellConfiguration(
                 modifiers: [
-                    .color(cgColor),
+                    .cgColor(cgColor),
                     .showsAlpha(showsAlpha),
                     .action(action),
                 ]
@@ -551,7 +551,7 @@ extension ColorWellView where Label == Text {
             configuration: ColorWellConfiguration(
                 modifiers: [
                     .title(title),
-                    .color(cgColor),
+                    .cgColor(cgColor),
                 ]
             )
         )
@@ -576,7 +576,7 @@ extension ColorWellView where Label == Text {
             configuration: ColorWellConfiguration(
                 modifiers: [
                     .title(title),
-                    .color(cgColor),
+                    .cgColor(cgColor),
                     .showsAlpha(showsAlpha),
                 ]
             )
@@ -714,7 +714,7 @@ extension ColorWellView where Label == Text {
             configuration: ColorWellConfiguration(
                 modifiers: [
                     .title(title),
-                    .color(cgColor),
+                    .cgColor(cgColor),
                     .action(action),
                 ]
             )
@@ -749,7 +749,7 @@ extension ColorWellView where Label == Text {
             configuration: ColorWellConfiguration(
                 modifiers: [
                     .title(title),
-                    .color(cgColor),
+                    .cgColor(cgColor),
                     .showsAlpha(showsAlpha),
                     .action(action),
                 ]
@@ -823,7 +823,7 @@ extension ColorWellView where Label == Text {
             configuration: ColorWellConfiguration(
                 modifiers: [
                     .titleKey(titleKey),
-                    .color(cgColor),
+                    .cgColor(cgColor),
                 ]
             )
         )
@@ -848,7 +848,7 @@ extension ColorWellView where Label == Text {
             configuration: ColorWellConfiguration(
                 modifiers: [
                     .titleKey(titleKey),
-                    .color(cgColor),
+                    .cgColor(cgColor),
                     .showsAlpha(showsAlpha),
                 ]
             )
@@ -986,7 +986,7 @@ extension ColorWellView where Label == Text {
             configuration: ColorWellConfiguration(
                 modifiers: [
                     .titleKey(titleKey),
-                    .color(cgColor),
+                    .cgColor(cgColor),
                     .action(action),
                 ]
             )
@@ -1021,7 +1021,7 @@ extension ColorWellView where Label == Text {
             configuration: ColorWellConfiguration(
                 modifiers: [
                     .titleKey(titleKey),
-                    .color(cgColor),
+                    .cgColor(cgColor),
                     .showsAlpha(showsAlpha),
                     .action(action),
                 ]

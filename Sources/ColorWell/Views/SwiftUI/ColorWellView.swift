@@ -6,9 +6,7 @@
 #if canImport(SwiftUI)
 import SwiftUI
 
-// MARK: - ColorWellView
-
-/// A control that displays a user-selectable color value.
+/// A SwiftUI view that displays a user-selectable color value.
 ///
 /// Color wells provide a means for choosing custom colors directly within
 /// your app's user interface. A color well displays the currently selected
@@ -22,7 +20,7 @@ public struct ColorWellView<Label: View>: View {
     private let label: AnyView?
 
     /// A type-erased `NSViewRepresentable` wrapper around the
-    /// color well.
+    /// view's underlying color well.
     private let representable: AnyView
 
     /// The content view of the color well.
@@ -119,7 +117,7 @@ extension ColorWellView {
         self.init(
             configuration: ColorWellConfiguration(
                 modifiers: [
-                    .color(cgColor),
+                    .cgColor(cgColor),
                     .supportsOpacity(supportsOpacity),
                     .label(label),
                 ]
@@ -183,7 +181,7 @@ extension ColorWellView {
         self.init(
             configuration: ColorWellConfiguration(
                 modifiers: [
-                    .color(cgColor),
+                    .cgColor(cgColor),
                     .supportsOpacity(supportsOpacity),
                     .label(label),
                     .action(action),
@@ -232,7 +230,7 @@ extension ColorWellView where Label == Never {
         self.init(
             configuration: ColorWellConfiguration(
                 modifiers: [
-                    .color(cgColor),
+                    .cgColor(cgColor),
                     .supportsOpacity(supportsOpacity),
                 ]
             )
@@ -288,7 +286,7 @@ extension ColorWellView where Label == Never {
         self.init(
             configuration: ColorWellConfiguration(
                 modifiers: [
-                    .color(cgColor),
+                    .cgColor(cgColor),
                     .supportsOpacity(supportsOpacity),
                     .action(action),
                 ]
@@ -347,7 +345,7 @@ extension ColorWellView where Label == Text {
             configuration: ColorWellConfiguration(
                 modifiers: [
                     .title(title),
-                    .color(cgColor),
+                    .cgColor(cgColor),
                     .supportsOpacity(supportsOpacity),
                 ]
             )
@@ -436,7 +434,7 @@ extension ColorWellView where Label == Text {
             configuration: ColorWellConfiguration(
                 modifiers: [
                     .title(title),
-                    .color(cgColor),
+                    .cgColor(cgColor),
                     .supportsOpacity(supportsOpacity),
                     .action(action),
                 ]
@@ -490,7 +488,7 @@ extension ColorWellView where Label == Text {
             configuration: ColorWellConfiguration(
                 modifiers: [
                     .titleKey(titleKey),
-                    .color(cgColor),
+                    .cgColor(cgColor),
                     .supportsOpacity(supportsOpacity),
                 ]
             )
@@ -579,54 +577,12 @@ extension ColorWellView where Label == Text {
             configuration: ColorWellConfiguration(
                 modifiers: [
                     .titleKey(titleKey),
-                    .color(cgColor),
+                    .cgColor(cgColor),
                     .supportsOpacity(supportsOpacity),
                     .action(action),
                 ]
             )
         )
-    }
-}
-
-// MARK: - View Modifiers
-
-@available(macOS 10.15, *)
-extension View {
-    /// Adds an action to color wells within this view.
-    ///
-    /// - Parameter action: An action to perform when a color well's
-    ///   color changes. The closure receives the new color as an input.
-    public func onColorChange(perform action: @escaping (Color) -> Void) -> some View {
-        transformEnvironment(\.changeHandlers) { changeHandlers in
-            changeHandlers.append { color in
-                action(Color(color))
-            }
-        }
-    }
-
-    /// Sets the style for color wells within this view.
-    public func colorWellStyle<S: ColorWellStyle>(_ style: S) -> some View {
-        transformEnvironment(\.colorWellStyleConfiguration) { configuration in
-            configuration = style._configuration
-        }
-    }
-
-    /// Applies the given swatch colors to the view's color wells.
-    ///
-    /// Swatches are user-selectable colors that are shown when
-    /// a ``ColorWellView`` displays its popover.
-    ///
-    /// ![Default swatches](grid-view)
-    ///
-    /// Any color well that is part of the current view's hierarchy
-    /// will update its swatches to the colors provided here.
-    ///
-    /// - Parameter colors: The swatch colors to use.
-    @available(macOS 11.0, *)
-    public func swatchColors(_ colors: [Color]) -> some View {
-        transformEnvironment(\.swatchColors) { swatchColors in
-            swatchColors = colors.map { NSColor($0) }
-        }
     }
 }
 #endif
