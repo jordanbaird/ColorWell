@@ -80,22 +80,22 @@ extension ColorWellView {
     /// view being used as the color well's label.
     ///
     /// - Parameters:
+    ///   - color: The initial value of the color well's color.
     ///   - supportsOpacity: A Boolean value that indicates whether
     ///     the color well allows adjusting the selected color's opacity;
     ///     the default is true.
-    ///   - color: The initial value of the color well's color.
     ///   - label: A view that describes the purpose of the color well.
     @available(macOS 11.0, *)
     public init(
-        supportsOpacity: Bool = true,
         color: Color,
+        supportsOpacity: Bool = true,
         @ViewBuilder label: () -> Label
     ) {
         self.init(
             configuration: ColorWellConfiguration(
                 modifiers: [
-                    .supportsOpacity(supportsOpacity),
                     .color(color),
+                    .supportsOpacity(supportsOpacity),
                     .label(label),
                 ]
             )
@@ -106,21 +106,21 @@ extension ColorWellView {
     /// view being used as the color well's label.
     ///
     /// - Parameters:
+    ///   - cgColor: The initial value of the color well's color.
     ///   - supportsOpacity: A Boolean value that indicates whether
     ///     the color well allows adjusting the selected color's opacity;
     ///     the default is true.
-    ///   - cgColor: The initial value of the color well's color.
     ///   - label: A view that describes the purpose of the color well.
     public init(
-        supportsOpacity: Bool = true,
         cgColor: CGColor,
+        supportsOpacity: Bool = true,
         @ViewBuilder label: () -> Label
     ) {
         self.init(
             configuration: ColorWellConfiguration(
                 modifiers: [
-                    .supportsOpacity(supportsOpacity),
                     .color(cgColor),
+                    .supportsOpacity(supportsOpacity),
                     .label(label),
                 ]
             )
@@ -132,24 +132,24 @@ extension ColorWellView {
     /// when the color well's color changes.
     ///
     /// - Parameters:
+    ///   - color: The initial value of the color well's color.
     ///   - supportsOpacity: A Boolean value that indicates whether
     ///     the color well allows adjusting the selected color's opacity;
     ///     the default is true.
-    ///   - color: The initial value of the color well's color.
     ///   - label: A view that describes the purpose of the color well.
     ///   - action: An action to perform when the color well's color changes.
     @available(macOS 11.0, *)
     public init(
-        supportsOpacity: Bool = true,
         color: Color,
+        supportsOpacity: Bool = true,
         @ViewBuilder label: () -> Label,
         action: @escaping (Color) -> Void
     ) {
         self.init(
             configuration: ColorWellConfiguration(
                 modifiers: [
-                    .supportsOpacity(supportsOpacity),
                     .color(color),
+                    .supportsOpacity(supportsOpacity),
                     .label(label),
                     .action(action),
                 ]
@@ -165,26 +165,26 @@ extension ColorWellView {
     ///   an underlying representation. In some cases, the translation process
     ///   may be forced to return an approximation, rather than the original
     ///   color. To receive a color that is guaranteed to be equivalent to the
-    ///   color well's underlying representation, use ``init(supportsOpacity:color:label:action:)``.
+    ///   color well's underlying representation, use ``init(color:supportsOpacity:label:action:)``.
     ///
     /// - Parameters:
+    ///   - cgColor: The initial value of the color well's color.
     ///   - supportsOpacity: A Boolean value that indicates whether
     ///     the color well allows adjusting the selected color's opacity;
     ///     the default is true.
-    ///   - cgColor: The initial value of the color well's color.
     ///   - label: A view that describes the purpose of the color well.
     ///   - action: An action to perform when the color well's color changes.
     public init(
-        supportsOpacity: Bool = true,
         cgColor: CGColor,
+        supportsOpacity: Bool = true,
         @ViewBuilder label: () -> Label,
         action: @escaping (CGColor) -> Void
     ) {
         self.init(
             configuration: ColorWellConfiguration(
                 modifiers: [
-                    .supportsOpacity(supportsOpacity),
                     .color(cgColor),
+                    .supportsOpacity(supportsOpacity),
                     .label(label),
                     .action(action),
                 ]

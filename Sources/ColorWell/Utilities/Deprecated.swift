@@ -87,7 +87,7 @@ extension ColorWellView {
     /// - Parameters:
     ///   - color: The initial value of the color well's color.
     ///   - label: A view that describes the purpose of the color well.
-    @available(*, deprecated, message: "Use 'init(supportsOpacity:color:label:)' instead.")
+    @available(*, deprecated, message: "Use 'init(color:supportsOpacity:label:)' instead.")
     @available(macOS 11.0, *)
     @_disfavoredOverload
     public init(
@@ -112,7 +112,7 @@ extension ColorWellView {
     ///     color well's color panel shows alpha values and an opacity slider.
     ///   - color: The initial value of the color well's color.
     ///   - label: A view that describes the purpose of the color well.
-    @available(*, deprecated, message: "Use 'init(supportsOpacity:color:label:)' instead.")
+    @available(*, deprecated, message: "Use 'init(color:supportsOpacity:label:)' instead.")
     @available(macOS 11.0, *)
     @_disfavoredOverload
     public init(
@@ -137,7 +137,7 @@ extension ColorWellView {
     /// - Parameters:
     ///   - cgColor: The initial value of the color well's color.
     ///   - label: A view that describes the purpose of the color well.
-    @available(*, deprecated, message: "Use 'init(supportsOpacity:cgColor:label:)' instead.")
+    @available(*, deprecated, message: "Use 'init(cgColor:supportsOpacity:label:)' instead.")
     @_disfavoredOverload
     public init(
         cgColor: CGColor,
@@ -161,7 +161,7 @@ extension ColorWellView {
     ///     color well's color panel shows alpha values and an opacity slider.
     ///   - cgColor: The initial value of the color well's color.
     ///   - label: A view that describes the purpose of the color well.
-    @available(*, deprecated, message: "Use 'init(supportsOpacity:cgColor:label:)' instead.")
+    @available(*, deprecated, message: "Use 'init(cgColor:supportsOpacity:label:)' instead.")
     @_disfavoredOverload
     public init(
         showsAlpha: Binding<Bool>,
@@ -187,7 +187,7 @@ extension ColorWellView {
     ///   - color: The initial value of the color well's color.
     ///   - label: A view that describes the purpose of the color well.
     ///   - action: An action to perform when the color well's color changes.
-    @available(*, deprecated, message: "Use 'init(supportsOpacity:color:label:action:)' instead.")
+    @available(*, deprecated, message: "Use 'init(color:supportsOpacity:label:action:)' instead.")
     @available(macOS 11.0, *)
     @_disfavoredOverload
     public init(
@@ -216,7 +216,7 @@ extension ColorWellView {
     ///   - color: The initial value of the color well's color.
     ///   - label: A view that describes the purpose of the color well.
     ///   - action: An action to perform when the color well's color changes.
-    @available(*, deprecated, message: "Use 'init(supportsOpacity:color:label:action:)' instead.")
+    @available(*, deprecated, message: "Use 'init(color:supportsOpacity:label:action:)' instead.")
     @available(macOS 11.0, *)
     @_disfavoredOverload
     public init(
@@ -251,7 +251,7 @@ extension ColorWellView {
     ///   - cgColor: The initial value of the color well's color.
     ///   - label: A view that describes the purpose of the color well.
     ///   - action: An action to perform when the color well's color changes.
-    @available(*, deprecated, message: "Use 'init(supportsOpacity:cgColor:label:action:)' instead.")
+    @available(*, deprecated, message: "Use 'init(cgColor:supportsOpacity:label:action:)' instead.")
     @_disfavoredOverload
     public init(
         cgColor: CGColor,
@@ -285,7 +285,7 @@ extension ColorWellView {
     ///   - cgColor: The initial value of the color well's color.
     ///   - label: A view that describes the purpose of the color well.
     ///   - action: An action to perform when the color well's color changes.
-    @available(*, deprecated, message: "Use 'init(supportsOpacity:cgColor:label:action:)' instead.")
+    @available(*, deprecated, message: "Use 'init(cgColor:supportsOpacity:label:action:)' instead.")
     @_disfavoredOverload
     public init(
         showsAlpha: Binding<Bool>,

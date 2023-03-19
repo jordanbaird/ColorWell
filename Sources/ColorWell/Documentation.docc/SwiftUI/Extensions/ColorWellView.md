@@ -40,8 +40,8 @@ If you apply the style to a container view, as in the example above, all the col
 
 ### Creating a color well with a color and label
 
-- ``init(supportsOpacity:color:label:)``
-- ``init(supportsOpacity:cgColor:label:)``
+- ``init(color:supportsOpacity:label:)``
+- ``init(cgColor:supportsOpacity:label:)``
 - ``init(_:color:supportsOpacity:)-4e9vl``
 - ``init(_:cgColor:supportsOpacity:)-1zr5r``
 - ``init(_:color:supportsOpacity:)-2js4x``
@@ -55,8 +55,8 @@ If you apply the style to a container view, as in the example above, all the col
 
 ### Creating a color well with a color, label, and action
 
-- ``init(supportsOpacity:color:label:action:)``
-- ``init(supportsOpacity:cgColor:label:action:)``
+- ``init(color:supportsOpacity:label:action:)``
+- ``init(cgColor:supportsOpacity:label:action:)``
 - ``init(_:color:supportsOpacity:action:)-7turx``
 - ``init(_:cgColor:supportsOpacity:action:)-78agl``
 - ``init(_:color:supportsOpacity:action:)-6lguj``
@@ -68,7 +68,7 @@ If you apply the style to a container view, as in the example above, all the col
 - ``swatchColors(_:)``
 - ``onColorChange(perform:)``
 
-### A color well's content view
+### Getting a color well's content view
 
 - ``body``
 
