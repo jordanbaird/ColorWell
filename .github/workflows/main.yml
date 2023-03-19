@@ -7,10 +7,8 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-
+  test:
     runs-on: macos-latest
-
     steps:
     - uses: actions/checkout@v3
     - name: Run Tests
