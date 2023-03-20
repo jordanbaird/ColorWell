@@ -17,7 +17,11 @@ class ColorWellSegment: NSView {
     private var shadowLayer: CALayer?
 
     /// The segment's cached values.
-    let caches = Caches()
+    let caches = (
+        segmentPath: Cache(NSBezierPath(), id: NSRect()),
+        shadowPath: Cache(CGMutablePath() as CGPath, id: NSRect()),
+        maskPath: Cache(CGMutablePath() as CGPath, id: NSRect())
+    )
 
     /// The segment's current and previous states.
     var backingStates: (current: State, previous: State) = (.default, .default)
@@ -95,27 +99,27 @@ class ColorWellSegment: NSView {
 // MARK: Private Instance Methods
 extension ColorWellSegment {
     private func updateCachedPathConstructors() {
-        caches.$segmentPath.updateConstructor { [weak self] bounds in
+        caches.segmentPath.updateConstructor { [weak self] bounds in
             guard let self else {
                 return NSBezierPath()
             }
             return .colorWellSegment(rect: bounds, side: self.side)
         }
 
-        caches.$shadowPath.updateConstructor { [weak self] bounds in
+        caches.shadowPath.updateConstructor { [weak self] bounds in
             guard let self else {
                 return CGMutablePath()
             }
             return .colorWellSegment(rect: bounds, side: self.side)
         }
 
-        caches.$maskPath.updateConstructor { [weak self] bounds in
+        caches.maskPath.updateConstructor { [weak self] bounds in
             guard let self else {
                 return CGMutablePath()
             }
             let maskPath = CGMutablePath()
             maskPath.addRect(bounds)
-            maskPath.addPath(self.caches.shadowPath)
+            maskPath.addPath(self.caches.shadowPath.cachedValue)
             maskPath.closeSubpath()
             return maskPath
         }
@@ -141,9 +145,9 @@ extension ColorWellSegment {
         let shadowRadius = 0.75
         let shadowOffset = CGSize(width: 0, height: -0.25)
 
-        caches.$shadowPath.recache(id: dirtyRect)
+        caches.shadowPath.recache(id: dirtyRect)
 
-        caches.$maskPath.recache(
+        caches.maskPath.recache(
             id: dirtyRect.insetBy(
                 dx: -(shadowRadius * 2) + shadowOffset.width,
                 dy: -(shadowRadius * 2) + shadowOffset.height
@@ -151,13 +155,13 @@ extension ColorWellSegment {
         )
 
         let maskLayer = CAShapeLayer()
-        maskLayer.path = caches.maskPath
+        maskLayer.path = caches.maskPath.cachedValue
         maskLayer.fillRule = .evenOdd
 
         let shadowLayer = CALayer()
         shadowLayer.shadowRadius = shadowRadius
         shadowLayer.shadowOffset = shadowOffset
-        shadowLayer.shadowPath = caches.shadowPath
+        shadowLayer.shadowPath = caches.shadowPath.cachedValue
         shadowLayer.shadowOpacity = 0.5
         shadowLayer.mask = maskLayer
 
@@ -172,8 +176,8 @@ extension ColorWellSegment {
 extension ColorWellSegment {
     override func draw(_ dirtyRect: NSRect) {
         displayColor.setFill()
-        caches.$segmentPath.recache(id: dirtyRect)
-        caches.segmentPath.fill()
+        caches.segmentPath.recache(id: dirtyRect)
+        caches.segmentPath.cachedValue.fill()
         updateShadowLayer(dirtyRect)
     }
 
@@ -232,17 +236,6 @@ extension ColorWellSegment {
 
         /// The default, idle state of a segment.
         case `default`
-    }
-}
-
-// MARK: - ColorWellSegment Caches
-
-extension ColorWellSegment {
-    /// A container for a color well segment's cached values.
-    struct Caches {
-        @Cached(id: NSRect()) var segmentPath = NSBezierPath()
-        @Cached(id: NSRect()) var shadowPath: CGPath = CGMutablePath()
-        @Cached(id: NSRect()) var maskPath: CGPath = CGMutablePath()
     }
 }
 

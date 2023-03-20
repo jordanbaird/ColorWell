@@ -39,21 +39,3 @@ class Cache<Value, ID: Equatable> {
         self.cachedValue = constructor(id)
     }
 }
-
-/// A property wrapper for a cached value.
-@propertyWrapper
-struct Cached<Value, ID: Equatable> {
-    /// The underlying cache of this instance.
-    let projectedValue: Cache<Value, ID>
-
-    /// The cached value of this instance.
-    var wrappedValue: Value {
-        projectedValue.cachedValue
-    }
-
-    /// Creates an instance that wraps a cache for the specified
-    /// value and identifier.
-    init(wrappedValue: Value, id: ID) {
-        projectedValue = Cache(wrappedValue, id: id)
-    }
-}
