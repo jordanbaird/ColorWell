@@ -41,10 +41,11 @@ extension SwatchSegment {
     /// Draws the segment's swatch in the specified rectangle.
     @objc dynamic
     func drawSwatch(_ dirtyRect: NSRect) {
+        cachedSegmentPath.recache(id: dirtyRect)
         NSImage.drawSwatch(
             with: displayColor,
             in: dirtyRect,
-            clippingTo: defaultPath(dirtyRect)
+            clippingTo: cachedSegmentPath.cachedValue
         )
     }
 }

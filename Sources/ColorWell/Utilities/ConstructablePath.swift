@@ -261,41 +261,6 @@ protocol MutableConstructablePath: ConstructablePath {
     func apply(_ component: ConstructablePathComponent)
 }
 
-// MARK: - CachedPath
-
-/// A type that caches a constructable path alongside the bounds
-/// that were used in its construction.
-struct CachedPath<Path: ConstructablePath> where Path.Constructed == Path {
-    /// The bounds used to create this instance's path.
-    let bounds: CGRect
-
-    /// The cached path of this instance.
-    let path: Path
-
-    /// Creates an instance with the given bounds and path.
-    init(bounds: CGRect, path: Path) {
-        self.bounds = bounds
-        self.path = path
-    }
-
-    /// Creates an instance, constructing its path from the
-    /// given bounds and side.
-    init(bounds: CGRect, side: Side?) {
-        self.init(
-            bounds: bounds,
-            path: .colorWellSegment(rect: bounds, side: side)
-        )
-    }
-
-    /// Creates an instance with an empty bounds and path.
-    init() {
-        self.init(
-            bounds: .zero,
-            path: Path.MutablePath().asConstructedType
-        )
-    }
-}
-
 // MARK: NSBezierPath: MutableConstructablePath
 extension NSBezierPath: MutableConstructablePath {
     typealias MutablePath = NSBezierPath
