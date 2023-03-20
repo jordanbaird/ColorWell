@@ -357,23 +357,46 @@ extension NSColor {
 // MARK: - NSColorPanel
 
 extension NSColorPanel {
-    /// Storage for the system color panel's active color wells.
-    private static let storage = Storage<Set<ColorWell>>()
+    /// Storage for the system color panel's attached color wells.
+    private static let storage = Storage<[ColorWell]>()
 
-    /// The color wells that are currently active and share this color panel.
+    /// The color wells that are currently attached to the color panel.
     @objc dynamic
-    var activeColorWells: Set<ColorWell> {
+    var attachedColorWells: [ColorWell] {
         get {
             Self.storage.value(forObject: self) ?? []
         }
         set {
+            let oldMainColorWell = mainColorWell
+
             if newValue.isEmpty {
-                Self.storage.removeValue(ofType: Set<ColorWell>.self, forObject: self)
                 Self.storage.removeValue(forObject: self)
             } else {
                 Self.storage.set(newValue, forObject: self)
             }
+
+            let newMainColorWell = mainColorWell
+
+            if newMainColorWell != oldMainColorWell {
+                newMainColorWell?.synchronizeColorPanel()
+            }
         }
+    }
+
+    /// The main color well currently attached to the color panel.
+    ///
+    /// The first color well to become active during a multiple-selection
+    /// session becomes the main color well, and remains so until it is
+    /// deactivated. If no color wells are currently active, this property
+    /// returns `nil`.
+    var mainColorWell: ColorWell? {
+        guard
+            let first = attachedColorWells.first,
+            first.isActive
+        else {
+            return nil
+        }
+        return first
     }
 }
 

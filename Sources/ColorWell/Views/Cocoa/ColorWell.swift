@@ -79,6 +79,16 @@ public class ColorWell: _ColorWellBaseView {
     /// The popover context associated with the color well.
     var popoverContext: ColorWellPopoverContext?
 
+    /// A Boolean value that indicates whether this color well is the
+    /// main color well currently attached to the system color panel.
+    ///
+    /// The first color well to become active during a multiple-selection
+    /// session becomes the main color well, and remains so until it is
+    /// deactivated.
+    var isMainColorWell: Bool {
+        NSColorPanel.shared.mainColorWell === self
+    }
+
     /// An optional Boolean value that, if set, will cause the system
     /// color panel to show or hide its alpha controls during the next
     /// call to `synchronizeColorPanel()`.
@@ -365,7 +375,7 @@ extension ColorWell {
 
         observations[for: Set<ColorWell>.self].observe(
             NSColorPanel.shared,
-            keyPath: \.activeColorWells
+            keyPath: \.attachedColorWells
         ) { [weak self] _, _ in
             self?.updateActiveState()
         }
@@ -381,7 +391,7 @@ extension ColorWell {
     /// Updates the `isActive` property of the color well to the
     /// current accurate value.
     private func updateActiveState() {
-        _isActive = NSColorPanel.shared.activeColorWells.contains(self)
+        _isActive = NSColorPanel.shared.attachedColorWells.contains(self)
     }
 
     /// Removes all observations for the color panel.
@@ -409,7 +419,7 @@ extension ColorWell {
                 colorWell.color != newValue
             }
 
-            for colorWell in colorPanel.activeColorWells where predicate(colorWell) {
+            for colorWell in colorPanel.attachedColorWells where predicate(colorWell) {
                 colorWell.color = newValue
             }
         }
@@ -444,7 +454,10 @@ extension ColorWell {
     /// Synchronizes the state of the system color panel to match
     /// the state of the color well.
     func synchronizeColorPanel() {
-        if let showsAlphaForcedState {
+        if
+            let showsAlphaForcedState,
+            isMainColorWell
+        {
             NSColorPanel.shared.showsAlpha = showsAlphaForcedState
         }
 
@@ -452,7 +465,7 @@ extension ColorWell {
             return
         }
 
-        if NSColorPanel.shared.activeColorWells == [self] {
+        if isMainColorWell {
             NSColorPanel.shared.color = color
         } else {
             color = NSColorPanel.shared.color
@@ -475,16 +488,21 @@ extension ColorWell {
         }
 
         if exclusive {
-            for colorWell in NSColorPanel.shared.activeColorWells where colorWell !== self {
+            // Check for self, in case we're already attached.
+            for colorWell in NSColorPanel.shared.attachedColorWells where colorWell !== self {
                 colorWell.deactivate()
             }
         }
 
-        NSColorPanel.shared.activeColorWells.insert(self)
+        if !NSColorPanel.shared.attachedColorWells.contains(self) {
+            NSColorPanel.shared.attachedColorWells.append(self)
+        }
+
         synchronizeColorPanel()
         setUpColorPanelObservations()
-        // ???: Should `NSApp.orderFrontColorPanel(self)` be used instead?
+
         NSColorPanel.shared.orderFront(self)
+
         colorPanelSwatchSegment?.state = .pressed
         toggleSegment?.state = .pressed
     }
@@ -495,7 +513,7 @@ extension ColorWell {
     /// Until the color well is activated again, changes to the color
     /// panel will not affect the color well's state.
     public func deactivate() {
-        NSColorPanel.shared.activeColorWells.remove(self)
+        NSColorPanel.shared.attachedColorWells.removeAll { $0 === self }
         colorPanelSwatchSegment?.state = .default
         toggleSegment?.state = .default
         removeColorPanelObservations()
