@@ -52,6 +52,9 @@ public class ColorWell: _ColorWellBaseView {
 
     // MARK: Private Properties
 
+    /// A view that manages the layout of the color well's segments.
+    private let layoutView = ColorWellLayoutView()
+
     /// The observations associated with the color well.
     private var observations = [ObjectIdentifier: Set<NSKeyValueObservation>]()
 
@@ -66,17 +69,6 @@ public class ColorWell: _ColorWellBaseView {
         didSet {
             didChangeValue(for: \.isActive)
         }
-    }
-
-    /// A view that manages the layout of the color well's segments.
-    private var layoutView: ColorWellLayoutView {
-        enum Cache {
-            static let storage = Storage()
-        }
-        return Cache.storage.value(
-            forObject: self,
-            default: ColorWellLayoutView(colorWell: self)
-        )
     }
 
     // MARK: Internal Properties
@@ -352,6 +344,8 @@ extension ColorWell {
     private func sharedInit() {
         wantsLayer = true
         layer?.masksToBounds = false
+
+        layoutView.setColorWell(self)
         addSubview(layoutView)
 
         layoutView.translatesAutoresizingMaskIntoConstraints = false

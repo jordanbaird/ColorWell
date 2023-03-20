@@ -84,32 +84,12 @@ class ColorWellLayoutView: NSGridView {
 
     // MARK: Initializers
 
-    /// Creates a layout view with the given color well.
-    init(colorWell: ColorWell) {
+    init() {
         super.init(frame: .zero)
-
-        makeColorPanelSwatchSegment = { [weak colorWell, weak self] in
-            ColorPanelSwatchSegment(colorWell: colorWell, layoutView: self)
-        }
-        makePullDownSwatchSegment = { [weak colorWell, weak self] in
-            PullDownSwatchSegment(colorWell: colorWell, layoutView: self)
-        }
-        makeToggleSegment = { [weak colorWell, weak self] in
-            ToggleSegment(colorWell: colorWell, layoutView: self)
-        }
-
         wantsLayer = true
         columnSpacing = 0
         xPlacement = .fill
         yPlacement = .fill
-
-        observations.observe(
-            colorWell,
-            keyPath: \.style,
-            options: .initial
-        ) { [weak self] colorWell, _ in
-            self?.setRow(for: colorWell.style)
-        }
     }
 
     @available(*, unavailable)
@@ -120,6 +100,26 @@ class ColorWellLayoutView: NSGridView {
 
 // MARK: Instance Methods
 extension ColorWellLayoutView {
+    func setColorWell(_ colorWell: ColorWell) {
+        makeColorPanelSwatchSegment = { [weak colorWell, weak self] in
+            ColorPanelSwatchSegment(colorWell: colorWell, layoutView: self)
+        }
+        makePullDownSwatchSegment = { [weak colorWell, weak self] in
+            PullDownSwatchSegment(colorWell: colorWell, layoutView: self)
+        }
+        makeToggleSegment = { [weak colorWell, weak self] in
+            ToggleSegment(colorWell: colorWell, layoutView: self)
+        }
+
+        observations.observe(
+            colorWell,
+            keyPath: \.style,
+            options: .initial
+        ) { [weak self] colorWell, _ in
+            self?.setRow(for: colorWell.style)
+        }
+    }
+
     /// Removes the given row from the layout view.
     func removeRow(_ row: NSGridRow) {
         for n in 0..<row.numberOfCells {
