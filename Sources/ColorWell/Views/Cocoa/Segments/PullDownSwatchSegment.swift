@@ -40,6 +40,15 @@ class PullDownSwatchSegment: SwatchSegment {
     override var side: Side {
         isFullSegment ? .null : .left
     }
+
+    override var draggingInformation: DraggingInformation {
+        didSet {
+            // Hack to ensure the caret disappears when dragging starts.
+            if draggingInformation.isDragging {
+                state = .default
+            }
+        }
+    }
 }
 
 // MARK: Static Methods

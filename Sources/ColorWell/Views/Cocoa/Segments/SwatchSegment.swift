@@ -41,11 +41,11 @@ extension SwatchSegment {
     /// Draws the segment's swatch in the specified rectangle.
     @objc dynamic
     func drawSwatch(_ dirtyRect: NSRect) {
-        cachedSegmentPath.recache(id: dirtyRect)
+        caches.$segmentPath.recache(id: dirtyRect)
         NSImage.drawSwatch(
             with: displayColor,
             in: dirtyRect,
-            clippingTo: cachedSegmentPath.cachedValue
+            clippingTo: caches.segmentPath
         )
     }
 }
@@ -89,7 +89,7 @@ extension SwatchSegment {
         }
 
         draggingInformation.isDragging = true
-        state = .default
+        state = backingStates.previous
 
         let colorForDragging = color.createArchivedCopy()
         NSColorPanel.dragColor(colorForDragging, with: event, from: self)

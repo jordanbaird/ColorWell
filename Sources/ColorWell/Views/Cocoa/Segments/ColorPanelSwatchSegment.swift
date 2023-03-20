@@ -45,8 +45,8 @@ extension ColorPanelSwatchSegment {
 extension ColorPanelSwatchSegment {
     override func drawSwatch(_ dirtyRect: NSRect) {
         bezelColor.setFill()
-        cachedSegmentPath.recache(id: dirtyRect)
-        cachedSegmentPath.cachedValue.fill()
+        caches.$segmentPath.recache(id: dirtyRect)
+        caches.segmentPath.fill()
 
         let swatchPath = NSBezierPath(
             roundedRect: dirtyRect.insetBy(dx: 3, dy: 3),
