@@ -9,6 +9,9 @@ import Cocoa
 /// current color selection, and that toggles the color panel
 /// when pressed.
 class ColorPanelSwatchSegment: SwatchSegment {
+    /// The cached path for the segment's swatch.
+    private let cachedSwatchPath = Cache(NSBezierPath(), id: NSRect())
+
     var bezelColor: NSColor {
         let bezelColor: NSColor
 
@@ -32,6 +35,17 @@ class ColorPanelSwatchSegment: SwatchSegment {
     }
 
     override var side: Side { .null }
+
+    override init?(colorWell: ColorWell?, layoutView: ColorWellLayoutView?) {
+        super.init(colorWell: colorWell, layoutView: layoutView)
+        cachedSwatchPath.updateConstructor { bounds in
+            NSBezierPath(
+                roundedRect: bounds.insetBy(dx: 3, dy: 3),
+                xRadius: 2,
+                yRadius: 2
+            )
+        }
+    }
 }
 
 // MARK: Perform Action
@@ -48,17 +62,13 @@ extension ColorPanelSwatchSegment {
         caches.segmentPath.recache(id: dirtyRect)
         caches.segmentPath.cachedValue.fill()
 
-        let swatchPath = NSBezierPath(
-            roundedRect: dirtyRect.insetBy(dx: 3, dy: 3),
-            xRadius: 2,
-            yRadius: 2
-        )
+        cachedSwatchPath.recache(id: dirtyRect)
 
-        swatchPath.addClip()
+        cachedSwatchPath.cachedValue.addClip()
         displayColor.drawSwatch(in: dirtyRect)
 
         borderColor.setStroke()
-        swatchPath.stroke()
+        cachedSwatchPath.cachedValue.stroke()
     }
 
     override func needsDisplayOnStateChange(_ state: State) -> Bool {

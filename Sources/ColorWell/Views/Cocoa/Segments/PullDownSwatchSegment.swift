@@ -12,8 +12,11 @@ class PullDownSwatchSegment: SwatchSegment {
 
     // MARK: Properties
 
-    /// A cached tracking area for mouse enter/exit events.
-    private var cachedTrackingArea: NSTrackingArea?
+    /// A tracking area for mouse enter/exit events.
+    private var trackingArea: NSTrackingArea?
+
+    /// The cached path for the segment's border.
+    private let cachedBorderPath = Cache(NSBezierPath(), id: NSRect())
 
     /// A Boolean value that indicates whether the segment
     /// fills its color well.
@@ -49,6 +52,25 @@ class PullDownSwatchSegment: SwatchSegment {
             }
         }
     }
+
+    override init?(colorWell: ColorWell?, layoutView: ColorWellLayoutView?) {
+        super.init(colorWell: colorWell, layoutView: layoutView)
+        cachedBorderPath.updateConstructor { [weak self] bounds in
+            guard let self else {
+                return NSBezierPath()
+            }
+            let lineWidth = ColorWell.lineWidth
+            let path = NSBezierPath.colorWellSegment(
+                rect: bounds.insetBy(
+                    dx: lineWidth / 4,
+                    dy: lineWidth / 2
+                ),
+                side: self.side
+            )
+            path.lineWidth = lineWidth
+            return path
+        }
+    }
 }
 
 // MARK: Static Methods
@@ -68,21 +90,9 @@ extension PullDownSwatchSegment {
     /// Draws the segment's border in the given rectangle.
     private func drawBorder(_ dirtyRect: NSRect) {
         NSGraphicsContext.withCachedGraphicsState {
-            let lineWidth = ColorWell.lineWidth
-
-            let borderPath = NSBezierPath.colorWellSegment(
-                rect: dirtyRect.insetBy(
-                    dx: lineWidth / 4,
-                    dy: lineWidth / 2
-                ),
-                side: side
-            )
-
-            if colorWell?.style != .colorPanel {
-                borderColor.setStroke()
-                borderPath.lineWidth = lineWidth
-                borderPath.stroke()
-            }
+            cachedBorderPath.recache(id: dirtyRect)
+            borderColor.setStroke()
+            cachedBorderPath.cachedValue.stroke()
         }
     }
 
@@ -206,11 +216,9 @@ extension PullDownSwatchSegment {
     
     override func updateTrackingAreas() {
         super.updateTrackingAreas()
-
-        if let cachedTrackingArea {
-            removeTrackingArea(cachedTrackingArea)
+        if let trackingArea {
+            removeTrackingArea(trackingArea)
         }
-
         let trackingArea = NSTrackingArea(
             rect: bounds,
             options: [
@@ -219,9 +227,7 @@ extension PullDownSwatchSegment {
             ],
             owner: self
         )
-
         addTrackingArea(trackingArea)
-
-        cachedTrackingArea = trackingArea
+        self.trackingArea = trackingArea
     }
 }

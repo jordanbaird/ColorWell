@@ -14,6 +14,10 @@ class ColorWellSegment: NSView {
 
     weak var layoutView: ColorWellLayoutView?
 
+    private let shadowRadius = 0.75
+
+    private let shadowOffset = CGSize(width: 0, height: -0.25)
+
     private var shadowLayer: CALayer?
 
     /// The segment's cached values.
@@ -118,7 +122,12 @@ extension ColorWellSegment {
                 return CGMutablePath()
             }
             let maskPath = CGMutablePath()
-            maskPath.addRect(bounds)
+            maskPath.addRect(
+                bounds.insetBy(
+                    dx: -(self.shadowRadius * 2) + self.shadowOffset.width,
+                    dy: -(self.shadowRadius * 2) + self.shadowOffset.height
+                )
+            )
             maskPath.addPath(self.caches.shadowPath.cachedValue)
             maskPath.closeSubpath()
             return maskPath
@@ -142,17 +151,8 @@ extension ColorWellSegment {
             return
         }
 
-        let shadowRadius = 0.75
-        let shadowOffset = CGSize(width: 0, height: -0.25)
-
         caches.shadowPath.recache(id: dirtyRect)
-
-        caches.maskPath.recache(
-            id: dirtyRect.insetBy(
-                dx: -(shadowRadius * 2) + shadowOffset.width,
-                dy: -(shadowRadius * 2) + shadowOffset.height
-            )
-        )
+        caches.maskPath.recache(id: dirtyRect)
 
         let maskLayer = CAShapeLayer()
         maskLayer.path = caches.maskPath.cachedValue
