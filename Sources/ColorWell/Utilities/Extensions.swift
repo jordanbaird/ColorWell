@@ -61,20 +61,6 @@ extension Comparable {
     }
 }
 
-// MARK: - Dictionary (Key == ObjectIdentifier, Value: ExpressibleByArrayLiteral)
-
-extension Dictionary where Key == ObjectIdentifier, Value: ExpressibleByArrayLiteral {
-    /// Access the value for the given metatype by transforming it into
-    /// an object identifier.
-    ///
-    /// In the event that no value is stored for `type`, an empty value
-    /// will be created and returned.
-    subscript<T>(for type: T.Type) -> Value {
-        get { self[ObjectIdentifier(type), default: []] }
-        set { self[ObjectIdentifier(type)] = newValue }
-    }
-}
-
 // MARK: - NSAppearance
 
 extension NSAppearance {
@@ -361,24 +347,31 @@ extension NSColorPanel {
     private static let storage = Storage<[ColorWell]>()
 
     /// The color wells that are currently attached to the color panel.
-    @objc dynamic
     var attachedColorWells: [ColorWell] {
         get {
             Self.storage.value(forObject: self) ?? []
         }
         set {
-            let oldMainColorWell = mainColorWell
+            let oldMain = mainColorWell
+            defer {
+                let newMain = mainColorWell
+                if oldMain != newMain {
+                    newMain?.synchronizeColorPanel()
+                }
+            }
+
+            let oldValue = attachedColorWells
+            defer {
+                let difference = Set(newValue).symmetricDifference(Set(oldValue))
+                for colorWell in difference {
+                    colorWell.updateActiveState()
+                }
+            }
 
             if newValue.isEmpty {
                 Self.storage.removeValue(forObject: self)
             } else {
                 Self.storage.set(newValue, forObject: self)
-            }
-
-            let newMainColorWell = mainColorWell
-
-            if newMainColorWell != oldMainColorWell {
-                newMainColorWell?.synchronizeColorPanel()
             }
         }
     }
@@ -450,18 +443,16 @@ extension NSImage {
     /// Draws the specified color in the given rectangle, with the given
     /// clipping path.
     ///
-    /// > Explanation:
-    /// This method differs from the `drawSwatch(in:)` method on `NSColor`
-    /// in that it allows you to set a clipping path without affecting the
-    /// border of the swatch.
+    /// This method differs from the `drawSwatch(in:)` method on `NSColor` in
+    /// that it allows you to set a clipping path without affecting the border
+    /// of the swatch.
     ///
-    /// The swatch that is drawn using the `NSColor` method is drawn with
-    /// a thin border around its edges, which is affected by the current
-    /// graphics context's clipping path. This can yield undesirable
-    /// results if we want to, for example, set our own border with a
-    /// slightly different appearance (which we do).
+    /// The swatch that is drawn using the `NSColor` method is drawn with a
+    /// thin border around its edges, which is affected by the current clipping
+    /// path. This can yield undesirable results if we want to, for example,
+    /// set our own border with a slightly different appearance (which we do).
     ///
-    /// Basically, this method uses `NSColor`'s `drawSwatch(in:)` method
+    /// As a workaround, this method uses `NSColor`'s `drawSwatch(in:)` method
     /// to draw an image, then clips the image instead of the swatch path.
     static func drawSwatch(with color: NSColor, in rect: NSRect, clippingTo clippingPath: NSBezierPath? = nil) {
         NSGraphicsContext.withCachedGraphicsState {
@@ -552,17 +543,17 @@ extension RangeReplaceableCollection {
 // MARK: - Set (Element == NSKeyValueObservation)
 
 extension Set where Element == NSKeyValueObservation {
-    /// Creates an observation for the given object, keypath,
-    /// options, and change handler, and stores it in the set.
+    /// Creates an observation for the given object, keypath, options, and
+    /// change handler, and stores it in the set.
     ///
     /// - Parameters:
     ///   - object: The object to observe.
     ///   - keyPath: A keypath to the observed property.
     ///   - options: The options describing the behavior of the observation.
     ///   - changeHandler: A change handler that will be performed when the
-    ///     value at `object./keyPath/` changes.
-    mutating func observe<Object: NSObject, Value>(
-        _ object: Object,
+    ///     observed value changes.
+    mutating func insertObservation<Object: NSObject, Value>(
+        for object: Object,
         keyPath: KeyPath<Object, Value>,
         options: NSKeyValueObservingOptions = [],
         changeHandler: @escaping (Object, NSKeyValueObservedChange<Value>) -> Void

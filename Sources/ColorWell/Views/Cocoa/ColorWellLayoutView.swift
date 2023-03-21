@@ -113,8 +113,8 @@ extension ColorWellLayoutView {
             ToggleSegment(colorWell: colorWell)
         }
 
-        observations.observe(
-            colorWell,
+        observations.insertObservation(
+            for: colorWell,
             keyPath: \.style,
             options: .initial
         ) { [weak self] colorWell, _ in

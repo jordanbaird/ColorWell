@@ -52,9 +52,6 @@ public class ColorWell: _ColorWellBaseView {
 
     // MARK: Private Properties
 
-    /// The observations associated with the color well.
-    private var observations = [ObjectIdentifier: Set<NSKeyValueObservation>]()
-
     /// The backing value for the public `isActive` property.
     ///
     /// This enables key-value observation on the public property, while
@@ -363,22 +360,6 @@ extension ColorWell {
         layoutView.heightAnchor.constraint(equalTo: heightAnchor).isActive = true
         layoutView.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
         layoutView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-
-        if #available(macOS 10.14, *) {
-            observations[for: NSApplication.self].observe(
-                NSApp,
-                keyPath: \.effectiveAppearance
-            ) { [weak self] _, _ in
-                self?.needsDisplay = true
-            }
-        }
-
-        observations[for: Set<ColorWell>.self].observe(
-            NSColorPanel.shared,
-            keyPath: \.attachedColorWells
-        ) { [weak self] _, _ in
-            self?.updateActiveState()
-        }
     }
 
     /// Executes the color well's stored change handlers.
@@ -388,55 +369,58 @@ extension ColorWell {
         }
     }
 
-    /// Updates the `isActive` property of the color well.
-    private func updateActiveState() {
-        _isActive = NSColorPanel.shared.attachedColorWells.contains(self)
-    }
-
-    /// Removes all observations for the color panel.
-    private func removeColorPanelObservations() {
-        observations[for: NSColorPanel.self].removeAll()
-    }
-
-    /// Creates a series of key-value observations that work to keep
-    /// the various aspects of the color well and its color panel in
-    /// sync.
-    private func setUpColorPanelObservations() {
-        removeColorPanelObservations()
-
-        observations[for: NSColorPanel.self].observe(
-            NSColorPanel.shared,
-            keyPath: \.color,
-            options: .new
-        ) { colorPanel, change in
-            guard let newValue = change.newValue else {
-                return
-            }
-
-            let predicate: (ColorWell) -> Bool = { colorWell in
-                colorWell.isEnabled &&
-                colorWell.isActive &&
-                colorWell.color != newValue
-            }
-
-            for colorWell in colorPanel.attachedColorWells where predicate(colorWell) {
-                colorWell.color = newValue
-            }
+    /// Configures a series of key-value observations that work to keep
+    /// the various aspects of the color well and its color panel in sync.
+    ///
+    /// - Parameters:
+    ///   - remove: Whether to remove existing observations.
+    ///   - setUp: Whether to set up new observations.
+    private func configureColorPanelObservations(remove: Bool, setUp: Bool) {
+        enum LocalCache {
+            static let storage = Storage<Set<NSKeyValueObservation>>()
         }
 
-        observations[for: NSColorPanel.self].observe(
-            NSColorPanel.shared,
-            keyPath: \.isVisible,
-            options: .new
-        ) { [weak self] _, change in
-            guard
-                let self,
-                let newValue = change.newValue
-            else {
-                return
-            }
-            if !newValue {
-                self.deactivate()
+        if remove {
+            LocalCache.storage.removeValue(forObject: self)
+        }
+
+        if setUp {
+            LocalCache.storage.withMutableValue(forObject: self, default: []) { observations in
+                observations.insertObservation(
+                    for: NSColorPanel.shared,
+                    keyPath: \.color,
+                    options: .new
+                ) { colorPanel, change in
+                    guard let newValue = change.newValue else {
+                        return
+                    }
+
+                    let predicate: (ColorWell) -> Bool = { colorWell in
+                        colorWell.isEnabled &&
+                        colorWell.isActive &&
+                        colorWell.color != newValue
+                    }
+
+                    for colorWell in colorPanel.attachedColorWells where predicate(colorWell) {
+                        colorWell.color = newValue
+                    }
+                }
+
+                observations.insertObservation(
+                    for: NSColorPanel.shared,
+                    keyPath: \.isVisible,
+                    options: .new
+                ) { [weak self] _, change in
+                    guard
+                        let self,
+                        let newValue = change.newValue
+                    else {
+                        return
+                    }
+                    if !newValue {
+                        self.deactivate()
+                    }
+                }
             }
         }
     }
@@ -444,6 +428,11 @@ extension ColorWell {
 
 // MARK: Internal Instance Methods
 extension ColorWell {
+    /// Updates the `isActive` property of the color well.
+    func updateActiveState() {
+        _isActive = NSColorPanel.shared.attachedColorWells.contains(self)
+    }
+
     /// Activates the color well, automatically determining whether
     /// it should be activated in an exclusive state.
     func activateAutoVerifyingExclusive() {
@@ -499,7 +488,7 @@ extension ColorWell {
         }
 
         synchronizeColorPanel()
-        setUpColorPanelObservations()
+        configureColorPanelObservations(remove: true, setUp: true)
 
         NSColorPanel.shared.orderFront(self)
 
@@ -516,7 +505,7 @@ extension ColorWell {
         NSColorPanel.shared.attachedColorWells.removeAll { $0 === self }
         colorPanelSwatchSegment?.state = .default
         toggleSegment?.state = .default
-        removeColorPanelObservations()
+        configureColorPanelObservations(remove: true, setUp: false)
     }
 
     /// Adds an action to perform when the color well's color changes.
