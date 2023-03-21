@@ -9,7 +9,9 @@ import Cocoa
 /// current color selection, and that toggles the color panel
 /// when pressed.
 class ColorPanelSwatchSegment: SwatchSegment {
-    /// The cached path for the segment's swatch.
+
+    // MARK: Properties
+
     private let cachedSwatchPath = Cache(NSBezierPath(), id: NSRect())
 
     var bezelColor: NSColor {
@@ -36,8 +38,10 @@ class ColorPanelSwatchSegment: SwatchSegment {
 
     override var side: Side { .null }
 
-    override init?(colorWell: ColorWell?, layoutView: ColorWellLayoutView?) {
-        super.init(colorWell: colorWell, layoutView: layoutView)
+    // MARK: Initializers
+
+    override init?(colorWell: ColorWell?) {
+        super.init(colorWell: colorWell)
         cachedSwatchPath.updateConstructor { bounds in
             NSBezierPath(
                 roundedRect: bounds.insetBy(dx: 3, dy: 3),

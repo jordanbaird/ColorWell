@@ -31,8 +31,8 @@ class ToggleSegment: ColorWellSegment {
 
     // MARK: Initializers
 
-    override init?(colorWell: ColorWell?, layoutView: ColorWellLayoutView?) {
-        super.init(colorWell: colorWell, layoutView: layoutView)
+    override init?(colorWell: ColorWell?) {
+        super.init(colorWell: colorWell)
         // Constraining this segment's width will force the other
         // segment to fill the remaining space.
         translatesAutoresizingMaskIntoConstraints = false

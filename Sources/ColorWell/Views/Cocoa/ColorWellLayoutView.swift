@@ -100,15 +100,17 @@ class ColorWellLayoutView: NSGridView {
 
 // MARK: Instance Methods
 extension ColorWellLayoutView {
-    func setColorWell(_ colorWell: ColorWell) {
-        makeColorPanelSwatchSegment = { [weak colorWell, weak self] in
-            ColorPanelSwatchSegment(colorWell: colorWell, layoutView: self)
+    /// Sets the layout view's segment constructors using
+    /// the specified color well.
+    func setSegmentConstructors(using colorWell: ColorWell) {
+        makeColorPanelSwatchSegment = { [weak colorWell] in
+            ColorPanelSwatchSegment(colorWell: colorWell)
         }
-        makePullDownSwatchSegment = { [weak colorWell, weak self] in
-            PullDownSwatchSegment(colorWell: colorWell, layoutView: self)
+        makePullDownSwatchSegment = { [weak colorWell] in
+            PullDownSwatchSegment(colorWell: colorWell)
         }
-        makeToggleSegment = { [weak colorWell, weak self] in
-            ToggleSegment(colorWell: colorWell, layoutView: self)
+        makeToggleSegment = { [weak colorWell] in
+            ToggleSegment(colorWell: colorWell)
         }
 
         observations.observe(

@@ -12,8 +12,6 @@ class ColorWellSegment: NSView {
 
     weak var colorWell: ColorWell?
 
-    weak var layoutView: ColorWellLayoutView?
-
     private let shadowRadius = 0.75
 
     private let shadowOffset = CGSize(width: 0, height: -0.25)
@@ -45,15 +43,11 @@ class ColorWellSegment: NSView {
 
     /// A Boolean value that indicates whether the segment's
     /// color well is active.
-    var isActive: Bool {
-        colorWell?.isActive ?? false
-    }
+    var isActive: Bool { colorWell?.isActive ?? false }
 
     /// A Boolean value that indicates whether the segment's
     /// color well is enabled.
-    var isEnabled: Bool {
-        colorWell?.isEnabled ?? false
-    }
+    var isEnabled: Bool { colorWell?.isEnabled ?? false }
 
     /// The side containing this segment in its color well.
     var side: Side { .null }
@@ -66,17 +60,13 @@ class ColorWellSegment: NSView {
 
     // MARK: Initializers
 
-    /// Creates a segment for the given color well and layout view.
-    init?(colorWell: ColorWell?, layoutView: ColorWellLayoutView?) {
-        guard
-            let colorWell,
-            let layoutView
-        else {
+    /// Creates a segment for the given color well.
+    init?(colorWell: ColorWell?) {
+        guard let colorWell else {
             return nil
         }
         super.init(frame: .zero)
         self.colorWell = colorWell
-        self.layoutView = layoutView
         wantsLayer = true
         updateCachedPathConstructors()
     }

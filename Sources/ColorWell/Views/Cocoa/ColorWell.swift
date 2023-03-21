@@ -52,9 +52,6 @@ public class ColorWell: _ColorWellBaseView {
 
     // MARK: Private Properties
 
-    /// A view that manages the layout of the color well's segments.
-    private let layoutView = ColorWellLayoutView()
-
     /// The observations associated with the color well.
     private var observations = [ObjectIdentifier: Set<NSKeyValueObservation>]()
 
@@ -75,6 +72,9 @@ public class ColorWell: _ColorWellBaseView {
 
     /// The color well's change handlers.
     var changeHandlers = [(NSColor) -> Void]()
+
+    /// A view that manages the layout of the color well's segments.
+    let layoutView = ColorWellLayoutView()
 
     /// The popover context associated with the color well.
     var popoverContext: ColorWellPopoverContext?
@@ -350,12 +350,12 @@ public class ColorWell: _ColorWellBaseView {
 
 // MARK: Private Instance Methods
 extension ColorWell {
-    /// Shared code to execute on a color well's initialization.
+    /// Shared code to execute on the color well's initialization.
     private func sharedInit() {
         wantsLayer = true
         layer?.masksToBounds = false
 
-        layoutView.setColorWell(self)
+        layoutView.setSegmentConstructors(using: self)
         addSubview(layoutView)
 
         layoutView.translatesAutoresizingMaskIntoConstraints = false
@@ -381,15 +381,14 @@ extension ColorWell {
         }
     }
 
-    /// Executes each of the color well's stored change handlers.
+    /// Executes the color well's stored change handlers.
     private func executeChangeHandlers() {
         for handler in changeHandlers {
             handler(color)
         }
     }
 
-    /// Updates the `isActive` property of the color well to the
-    /// current accurate value.
+    /// Updates the `isActive` property of the color well.
     private func updateActiveState() {
         _isActive = NSColorPanel.shared.attachedColorWells.contains(self)
     }
@@ -416,6 +415,7 @@ extension ColorWell {
 
             let predicate: (ColorWell) -> Bool = { colorWell in
                 colorWell.isEnabled &&
+                colorWell.isActive &&
                 colorWell.color != newValue
             }
 

@@ -25,7 +25,7 @@ class PullDownSwatchSegment: SwatchSegment {
     /// the return value is `true`. If the layout view contains
     /// additional segments, the return value is `false`.
     var isFullSegment: Bool {
-        guard let layoutView else {
+        guard let layoutView = colorWell?.layoutView else {
             return false
         }
         return layoutView.currentSegments == [self]
@@ -53,8 +53,10 @@ class PullDownSwatchSegment: SwatchSegment {
         }
     }
 
-    override init?(colorWell: ColorWell?, layoutView: ColorWellLayoutView?) {
-        super.init(colorWell: colorWell, layoutView: layoutView)
+    // MARK: Initializers
+
+    override init?(colorWell: ColorWell?) {
+        super.init(colorWell: colorWell)
         cachedBorderPath.updateConstructor { [weak self] bounds in
             guard let self else {
                 return NSBezierPath()

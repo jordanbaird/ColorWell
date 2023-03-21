@@ -30,8 +30,8 @@ class SwatchSegment: ColorWellSegment {
 
     // MARK: Initializers
 
-    override init?(colorWell: ColorWell?, layoutView: ColorWellLayoutView?) {
-        super.init(colorWell: colorWell, layoutView: layoutView)
+    override init?(colorWell: ColorWell?) {
+        super.init(colorWell: colorWell)
         registerForDraggedTypes([.color])
     }
 }
