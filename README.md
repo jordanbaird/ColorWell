@@ -13,7 +13,7 @@ A versatile alternative to `NSColorWell` for Cocoa and `ColorPicker` for SwiftUI
     <img src='Sources/ColorWell/Documentation.docc/Resources/color-well-with-popover-light.png', style='width:37%'>
 </div>
 
-ColorWell is designed to mimic the appearance and behavior of the new color well design in macOS 13 Ventura, for those who want to use the new design on older operating systems. While it aims to look similar to Apple's design, it is not an exact clone, and liberties have been taken. However, in practice, it's very difficult to tell a notable difference:
+ColorWell is designed to mimic the appearance and behavior of the new color well design in macOS 13 Ventura, for those who want to use the new design on older operating systems. While the goal is for ColorWell to look and behave in a similar way to Apple's design, it is not an exact clone. There are a number of subtle design differences ranging from the way system colors are handled to the size of the drop shadow. However, in practice, there are very few notable differences:
 
 <div align='center'>
     <picture>
