@@ -6,10 +6,14 @@
 
 - ``ExpandedColorWellStyle``
 - ``SwatchesColorWellStyle``
-- ``PanelColorWellStyle``
+- ``StandardColorWellStyle``
 
 ### Creating a color well style
 
 - ``ColorWellStyle/expanded``
 - ``ColorWellStyle/swatches``
-- ``ColorWellStyle/colorPanel``
+- ``ColorWellStyle/standard``
+
+### Deprecated styles
+
+- ``PanelColorWellStyle``

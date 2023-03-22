@@ -26,6 +26,12 @@ extension ColorWell {
         /// The color well is displayed as a rectangular control that displays
         /// the selected color and shows the system color panel when clicked.
         case colorPanel = 2
+
+        /// The color well is displayed as a rectangular control that displays
+        /// the selected color and shows the system color panel when clicked.
+        ///
+        /// Equivalent to ``colorPanel``.
+        public static let standard = Self.colorPanel
     }
 }
 

@@ -1029,4 +1029,28 @@ extension ColorWellView where Label == Text {
         )
     }
 }
+
+// MARK: - PanelColorWellStyle
+
+/// A color well style that displays the color well's color inside of a
+/// rectangular control, and toggles the system color panel when clicked.
+///
+/// You can also use ``colorPanel`` to construct this style.
+@available(*, deprecated, renamed: "StandardColorWellStyle", message: "replaced by 'StandardColorWellStyle'")
+public struct PanelColorWellStyle: ColorWellStyle {
+    public let _configuration = _ColorWellStyleConfiguration(style: .colorPanel)
+
+    /// Creates an instance of the color panel color well style.
+    public init() { }
+}
+
+@available(*, deprecated, renamed: "StandardColorWellStyle", message: "replaced by 'StandardColorWellStyle'")
+extension ColorWellStyle where Self == PanelColorWellStyle {
+    /// A color well style that displays the color well's color inside of a
+    /// rectangular control, and toggles the system color panel when clicked.
+    @available(*, deprecated, renamed: "standard", message: "replaced by 'standard'")
+    public static var colorPanel: PanelColorWellStyle {
+        PanelColorWellStyle()
+    }
+}
 #endif

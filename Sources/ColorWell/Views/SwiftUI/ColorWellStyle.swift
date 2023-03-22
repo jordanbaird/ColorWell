@@ -77,24 +77,24 @@ extension ColorWellStyle where Self == SwatchesColorWellStyle {
     }
 }
 
-// MARK: - PanelColorWellStyle
+// MARK: - StandardColorWellStyle
 
 /// A color well style that displays the color well's color inside of a
 /// rectangular control, and toggles the system color panel when clicked.
 ///
-/// You can also use ``colorPanel`` to construct this style.
-public struct PanelColorWellStyle: ColorWellStyle {
-    public let _configuration = _ColorWellStyleConfiguration(style: .colorPanel)
+/// You can also use ``standard`` to construct this style.
+public struct StandardColorWellStyle: ColorWellStyle {
+    public let _configuration = _ColorWellStyleConfiguration(style: .standard)
 
-    /// Creates an instance of the color panel color well style.
+    /// Creates an instance of the standard color well style.
     public init() { }
 }
 
-extension ColorWellStyle where Self == PanelColorWellStyle {
+extension ColorWellStyle where Self == StandardColorWellStyle {
     /// A color well style that displays the color well's color inside of a
     /// rectangular control, and toggles the system color panel when clicked.
-    public static var colorPanel: PanelColorWellStyle {
-        PanelColorWellStyle()
+    public static var standard: StandardColorWellStyle {
+        StandardColorWellStyle()
     }
 }
 #endif
