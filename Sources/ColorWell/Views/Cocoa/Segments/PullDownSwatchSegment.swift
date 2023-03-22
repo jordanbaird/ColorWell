@@ -167,6 +167,7 @@ extension PullDownSwatchSegment {
 extension PullDownSwatchSegment {
     override class func performAction(for segment: ColorWellSegment) -> Bool {
         guard
+            !NSEvent.modifierFlags.contains(.shift),
             canPullDown(for: segment),
             let colorWell = segment.colorWell
         else {
