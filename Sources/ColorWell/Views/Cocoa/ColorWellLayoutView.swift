@@ -10,8 +10,8 @@ class ColorWellLayoutView: NSGridView {
 
     // MARK: Properties
 
-    /// A constructor for the layout view's color panel swatch segment.
-    private var makeColorPanelSwatchSegment: () -> ColorPanelSwatchSegment? = { nil }
+    /// A constructor for the layout view's bordered swatch segment.
+    private var makeBorderedSwatchSegment: () -> BorderedSwatchSegment? = { nil }
 
     /// A constructor for the layout view's pull down swatch segment.
     private var makePullDownSwatchSegment: () -> PullDownSwatchSegment? = { nil }
@@ -19,8 +19,8 @@ class ColorWellLayoutView: NSGridView {
     /// A constructor for the layout view's toggle segment.
     private var makeToggleSegment: () -> ToggleSegment? = { nil }
 
-    /// Backing storage for the layout view's color panel swatch segment.
-    private var cachedColorPanelSwatchSegment: ColorPanelSwatchSegment?
+    /// Backing storage for the layout view's bordered swatch segment.
+    private var cachedBorderedSwatchSegment: BorderedSwatchSegment?
 
     /// Backing storage for the layout view's pull down swatch segment.
     private var cachedPullDownSwatchSegment: PullDownSwatchSegment?
@@ -42,12 +42,12 @@ class ColorWellLayoutView: NSGridView {
     /// A segment that displays a color swatch with the color well's
     /// current color selection, and that toggles the color panel
     /// when pressed.
-    var colorPanelSwatchSegment: ColorPanelSwatchSegment? {
-        if let cachedColorPanelSwatchSegment {
-            return cachedColorPanelSwatchSegment
+    var borderedSwatchSegment: BorderedSwatchSegment? {
+        if let cachedBorderedSwatchSegment {
+            return cachedBorderedSwatchSegment
         }
-        cachedColorPanelSwatchSegment = makeColorPanelSwatchSegment()
-        return cachedColorPanelSwatchSegment
+        cachedBorderedSwatchSegment = makeBorderedSwatchSegment()
+        return cachedBorderedSwatchSegment
     }
 
     /// A segment that displays a color swatch with the color well's
@@ -103,8 +103,8 @@ extension ColorWellLayoutView {
     /// Sets the layout view's segment constructors using
     /// the specified color well.
     func setSegmentConstructors(using colorWell: ColorWell) {
-        makeColorPanelSwatchSegment = { [weak colorWell] in
-            ColorPanelSwatchSegment(colorWell: colorWell)
+        makeBorderedSwatchSegment = { [weak colorWell] in
+            BorderedSwatchSegment(colorWell: colorWell)
         }
         makePullDownSwatchSegment = { [weak colorWell] in
             PullDownSwatchSegment(colorWell: colorWell)
@@ -152,10 +152,10 @@ extension ColorWellLayoutView {
             row = addRow(with: [pullDownSwatchSegment])
         case .colorPanel:
             cachedToggleSegment = nil
-            guard let colorPanelSwatchSegment else {
+            guard let borderedSwatchSegment else {
                 return
             }
-            row = addRow(with: [colorPanelSwatchSegment])
+            row = addRow(with: [borderedSwatchSegment])
         }
     }
 

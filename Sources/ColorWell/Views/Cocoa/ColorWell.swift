@@ -99,10 +99,10 @@ public class ColorWell: _ColorWellBaseView {
 
     /// A segment that shows the color well's color, and
     /// toggles the color panel when pressed.
-    var colorPanelSwatchSegment: ColorPanelSwatchSegment? {
+    var borderedSwatchSegment: BorderedSwatchSegment? {
         switch style {
         case .colorPanel:
-            return layoutView.colorPanelSwatchSegment
+            return layoutView.borderedSwatchSegment
         case .expanded, .swatches:
             return nil
         }
@@ -199,7 +199,7 @@ public class ColorWell: _ColorWellBaseView {
             {
                 NSColorPanel.shared.color = color
             }
-            colorPanelSwatchSegment?.needsDisplay = true
+            borderedSwatchSegment?.needsDisplay = true
             pullDownSwatchSegment?.needsDisplay = true
         }
     }
@@ -226,7 +226,7 @@ public class ColorWell: _ColorWellBaseView {
                 toggleSegment?.needsDisplay = true
             case .swatches: break
             case .colorPanel:
-                colorPanelSwatchSegment?.needsDisplay = true
+                borderedSwatchSegment?.needsDisplay = true
             }
         }
     }
@@ -492,7 +492,7 @@ extension ColorWell {
 
         NSColorPanel.shared.orderFront(self)
 
-        colorPanelSwatchSegment?.state = .pressed
+        borderedSwatchSegment?.state = .pressed
         toggleSegment?.state = .pressed
     }
 
@@ -503,7 +503,7 @@ extension ColorWell {
     /// panel will not affect the color well's state.
     public func deactivate() {
         NSColorPanel.shared.attachedColorWells.removeAll { $0 === self }
-        colorPanelSwatchSegment?.state = .default
+        borderedSwatchSegment?.state = .default
         toggleSegment?.state = .default
         configureColorPanelObservations(remove: true, setUp: false)
     }
@@ -563,8 +563,8 @@ extension ColorWell {
     }
 
     override var customAccessibilityPerformPress: () -> Bool {
-        if let colorPanelSwatchSegment {
-            return colorPanelSwatchSegment.performAction
+        if let borderedSwatchSegment {
+            return borderedSwatchSegment.performAction
         } else if let pullDownSwatchSegment {
             return pullDownSwatchSegment.performAction
         }

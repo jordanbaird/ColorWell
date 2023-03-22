@@ -1,5 +1,5 @@
 //
-// ColorPanelSwatchSegment.swift
+// BorderedSwatchSegment.swift
 // ColorWell
 //
 
@@ -8,7 +8,7 @@ import Cocoa
 /// A segment that displays a color swatch with the color well's
 /// current color selection, and that toggles the color panel
 /// when pressed.
-class ColorPanelSwatchSegment: SwatchSegment {
+class BorderedSwatchSegment: SwatchSegment {
 
     // MARK: Properties
 
@@ -53,14 +53,14 @@ class ColorPanelSwatchSegment: SwatchSegment {
 }
 
 // MARK: Perform Action
-extension ColorPanelSwatchSegment {
+extension BorderedSwatchSegment {
     override class func performAction(for segment: ColorWellSegment) -> Bool {
         ToggleSegment.performAction(for: segment)
     }
 }
 
 // MARK: Overrides
-extension ColorPanelSwatchSegment {
+extension BorderedSwatchSegment {
     override func drawSwatch(_ dirtyRect: NSRect) {
         bezelColor.setFill()
         caches.segmentPath.recache(id: dirtyRect)
