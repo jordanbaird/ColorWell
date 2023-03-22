@@ -40,9 +40,19 @@ Create a `ColorWellView` and add it to your view hierarchy. There are a wide ran
 
 ```swift
 struct ContentView: View {
+    @Binding var fontColor: Color
+
     var body: some View {
-        ColorWellView(color: .green) { color in
-            print(color)
+        VStack {
+            ColorWellView(color: fontColor) { newColor in
+                fontColor = newColor
+            }
+
+            // ...
+            // ...
+            // ...
+
+            CustomTextEditor(fontColor: $fontColor)
         }
     }
 }
@@ -50,21 +60,16 @@ struct ContentView: View {
 
 ### Cocoa
 
-Create a `ColorWell` using one of the available initializers.
+Create a `ColorWell` using one of the available initializers. Observe color changes using the `onColorChange(perform:)` method.
 
 ```swift
-let colorWell1 = ColorWell()
-let colorWell2 = ColorWell(color: .green)
-let colorWell3 = ColorWell(frame: NSRect(x: 0, y: 0, width: 400, height: 200))
-// And more...
-```
+let fontColor = NSColor.black
 
-Observe color changes using the `onColorChange(perform:)` method.
+let textEditor = CustomNSTextEditor(fontColor: fontColor)
+let colorWell = ColorWell(color: fontColor)
 
-```swift
-let colorWell = ColorWell()
-colorWell.onColorChange { color in
-    print(color)
+colorWell.onColorChange { newColor in
+    textEditor.fontColor = newColor
 }
 ```
 
