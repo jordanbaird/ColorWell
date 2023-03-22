@@ -563,10 +563,12 @@ extension ColorWell {
     }
 
     override var customAccessibilityPerformPress: () -> Bool {
-        if let borderedSwatchSegment {
-            return borderedSwatchSegment.performAction
+        if let toggleSegment {
+            return toggleSegment.accessibilityPerformPress
+        } else if let borderedSwatchSegment {
+            return borderedSwatchSegment.accessibilityPerformPress
         } else if let pullDownSwatchSegment {
-            return pullDownSwatchSegment.performAction
+            return pullDownSwatchSegment.accessibilityPerformPress
         }
         return { false }
     }

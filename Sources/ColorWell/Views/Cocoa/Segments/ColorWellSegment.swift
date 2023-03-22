@@ -78,7 +78,7 @@ class ColorWellSegment: NSView {
 
     // MARK: Dynamic Class Methods
 
-    /// Invoked to perform a color well segment's action.
+    /// Invoked to perform an action for the given segment.
     @objc dynamic
     class func performAction(for segment: ColorWellSegment) -> Bool { false }
 
@@ -127,11 +127,6 @@ extension ColorWellSegment {
 
 // MARK: Internal Instance Methods
 extension ColorWellSegment {
-    /// Performs the segment's action.
-    func performAction() -> Bool {
-        Self.performAction(for: self)
-    }
-
     /// Updates the shadow layer for the specified rectangle.
     func updateShadowLayer(_ dirtyRect: NSRect) {
         shadowLayer?.removeFromSuperlayer()
@@ -187,7 +182,7 @@ extension ColorWellSegment {
         else {
             return
         }
-        _ = performAction()
+        _ = Self.performAction(for: self)
     }
 }
 
@@ -198,7 +193,7 @@ extension ColorWellSegment {
     }
 
     override func accessibilityPerformPress() -> Bool {
-        performAction()
+        Self.performAction(for: self)
     }
 
     override func accessibilityRole() -> NSAccessibility.Role? {
