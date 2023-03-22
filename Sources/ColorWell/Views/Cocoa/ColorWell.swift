@@ -538,15 +538,10 @@ extension ColorWell {
         switch style {
         case .expanded:
             result = Self.defaultFrame.size
-        case .swatches:
+        case .swatches, .colorPanel:
             result = Self.defaultFrame.size.insetBy(
                 dx: ToggleSegment.widthConstant / 2,
                 dy: 0
-            )
-        case .colorPanel:
-            result = Self.defaultFrame.size.insetBy(
-                dx: (ToggleSegment.widthConstant / 3) + 0.5,
-                dy: 0.5
             )
         }
 

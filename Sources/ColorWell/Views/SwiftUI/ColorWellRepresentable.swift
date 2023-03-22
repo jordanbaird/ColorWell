@@ -6,6 +6,19 @@
 #if canImport(SwiftUI)
 import SwiftUI
 
+/// A custom color well subclass that makes minor changes
+/// to match SwiftUI's `ColorPicker`.
+private class SwiftUIColorWell: ColorWell {
+    override var customIntrinsicContentSize: NSSize {
+        switch style {
+        case .expanded, .swatches:
+            return super.customIntrinsicContentSize
+        case .colorPanel:
+            return super.customIntrinsicContentSize.insetBy(dx: -3, dy: 0.5)
+        }
+    }
+}
+
 /// An `NSViewRepresentable` wrapper around a `ColorWell`.
 @available(macOS 10.15, *)
 struct ColorWellRepresentable: NSViewRepresentable {
@@ -16,14 +29,14 @@ struct ColorWellRepresentable: NSViewRepresentable {
     func makeNSView(context: Context) -> ColorWell {
         guard let color = configuration.color else {
             guard let style = context.environment.colorWellStyleConfiguration.style else {
-                return ColorWell()
+                return SwiftUIColorWell()
             }
-            return ColorWell(style: style)
+            return SwiftUIColorWell(style: style)
         }
         guard let style = context.environment.colorWellStyleConfiguration.style else {
-            return ColorWell(color: color)
+            return SwiftUIColorWell(color: color)
         }
-        return ColorWell(
+        return SwiftUIColorWell(
             frame: ColorWell.defaultFrame,
             color: color,
             style: style
