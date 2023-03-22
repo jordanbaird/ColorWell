@@ -1,5 +1,5 @@
 //
-// PullDownSwatchSegment.swift
+// ColorWellPullDownSwatchSegment.swift
 // ColorWell
 //
 
@@ -8,7 +8,7 @@ import Cocoa
 /// A segment that displays a color swatch with the color well's
 /// current color selection, and that triggers a pull down action
 /// when pressed.
-class PullDownSwatchSegment: SwatchSegment {
+class ColorWellPullDownSwatchSegment: ColorWellSwatchSegment {
 
     // MARK: Properties
 
@@ -76,7 +76,7 @@ class PullDownSwatchSegment: SwatchSegment {
 }
 
 // MARK: Static Methods
-extension PullDownSwatchSegment {
+extension ColorWellPullDownSwatchSegment {
     /// Returns a Boolean value indicating whether the specified
     /// segment can perform its pull down action.
     static func canPullDown(for segment: ColorWellSegment) -> Bool {
@@ -88,7 +88,7 @@ extension PullDownSwatchSegment {
 }
 
 // MARK: Instance Methods
-extension PullDownSwatchSegment {
+extension ColorWellPullDownSwatchSegment {
     /// Draws the segment's border in the given rectangle.
     private func drawBorder(_ dirtyRect: NSRect) {
         NSGraphicsContext.withCachedGraphicsState {
@@ -164,14 +164,14 @@ extension PullDownSwatchSegment {
 }
 
 // MARK: Perform Action
-extension PullDownSwatchSegment {
+extension ColorWellPullDownSwatchSegment {
     override class func performAction(for segment: ColorWellSegment) -> Bool {
         guard
             !NSEvent.modifierFlags.contains(.shift),
             canPullDown(for: segment),
             let colorWell = segment.colorWell
         else {
-            return ToggleSegment.performAction(for: segment)
+            return ColorWellToggleSegment.performAction(for: segment)
         }
 
         let popoverContext = ColorWellPopoverContext(colorWell: colorWell)
@@ -183,7 +183,7 @@ extension PullDownSwatchSegment {
 }
 
 // MARK: Overrides
-extension PullDownSwatchSegment {
+extension ColorWellPullDownSwatchSegment {
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
         drawBorder(dirtyRect)

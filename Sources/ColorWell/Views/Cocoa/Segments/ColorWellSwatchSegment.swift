@@ -1,5 +1,5 @@
 //
-// SwatchSegment.swift
+// ColorWellSwatchSegment.swift
 // ColorWell
 //
 
@@ -7,7 +7,7 @@ import Cocoa
 
 /// A segment that displays a color swatch with the color well's
 /// current color selection.
-class SwatchSegment: ColorWellSegment {
+class ColorWellSwatchSegment: ColorWellSegment {
 
     // MARK: Properties
 
@@ -37,7 +37,7 @@ class SwatchSegment: ColorWellSegment {
 }
 
 // MARK: Instance Methods
-extension SwatchSegment {
+extension ColorWellSwatchSegment {
     /// Draws the segment's swatch in the specified rectangle.
     @objc dynamic
     func drawSwatch(_ dirtyRect: NSRect) {
@@ -51,7 +51,7 @@ extension SwatchSegment {
 }
 
 // MARK: Overrides
-extension SwatchSegment {
+extension ColorWellSwatchSegment {
     override func draw(_ dirtyRect: NSRect) {
         drawSwatch(dirtyRect)
         updateShadowLayer(dirtyRect)
@@ -119,7 +119,7 @@ extension SwatchSegment {
 }
 
 // MARK: Accessibility
-extension SwatchSegment {
+extension ColorWellSwatchSegment {
     override func isAccessibilityElement() -> Bool {
         false
     }

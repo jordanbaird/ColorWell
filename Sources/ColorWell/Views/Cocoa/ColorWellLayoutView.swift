@@ -11,22 +11,22 @@ class ColorWellLayoutView: NSGridView {
     // MARK: Properties
 
     /// A constructor for the layout view's bordered swatch segment.
-    private var makeBorderedSwatchSegment: () -> BorderedSwatchSegment? = { nil }
+    private var makeBorderedSwatchSegment: () -> ColorWellBorderedSwatchSegment? = { nil }
 
     /// A constructor for the layout view's pull down swatch segment.
-    private var makePullDownSwatchSegment: () -> PullDownSwatchSegment? = { nil }
+    private var makePullDownSwatchSegment: () -> ColorWellPullDownSwatchSegment? = { nil }
 
     /// A constructor for the layout view's toggle segment.
-    private var makeToggleSegment: () -> ToggleSegment? = { nil }
+    private var makeToggleSegment: () -> ColorWellToggleSegment? = { nil }
 
     /// Backing storage for the layout view's bordered swatch segment.
-    private var cachedBorderedSwatchSegment: BorderedSwatchSegment?
+    private var cachedBorderedSwatchSegment: ColorWellBorderedSwatchSegment?
 
     /// Backing storage for the layout view's pull down swatch segment.
-    private var cachedPullDownSwatchSegment: PullDownSwatchSegment?
+    private var cachedPullDownSwatchSegment: ColorWellPullDownSwatchSegment?
 
     /// Backing storage for the layout view's toggle segment.
-    private var cachedToggleSegment: ToggleSegment?
+    private var cachedToggleSegment: ColorWellToggleSegment?
 
     /// The row that contains the layout view's segments.
     private var row: NSGridRow?
@@ -42,7 +42,7 @@ class ColorWellLayoutView: NSGridView {
     /// A segment that displays a color swatch with the color well's
     /// current color selection, and that toggles the color panel
     /// when pressed.
-    var borderedSwatchSegment: BorderedSwatchSegment? {
+    var borderedSwatchSegment: ColorWellBorderedSwatchSegment? {
         if let cachedBorderedSwatchSegment {
             return cachedBorderedSwatchSegment
         }
@@ -53,7 +53,7 @@ class ColorWellLayoutView: NSGridView {
     /// A segment that displays a color swatch with the color well's
     /// current color selection, and that triggers a pull down action
     /// when pressed.
-    var pullDownSwatchSegment: PullDownSwatchSegment? {
+    var pullDownSwatchSegment: ColorWellPullDownSwatchSegment? {
         if let cachedPullDownSwatchSegment {
             return cachedPullDownSwatchSegment
         }
@@ -62,7 +62,7 @@ class ColorWellLayoutView: NSGridView {
     }
 
     /// A segment that toggles the color panel when pressed.
-    var toggleSegment: ToggleSegment? {
+    var toggleSegment: ColorWellToggleSegment? {
         if let cachedToggleSegment {
             return cachedToggleSegment
         }
@@ -104,13 +104,13 @@ extension ColorWellLayoutView {
     /// the specified color well.
     func setSegmentConstructors(using colorWell: ColorWell) {
         makeBorderedSwatchSegment = { [weak colorWell] in
-            BorderedSwatchSegment(colorWell: colorWell)
+            ColorWellBorderedSwatchSegment(colorWell: colorWell)
         }
         makePullDownSwatchSegment = { [weak colorWell] in
-            PullDownSwatchSegment(colorWell: colorWell)
+            ColorWellPullDownSwatchSegment(colorWell: colorWell)
         }
         makeToggleSegment = { [weak colorWell] in
-            ToggleSegment(colorWell: colorWell)
+            ColorWellToggleSegment(colorWell: colorWell)
         }
 
         observations.insertObservation(

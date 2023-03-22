@@ -99,7 +99,7 @@ public class ColorWell: _ColorWellBaseView {
 
     /// A segment that shows the color well's color, and
     /// toggles the color panel when pressed.
-    var borderedSwatchSegment: BorderedSwatchSegment? {
+    var borderedSwatchSegment: ColorWellBorderedSwatchSegment? {
         switch style {
         case .colorPanel:
             return layoutView.borderedSwatchSegment
@@ -110,7 +110,7 @@ public class ColorWell: _ColorWellBaseView {
 
     /// A segment that shows the color well's color, and
     /// triggers a pull down action when pressed.
-    var pullDownSwatchSegment: PullDownSwatchSegment? {
+    var pullDownSwatchSegment: ColorWellPullDownSwatchSegment? {
         switch style {
         case .expanded, .swatches:
             return layoutView.pullDownSwatchSegment
@@ -120,7 +120,7 @@ public class ColorWell: _ColorWellBaseView {
     }
 
     /// A segment that toggles the color panel when pressed.
-    var toggleSegment: ToggleSegment? {
+    var toggleSegment: ColorWellToggleSegment? {
         switch style {
         case .expanded:
             return layoutView.toggleSegment
@@ -540,7 +540,7 @@ extension ColorWell {
             result = Self.defaultFrame.size
         case .swatches, .colorPanel:
             result = Self.defaultFrame.size.insetBy(
-                dx: ToggleSegment.widthConstant / 2,
+                dx: ColorWellToggleSegment.widthConstant / 2,
                 dy: 0
             )
         }

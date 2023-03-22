@@ -1,12 +1,12 @@
 //
-// ToggleSegment.swift
+// ColorWellToggleSegment.swift
 // ColorWell
 //
 
 import Cocoa
 
 /// A segment that toggles the color panel when pressed.
-class ToggleSegment: ColorWellSegment {
+class ColorWellToggleSegment: ColorWellSegment {
 
     // MARK: Static Properties
 
@@ -41,7 +41,7 @@ class ToggleSegment: ColorWellSegment {
 }
 
 // MARK: Instance Methods
-extension ToggleSegment {
+extension ColorWellToggleSegment {
     /// Adds a layer that contains an image indicating that the
     /// segment toggles the color panel.
     private func updateImageLayer(_ dirtyRect: NSRect) {
@@ -139,7 +139,7 @@ extension ToggleSegment {
 }
 
 // MARK: Perform Action
-extension ToggleSegment {
+extension ColorWellToggleSegment {
     override class func performAction(for segment: ColorWellSegment) -> Bool {
         guard let colorWell = segment.colorWell else {
             return false
@@ -154,7 +154,7 @@ extension ToggleSegment {
 }
 
 // MARK: Overrides
-extension ToggleSegment {
+extension ColorWellToggleSegment {
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
         updateImageLayer(dirtyRect)
@@ -187,7 +187,7 @@ extension ToggleSegment {
 }
 
 // MARK: Accessibility
-extension ToggleSegment {
+extension ColorWellToggleSegment {
     override func accessibilityLabel() -> String? {
         "color picker"
     }
