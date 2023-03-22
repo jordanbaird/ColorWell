@@ -17,8 +17,8 @@ ColorWell is designed to mimic the appearance and behavior of the new color well
 
 <div align='center'>
     <picture>
-        <source media='(prefers-color-scheme: dark)' width='75%' srcset='https://user-images.githubusercontent.com/90936861/226766349-3c926dca-b028-4325-9427-c801bb7f6687.png'>
-        <img src='https://user-images.githubusercontent.com/90936861/226766387-508fc22f-176c-4a42-9def-8470d13a1a01.png' width='75%'>
+        <source media='(prefers-color-scheme: dark)' width='75%' srcset='Sources/ColorWell/Documentation.docc/Resources/design-comparison-dark.png'>
+        <img src='Sources/ColorWell/Documentation.docc/Resources/design-comparison-light.png' width='75%'>
     </picture>
 </div>
 
