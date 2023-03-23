@@ -14,13 +14,11 @@ class ColorSwatch: NSView {
 
     // MARK: Properties
 
+    /// A context that manages the elements of the swatch's popover.
     private weak var context: ColorWellPopoverContext?
 
     /// The swatch's color value.
     let color: NSColor
-
-    /// A layer that draws a bezel around the swatch.
-    private var bezelLayer: CAShapeLayer?
 
     /// The standard width of a swatch's border.
     private let borderWidth: CGFloat = 2
@@ -43,10 +41,13 @@ class ColorSwatch: NSView {
             defer {
                 updateBezel()
             }
-            guard isSelected else {
+            guard
+                isSelected,
+                let context
+            else {
                 return
             }
-            iterateOtherSwatches(where: [\.isSelected]) { swatch in
+            for swatch in context.swatches where swatch.isSelected && swatch !== self {
                 swatch.isSelected = false
             }
         }
@@ -110,27 +111,6 @@ extension ColorSwatch {
 
 // MARK: Instance Methods
 extension ColorSwatch {
-    /// Returns all swatches in the swatch view that match the given conditions.
-    private func swatches(matching conditions: [(ColorSwatch) -> Bool]) -> [ColorSwatch] {
-        guard let context else {
-            return []
-        }
-        return context.swatches.filter { swatch in
-            conditions.allSatisfy { condition in
-                condition(swatch)
-            }
-        }
-    }
-
-    /// Iterates through all other swatches in the swatch view and executes
-    /// the given block of code, provided a set of conditions are met.
-    private func iterateOtherSwatches(where conditions: [(ColorSwatch) -> Bool], block: (ColorSwatch) -> Void) {
-        let conditions = conditions + [{ $0 !== self }]
-        for swatch in swatches(matching: conditions) {
-            block(swatch)
-        }
-    }
-
     /// Updates the swatch's border according to the current value of
     /// the swatch's `isSelected` property.
     private func updateBorder() {
@@ -146,55 +126,64 @@ extension ColorSwatch {
     /// selected. If the swatch is not selected, its border is updated
     /// and the method returns early.
     private func updateBezel() {
-        bezelLayer?.removeFromSuperlayer()
-        bezelLayer = nil
-
-        guard
-            let layer,
-            isSelected
-        else {
-            updateBorder()
-            return
+        enum LocalCache {
+            static let storage = Storage<CALayer?>()
         }
-        let bezelLayer = CAShapeLayer()
 
-        bezelLayer.masksToBounds = false
-        bezelLayer.frame = layer.bounds
+        LocalCache.storage.withMutableValue(forObject: self, default: nil) { bezelLayer in
+            bezelLayer?.removeFromSuperlayer()
+            bezelLayer = nil
 
-        bezelLayer.path = CGPath(
-            roundedRect: layer.bounds,
-            cornerWidth: cornerRadius,
-            cornerHeight: cornerRadius,
-            transform: nil
-        )
+            guard
+                let layer,
+                isSelected
+            else {
+                updateBorder()
+                return
+            }
 
-        bezelLayer.fillColor = .clear
-        bezelLayer.strokeColor = bezelColor
-        bezelLayer.lineWidth = borderWidth
+            bezelLayer = {
+                let bezelLayer = CAShapeLayer()
 
-        bezelLayer.shadowColor = NSColor.shadowColor.cgColor
-        bezelLayer.shadowRadius = 0.5
-        bezelLayer.shadowOpacity = 0.25
-        bezelLayer.shadowOffset = .zero
+                bezelLayer.masksToBounds = false
+                bezelLayer.frame = layer.bounds
 
-        bezelLayer.shadowPath = CGPath(
-            roundedRect: layer.bounds.insetBy(dx: borderWidth, dy: borderWidth),
-            cornerWidth: cornerRadius,
-            cornerHeight: cornerRadius,
-            transform: nil
-        ).copy(
-            strokingWithWidth: borderWidth,
-            lineCap: .round,
-            lineJoin: .round,
-            miterLimit: 0
-        )
+                bezelLayer.path = CGPath(
+                    roundedRect: layer.bounds,
+                    cornerWidth: cornerRadius,
+                    cornerHeight: cornerRadius,
+                    transform: nil
+                )
 
-        layer.addSublayer(bezelLayer)
-        layer.masksToBounds = false
-        layer.borderColor = bezelColor
-        layer.borderWidth = borderWidth
+                bezelLayer.fillColor = .clear
+                bezelLayer.strokeColor = bezelColor
+                bezelLayer.lineWidth = borderWidth
 
-        self.bezelLayer = bezelLayer
+                bezelLayer.shadowColor = NSColor.shadowColor.cgColor
+                bezelLayer.shadowRadius = 0.5
+                bezelLayer.shadowOpacity = 0.25
+                bezelLayer.shadowOffset = .zero
+
+                bezelLayer.shadowPath = CGPath(
+                    roundedRect: layer.bounds.insetBy(dx: borderWidth, dy: borderWidth),
+                    cornerWidth: cornerRadius,
+                    cornerHeight: cornerRadius,
+                    transform: nil
+                ).copy(
+                    strokingWithWidth: borderWidth,
+                    lineCap: .round,
+                    lineJoin: .round,
+                    miterLimit: 0
+                )
+
+                layer.addSublayer(bezelLayer)
+                layer.masksToBounds = false
+                layer.borderColor = bezelColor
+                layer.borderWidth = borderWidth
+
+                return bezelLayer
+            }()
+        }
     }
 
     /// Selects the swatch, drawing a bezel around its edges and ensuring

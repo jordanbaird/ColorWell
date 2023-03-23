@@ -45,7 +45,7 @@ extension ColorWellToggleSegment {
     /// Adds a layer that contains an image indicating that the
     /// segment toggles the color panel.
     private func updateImageLayer(_ dirtyRect: NSRect) {
-        enum Cache {
+        enum LocalCache {
             private static let defaultImage: NSImage = {
                 // Force unwrap is okay here, as the image is an AppKit builtin.
                 let image = NSImage(named: NSImage.touchBarColorPickerFillName)!
@@ -125,12 +125,12 @@ extension ColorWellToggleSegment {
 
         if state == .highlight || !isEnabled {
             if effectiveAppearance.isDarkAppearance {
-                imageLayer.contents = Cache.tintedForDarkAppearance(isEnabled)
+                imageLayer.contents = LocalCache.tintedForDarkAppearance(isEnabled)
             } else {
-                imageLayer.contents = Cache.tintedForLightAppearance(isEnabled)
+                imageLayer.contents = LocalCache.tintedForLightAppearance(isEnabled)
             }
         } else {
-            imageLayer.contents = Cache.defaultContents
+            imageLayer.contents = LocalCache.defaultContents
         }
 
         layer.addSublayer(imageLayer)
