@@ -18,6 +18,9 @@ class ColorWellPullDownSwatchSegment: ColorWellSwatchSegment {
     /// The cached path for the segment's border.
     private let cachedBorderPath = Cache(NSBezierPath(), id: NSRect())
 
+    /// The cached paths for the segment's caret.
+    private let cachedCaretPaths = Cache((caret: NSBezierPath(), backing: NSBezierPath()), id: NSRect())
+
     /// A Boolean value that indicates whether the segment
     /// fills its color well.
     ///
@@ -72,49 +75,15 @@ class ColorWellPullDownSwatchSegment: ColorWellSwatchSegment {
             path.lineWidth = lineWidth
             return path
         }
-    }
-}
 
-// MARK: Static Methods
-extension ColorWellPullDownSwatchSegment {
-    /// Returns a Boolean value indicating whether the specified
-    /// segment can perform its pull down action.
-    static func canPullDown(for segment: ColorWellSegment) -> Bool {
-        guard let segment = segment as? Self else {
-            return true
-        }
-        return segment.canPullDown
-    }
-}
-
-// MARK: Instance Methods
-extension ColorWellPullDownSwatchSegment {
-    /// Draws the segment's border in the given rectangle.
-    private func drawBorder(_ dirtyRect: NSRect) {
-        NSGraphicsContext.withCachedGraphicsState {
-            cachedBorderPath.recache(id: dirtyRect)
-            borderColor.setStroke()
-            cachedBorderPath.cachedValue.stroke()
-        }
-    }
-
-    /// Draws a downward-facing caret inside the segment's layer.
-    ///
-    /// This method is invoked when the mouse pointer is inside
-    /// the bounds of the segment.
-    private func drawCaret(_ dirtyRect: NSRect) {
-        guard canPullDown else {
-            return
-        }
-
-        NSGraphicsContext.withCachedGraphicsState {
+        cachedCaretPaths.updateConstructor { bounds in
             let lineWidth = 1.5
 
             let caretSize = NSSize(width: 12, height: 12)
             let caretBounds = NSRect(
                 origin: NSPoint(
-                    x: dirtyRect.maxX - caretSize.width - 4,
-                    y: dirtyRect.midY - caretSize.height / 2
+                    x: bounds.maxX - caretSize.width - 4,
+                    y: bounds.midY - caretSize.height / 2
                 ),
                 size: caretSize
             )
@@ -154,11 +123,53 @@ extension ColorWellPullDownSwatchSegment {
                 )
             )
 
+            return (caretPath, NSBezierPath(ovalIn: caretBounds))
+        }
+    }
+}
+
+// MARK: Static Methods
+extension ColorWellPullDownSwatchSegment {
+    /// Returns a Boolean value indicating whether the specified
+    /// segment can perform its pull down action.
+    static func canPullDown(for segment: ColorWellSegment) -> Bool {
+        guard let segment = segment as? Self else {
+            return true
+        }
+        return segment.canPullDown
+    }
+}
+
+// MARK: Instance Methods
+extension ColorWellPullDownSwatchSegment {
+    /// Draws the segment's border in the given rectangle.
+    private func drawBorder(_ dirtyRect: NSRect) {
+        NSGraphicsContext.withCachedGraphicsState {
+            cachedBorderPath.recache(id: dirtyRect)
+            borderColor.setStroke()
+            cachedBorderPath.cachedValue.stroke()
+        }
+    }
+
+    /// Draws a downward-facing caret inside the segment's layer.
+    ///
+    /// This method is invoked when the mouse pointer is inside
+    /// the bounds of the segment.
+    private func drawCaret(_ dirtyRect: NSRect) {
+        guard canPullDown else {
+            return
+        }
+
+        NSGraphicsContext.withCachedGraphicsState {
+            cachedCaretPaths.recache(id: dirtyRect)
+
+            let paths = cachedCaretPaths.cachedValue
+
             NSColor(white: 0, alpha: 0.25).setFill()
-            NSBezierPath(ovalIn: caretBounds).fill()
+            paths.backing.fill()
 
             NSColor.white.setStroke()
-            caretPath.stroke()
+            paths.caret.stroke()
         }
     }
 }
