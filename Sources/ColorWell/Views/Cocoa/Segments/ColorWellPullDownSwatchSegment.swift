@@ -60,6 +60,7 @@ class ColorWellPullDownSwatchSegment: ColorWellSwatchSegment {
 
     override init?(colorWell: ColorWell?) {
         super.init(colorWell: colorWell)
+
         cachedBorderPath.updateConstructor { [weak self] bounds in
             guard let self else {
                 return NSBezierPath()
