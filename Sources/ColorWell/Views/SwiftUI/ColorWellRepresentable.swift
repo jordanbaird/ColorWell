@@ -8,7 +8,7 @@ import SwiftUI
 
 /// A custom color well subclass that makes minor changes
 /// to match SwiftUI's `ColorPicker`.
-private class SwiftUIColorWell: ColorWell {
+class BridgedColorWell: ColorWell {
     override var customIntrinsicContentSize: NSSize {
         switch style {
         case .expanded, .swatches:
@@ -16,6 +16,10 @@ private class SwiftUIColorWell: ColorWell {
         case .colorPanel:
             return super.customIntrinsicContentSize.insetBy(dx: -3, dy: 0.5)
         }
+    }
+
+    convenience init(color: NSColor, style: Style) {
+        self.init(frame: Self.defaultFrame, color: color, style: style)
     }
 }
 
@@ -29,18 +33,14 @@ struct ColorWellRepresentable: NSViewRepresentable {
     func makeNSView(context: Context) -> ColorWell {
         guard let color = configuration.color else {
             guard let style = context.environment.colorWellStyleConfiguration.style else {
-                return SwiftUIColorWell()
+                return BridgedColorWell()
             }
-            return SwiftUIColorWell(style: style)
+            return BridgedColorWell(style: style)
         }
         guard let style = context.environment.colorWellStyleConfiguration.style else {
-            return SwiftUIColorWell(color: color)
+            return BridgedColorWell(color: color)
         }
-        return SwiftUIColorWell(
-            frame: ColorWell.defaultFrame,
-            color: color,
-            style: style
-        )
+        return BridgedColorWell(color: color, style: style)
     }
 
     /// Updates the color well's configuration to the most recent
