@@ -276,7 +276,7 @@ public class ColorWell: _ColorWellBaseView {
         self.color = color
         self.style = style
         super.init(frame: frameRect)
-        performSetup()
+        performSharedSetup()
     }
 
     /// Creates a color well from data in the given coder object.
@@ -287,7 +287,7 @@ public class ColorWell: _ColorWellBaseView {
         color = Self.defaultColor
         style = Self.defaultStyle
         super.init(coder: coder)
-        performSetup()
+        performSharedSetup()
     }
 
     // MARK: Convenience Initializers
@@ -368,16 +368,20 @@ public class ColorWell: _ColorWellBaseView {
 
 // MARK: Private Instance Methods
 extension ColorWell {
-    /// Performs shared setup code during a color well's initialization.
-    private func performSetup() {
+    /// Shared code to perform during initialization.
+    private func performSharedSetup() {
         wantsLayer = true
         layer?.masksToBounds = false
+
         addSubview(layoutView)
         layoutView.translatesAutoresizingMaskIntoConstraints = false
-        layoutView.widthAnchor.constraint(equalTo: widthAnchor).isActive = true
-        layoutView.heightAnchor.constraint(equalTo: heightAnchor).isActive = true
-        layoutView.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
-        layoutView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
+
+        NSLayoutConstraint.activate([
+            layoutView.widthAnchor.constraint(equalTo: widthAnchor),
+            layoutView.heightAnchor.constraint(equalTo: heightAnchor),
+            layoutView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            layoutView.centerYAnchor.constraint(equalTo: centerYAnchor),
+        ])
     }
 
     /// Executes the color well's stored change handlers.
