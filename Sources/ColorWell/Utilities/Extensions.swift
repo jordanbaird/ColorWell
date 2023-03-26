@@ -61,71 +61,35 @@ extension Comparable {
     }
 }
 
-// MARK: - NSAppearance
-
-extension NSAppearance {
-    /// The dark appearance names supported by the system.
-    private var systemDarkNames: Set<Name> {
-        var names: Set<Name> = [.vibrantDark]
-        if #available(macOS 10.14, *) {
-            names.insert(.darkAqua)
-            names.insert(.accessibilityHighContrastDarkAqua)
-            names.insert(.accessibilityHighContrastVibrantDark)
-        }
-        return names
-    }
-
-    /// Whether the current appearance's name indicates a dark appearance.
-    private var nameIndicatesDarkAppearance: Bool {
-        name.rawValue.lowercased().contains("dark")
-    }
-
-    /// Whether the current appearance is a dark appearance.
-    var isDarkAppearance: Bool {
-        systemDarkNames.contains(name) || nameIndicatesDarkAppearance
-    }
-}
-
-// MARK: - NSApplication
-
-extension NSApplication {
-    /// A Boolean value that indicates whether the application's current
-    /// effective appearance is a dark appearance.
-    var effectiveAppearanceIsDarkAppearance: Bool {
-        if #available(macOS 10.14, *) {
-            return effectiveAppearance.isDarkAppearance
-        } else {
-            return false
-        }
-    }
-}
-
 // MARK: - NSColor
 
 extension NSColor {
     /// The default fill color for a color well segment.
     static var colorWellSegmentColor: NSColor {
-        if NSApp.effectiveAppearanceIsDarkAppearance {
+        switch DrawingStyle.current {
+        case .dark:
             return .selectedControlColor
-        } else {
+        case .light:
             return .controlColor
         }
     }
 
     /// The fill color for a highlighted color well segment.
     static var highlightedColorWellSegmentColor: NSColor {
-        if NSApp.effectiveAppearanceIsDarkAppearance {
+        switch DrawingStyle.current {
+        case .dark:
             return colorWellSegmentColor.blendedAndClamped(withFraction: 0.2, of: .highlightColor)
-        } else {
+        case .light:
             return colorWellSegmentColor.blendedAndClamped(withFraction: 0.5, of: .selectedControlColor)
         }
     }
 
     /// The fill color for a selected color well segment.
     static var selectedColorWellSegmentColor: NSColor {
-        if NSApp.effectiveAppearanceIsDarkAppearance {
+        switch DrawingStyle.current {
+        case .dark:
             return colorWellSegmentColor.withAlphaComponent(colorWellSegmentColor.alphaComponent + 0.25)
-        } else {
+        case .light:
             return .selectedControlColor
         }
     }

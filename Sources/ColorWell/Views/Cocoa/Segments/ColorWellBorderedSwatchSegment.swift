@@ -19,9 +19,10 @@ class ColorWellBorderedSwatchSegment: ColorWellSwatchSegment {
 
         switch state {
         case .highlight, .pressed:
-            if NSApp.effectiveAppearanceIsDarkAppearance {
+            switch DrawingStyle.current {
+            case .dark:
                 bezelColor = .highlightColor
-            } else {
+            case .light:
                 bezelColor = .selectedColorWellSegmentColor
             }
         default:

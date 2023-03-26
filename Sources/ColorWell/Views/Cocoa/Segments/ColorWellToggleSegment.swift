@@ -124,9 +124,10 @@ extension ColorWellToggleSegment {
         ).centered(in: dirtyRect)
 
         if state == .highlight || !isEnabled {
-            if effectiveAppearance.isDarkAppearance {
+            switch DrawingStyle.current {
+            case .dark:
                 imageLayer.contents = LocalCache.tintedForDarkAppearance(isEnabled)
-            } else {
+            case .light:
                 imageLayer.contents = LocalCache.tintedForLightAppearance(isEnabled)
             }
         } else {
