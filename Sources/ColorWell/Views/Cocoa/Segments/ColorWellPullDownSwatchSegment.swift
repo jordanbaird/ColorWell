@@ -5,6 +5,8 @@
 
 import Cocoa
 
+// MARK: - ColorWellPullDownSwatchSegment
+
 /// A segment that displays a color swatch with the color well's
 /// current color selection, and that triggers a pull down action
 /// when pressed.
@@ -230,10 +232,14 @@ extension ColorWellPullDownSwatchSegment {
     }
 }
 
+// MARK: - ColorWellSinglePullDownSwatchSegment
+
 /// A pull down swatch segment that fills its color well.
 class ColorWellSinglePullDownSwatchSegment: ColorWellPullDownSwatchSegment {
     override var side: Side { .null }
 }
+
+// MARK: - ColorWellPartialPullDownSwatchSegment
 
 /// A pull down swatch segment that does not fill its color well.
 class ColorWellPartialPullDownSwatchSegment: ColorWellPullDownSwatchSegment {
