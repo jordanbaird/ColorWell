@@ -70,9 +70,6 @@ public class ColorWell: _ColorWellBaseView {
     /// The color well's change handlers.
     var changeHandlers = [(NSColor) -> Void]()
 
-    /// A view that manages the layout of the color well's segments.
-    let layoutView = ColorWellLayoutView()
-
     /// The popover context associated with the color well.
     var popoverContext: ColorWellPopoverContext?
 
@@ -97,6 +94,18 @@ public class ColorWell: _ColorWellBaseView {
         }
     }
 
+    /// A view that manages the layout of the color well's segments.
+    var layoutView: ColorWellLayoutView {
+        enum LocalCache {
+            static let storage = Storage<ColorWellLayoutView>()
+        }
+
+        return LocalCache.storage.value(
+            forObject: self,
+            default: ColorWellLayoutView(colorWell: self)
+        )
+    }
+
     /// A segment that shows the color well's color, and
     /// toggles the color panel when pressed.
     var borderedSwatchSegment: ColorWellBorderedSwatchSegment? {
@@ -108,13 +117,24 @@ public class ColorWell: _ColorWellBaseView {
         }
     }
 
-    /// A segment that shows the color well's color, and
-    /// triggers a pull down action when pressed.
-    var pullDownSwatchSegment: ColorWellPullDownSwatchSegment? {
+    /// A single-style segment that shows the color well's
+    /// color, and triggers a pull down action when pressed.
+    var singlePullDownSwatchSegment: ColorWellSinglePullDownSwatchSegment? {
         switch style {
-        case .expanded, .swatches:
-            return layoutView.pullDownSwatchSegment
-        case .colorPanel:
+        case .swatches:
+            return layoutView.singlePullDownSwatchSegment
+        case .colorPanel, .expanded:
+            return nil
+        }
+    }
+
+    /// A partial-style segment that shows the color well's
+    /// color, and triggers a pull down action when pressed.
+    var partialPullDownSwatchSegment: ColorWellPartialPullDownSwatchSegment? {
+        switch style {
+        case .expanded:
+            return layoutView.partialPullDownSwatchSegment
+        case .colorPanel, .swatches:
             return nil
         }
     }
@@ -200,7 +220,8 @@ public class ColorWell: _ColorWellBaseView {
                 NSColorPanel.shared.color = color
             }
             borderedSwatchSegment?.needsDisplay = true
-            pullDownSwatchSegment?.needsDisplay = true
+            singlePullDownSwatchSegment?.needsDisplay = true
+            partialPullDownSwatchSegment?.needsDisplay = true
         }
     }
 
@@ -255,7 +276,7 @@ public class ColorWell: _ColorWellBaseView {
         self.color = color
         self.style = style
         super.init(frame: frameRect)
-        sharedInit()
+        performSetup()
     }
 
     /// Creates a color well from data in the given coder object.
@@ -266,7 +287,7 @@ public class ColorWell: _ColorWellBaseView {
         color = Self.defaultColor
         style = Self.defaultStyle
         super.init(coder: coder)
-        sharedInit()
+        performSetup()
     }
 
     // MARK: Convenience Initializers
@@ -347,14 +368,11 @@ public class ColorWell: _ColorWellBaseView {
 
 // MARK: Private Instance Methods
 extension ColorWell {
-    /// Shared code to execute on the color well's initialization.
-    private func sharedInit() {
+    /// Performs shared setup code during a color well's initialization.
+    private func performSetup() {
         wantsLayer = true
         layer?.masksToBounds = false
-
-        layoutView.setSegmentConstructors(using: self)
         addSubview(layoutView)
-
         layoutView.translatesAutoresizingMaskIntoConstraints = false
         layoutView.widthAnchor.constraint(equalTo: widthAnchor).isActive = true
         layoutView.heightAnchor.constraint(equalTo: heightAnchor).isActive = true
@@ -567,8 +585,10 @@ extension ColorWell {
             return toggleSegment.accessibilityPerformPress
         } else if let borderedSwatchSegment {
             return borderedSwatchSegment.accessibilityPerformPress
-        } else if let pullDownSwatchSegment {
-            return pullDownSwatchSegment.accessibilityPerformPress
+        } else if let singlePullDownSwatchSegment {
+            return singlePullDownSwatchSegment.accessibilityPerformPress
+        } else if let partialPullDownSwatchSegment {
+            return partialPullDownSwatchSegment.accessibilityPerformPress
         }
         return { false }
     }

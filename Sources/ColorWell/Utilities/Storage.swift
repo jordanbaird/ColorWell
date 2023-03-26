@@ -20,6 +20,20 @@ class Storage<Value> {
         objc_getAssociatedObject(object, key) as? Value
     }
 
+    /// Accesses the value associated with the specified object, storing
+    /// and returning the given default if no value is currently stored.
+    func value<Object: AnyObject>(
+        forObject object: Object,
+        default defaultValue: @autoclosure () -> Value
+    ) -> Value {
+        guard let value = value(forObject: object) else {
+            let value = defaultValue()
+            set(value, forObject: object)
+            return value
+        }
+        return value
+    }
+
     /// Associates a value with the specified object.
     func set<Object: AnyObject>(_ value: Value?, forObject object: Object) {
         objc_setAssociatedObject(object, key, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)

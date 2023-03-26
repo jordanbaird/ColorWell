@@ -21,19 +21,6 @@ class ColorWellPullDownSwatchSegment: ColorWellSwatchSegment {
     /// The cached paths for the segment's caret.
     private let cachedCaretPaths = Cache((caret: NSBezierPath(), backing: NSBezierPath()), id: NSRect())
 
-    /// A Boolean value that indicates whether the segment
-    /// fills its color well.
-    ///
-    /// If this segment is the only segment in its layout view,
-    /// the return value is `true`. If the layout view contains
-    /// additional segments, the return value is `false`.
-    var isFullSegment: Bool {
-        guard let layoutView = colorWell?.layoutView else {
-            return false
-        }
-        return layoutView.currentSegments == [self]
-    }
-
     /// A Boolean value indicating whether the segment can perform
     /// its pull down action.
     var canPullDown: Bool {
@@ -41,10 +28,6 @@ class ColorWellPullDownSwatchSegment: ColorWellSwatchSegment {
             return false
         }
         return !colorWell.swatchColors.isEmpty
-    }
-
-    override var side: Side {
-        isFullSegment ? .null : .left
     }
 
     override var draggingInformation: DraggingInformation {
@@ -245,4 +228,14 @@ extension ColorWellPullDownSwatchSegment {
         addTrackingArea(trackingArea)
         self.trackingArea = trackingArea
     }
+}
+
+/// A pull down swatch segment that fills its color well.
+class ColorWellSinglePullDownSwatchSegment: ColorWellPullDownSwatchSegment {
+    override var side: Side { .null }
+}
+
+/// A pull down swatch segment that does not fill its color well.
+class ColorWellPartialPullDownSwatchSegment: ColorWellPullDownSwatchSegment {
+    override var side: Side { .left }
 }

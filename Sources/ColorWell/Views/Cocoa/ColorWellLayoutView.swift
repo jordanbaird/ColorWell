@@ -10,23 +10,21 @@ class ColorWellLayoutView: NSGridView {
 
     // MARK: Properties
 
-    /// A constructor for the layout view's bordered swatch segment.
-    private var makeBorderedSwatchSegment: () -> ColorWellBorderedSwatchSegment? = { nil }
+    /// Constructors for the layout view's segments.
+    private var constructors: (
+        borderedSwatchSegment: () -> ColorWellBorderedSwatchSegment?,
+        singlePullDownSwatchSegment: () -> ColorWellSinglePullDownSwatchSegment?,
+        partialPullDownSwatchSegment: () -> ColorWellPartialPullDownSwatchSegment?,
+        toggleSegment: () -> ColorWellToggleSegment?
+    )
 
-    /// A constructor for the layout view's pull down swatch segment.
-    private var makePullDownSwatchSegment: () -> ColorWellPullDownSwatchSegment? = { nil }
-
-    /// A constructor for the layout view's toggle segment.
-    private var makeToggleSegment: () -> ColorWellToggleSegment? = { nil }
-
-    /// Backing storage for the layout view's bordered swatch segment.
-    private var cachedBorderedSwatchSegment: ColorWellBorderedSwatchSegment?
-
-    /// Backing storage for the layout view's pull down swatch segment.
-    private var cachedPullDownSwatchSegment: ColorWellPullDownSwatchSegment?
-
-    /// Backing storage for the layout view's toggle segment.
-    private var cachedToggleSegment: ColorWellToggleSegment?
+    /// Backing storage for the layout view's segments.
+    private var cachedSegments: (
+        borderedSwatchSegment: ColorWellBorderedSwatchSegment?,
+        singlePullDownSwatchSegment: ColorWellSinglePullDownSwatchSegment?,
+        partialPullDownSwatchSegment: ColorWellPartialPullDownSwatchSegment?,
+        toggleSegment: ColorWellToggleSegment?
+    )
 
     /// The row that contains the layout view's segments.
     private var row: NSGridRow?
@@ -43,75 +41,65 @@ class ColorWellLayoutView: NSGridView {
     /// current color selection, and that toggles the color panel
     /// when pressed.
     var borderedSwatchSegment: ColorWellBorderedSwatchSegment? {
-        if let cachedBorderedSwatchSegment {
-            return cachedBorderedSwatchSegment
+        if let segment = cachedSegments.borderedSwatchSegment {
+            return segment
         }
-        cachedBorderedSwatchSegment = makeBorderedSwatchSegment()
-        return cachedBorderedSwatchSegment
+        cachedSegments.borderedSwatchSegment = constructors.borderedSwatchSegment()
+        return cachedSegments.borderedSwatchSegment
     }
 
-    /// A segment that displays a color swatch with the color well's
-    /// current color selection, and that triggers a pull down action
-    /// when pressed.
-    var pullDownSwatchSegment: ColorWellPullDownSwatchSegment? {
-        if let cachedPullDownSwatchSegment {
-            return cachedPullDownSwatchSegment
+    /// A single-style segment that displays a color swatch with the
+    /// color well's current color selection, and that triggers a pull
+    /// down action when pressed.
+    var singlePullDownSwatchSegment: ColorWellSinglePullDownSwatchSegment? {
+        if let segment = cachedSegments.singlePullDownSwatchSegment {
+            return segment
         }
-        cachedPullDownSwatchSegment = makePullDownSwatchSegment()
-        return cachedPullDownSwatchSegment
+        cachedSegments.singlePullDownSwatchSegment = constructors.singlePullDownSwatchSegment()
+        return cachedSegments.singlePullDownSwatchSegment
+    }
+
+    /// A partial-style segment that displays a color swatch with the
+    /// color well's current color selection, and that triggers a pull
+    /// down action when pressed.
+    var partialPullDownSwatchSegment: ColorWellPartialPullDownSwatchSegment? {
+        if let segment = cachedSegments.partialPullDownSwatchSegment {
+            return segment
+        }
+        cachedSegments.partialPullDownSwatchSegment = constructors.partialPullDownSwatchSegment()
+        return cachedSegments.partialPullDownSwatchSegment
     }
 
     /// A segment that toggles the color panel when pressed.
     var toggleSegment: ColorWellToggleSegment? {
-        if let cachedToggleSegment {
-            return cachedToggleSegment
+        if let segment = cachedSegments.toggleSegment {
+            return segment
         }
-        cachedToggleSegment = makeToggleSegment()
-        return cachedToggleSegment
-    }
-
-    /// The current segments in the layout view.
-    var currentSegments: [ColorWellSegment] {
-        let rangeOfRows = 0..<numberOfRows
-        let rangeOfColumns = 0..<numberOfColumns
-        return rangeOfRows.flatMap { rowIndex in
-            rangeOfColumns.compactMap { columnIndex in
-                let cell = cell(atColumnIndex: columnIndex, rowIndex: rowIndex)
-                return cell.contentView as? ColorWellSegment
-            }
-        }
+        cachedSegments.toggleSegment = constructors.toggleSegment()
+        return cachedSegments.toggleSegment
     }
 
     // MARK: Initializers
 
-    init() {
+    init(colorWell: ColorWell) {
+        constructors.borderedSwatchSegment = { [weak colorWell] in
+            ColorWellBorderedSwatchSegment(colorWell: colorWell)
+        }
+        constructors.singlePullDownSwatchSegment = { [weak colorWell] in
+            ColorWellSinglePullDownSwatchSegment(colorWell: colorWell)
+        }
+        constructors.partialPullDownSwatchSegment = { [weak colorWell] in
+            ColorWellPartialPullDownSwatchSegment(colorWell: colorWell)
+        }
+        constructors.toggleSegment = { [weak colorWell] in
+            ColorWellToggleSegment(colorWell: colorWell)
+        }
+
         super.init(frame: .zero)
         wantsLayer = true
         columnSpacing = 0
         xPlacement = .fill
         yPlacement = .fill
-    }
-
-    @available(*, unavailable)
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-}
-
-// MARK: Instance Methods
-extension ColorWellLayoutView {
-    /// Sets the layout view's segment constructors using
-    /// the specified color well.
-    func setSegmentConstructors(using colorWell: ColorWell) {
-        makeBorderedSwatchSegment = { [weak colorWell] in
-            ColorWellBorderedSwatchSegment(colorWell: colorWell)
-        }
-        makePullDownSwatchSegment = { [weak colorWell] in
-            ColorWellPullDownSwatchSegment(colorWell: colorWell)
-        }
-        makeToggleSegment = { [weak colorWell] in
-            ColorWellToggleSegment(colorWell: colorWell)
-        }
 
         observations.insertObservation(
             for: colorWell,
@@ -122,6 +110,14 @@ extension ColorWellLayoutView {
         }
     }
 
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+// MARK: Instance Methods
+extension ColorWellLayoutView {
     /// Removes the given row from the layout view.
     func removeRow(_ row: NSGridRow) {
         for n in 0..<row.numberOfCells {
@@ -138,20 +134,20 @@ extension ColorWellLayoutView {
         switch style {
         case .expanded:
             guard
-                let pullDownSwatchSegment,
+                let partialPullDownSwatchSegment,
                 let toggleSegment
             else {
                 return
             }
-            row = addRow(with: [pullDownSwatchSegment, toggleSegment])
+            row = addRow(with: [partialPullDownSwatchSegment, toggleSegment])
         case .swatches:
-            cachedToggleSegment = nil
-            guard let pullDownSwatchSegment else {
+            cachedSegments.toggleSegment = nil
+            guard let singlePullDownSwatchSegment else {
                 return
             }
-            row = addRow(with: [pullDownSwatchSegment])
+            row = addRow(with: [singlePullDownSwatchSegment])
         case .colorPanel:
-            cachedToggleSegment = nil
+            cachedSegments.toggleSegment = nil
             guard let borderedSwatchSegment else {
                 return
             }
