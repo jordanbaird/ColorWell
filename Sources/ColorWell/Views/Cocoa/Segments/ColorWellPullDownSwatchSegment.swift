@@ -14,9 +14,6 @@ class ColorWellPullDownSwatchSegment: ColorWellSwatchSegment {
 
     // MARK: Properties
 
-    /// A tracking area for mouse enter/exit events.
-    private var trackingArea: NSTrackingArea?
-
     /// The cached path for the segment's border.
     private let cachedBorderPath = Cache(NSBezierPath(), id: NSRect())
 
@@ -215,8 +212,13 @@ extension ColorWellPullDownSwatchSegment {
     }
     
     override func updateTrackingAreas() {
+        enum LocalCache {
+            static let storage = Storage<NSTrackingArea>()
+        }
+
         super.updateTrackingAreas()
-        if let trackingArea {
+
+        if let trackingArea = LocalCache.storage.value(forObject: self) {
             removeTrackingArea(trackingArea)
         }
         let trackingArea = NSTrackingArea(
@@ -228,7 +230,8 @@ extension ColorWellPullDownSwatchSegment {
             owner: self
         )
         addTrackingArea(trackingArea)
-        self.trackingArea = trackingArea
+
+        LocalCache.storage.set(trackingArea, forObject: self)
     }
 }
 
