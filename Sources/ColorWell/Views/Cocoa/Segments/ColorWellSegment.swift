@@ -12,17 +12,10 @@ class ColorWellSegment: NSView {
 
     weak var colorWell: ColorWell?
 
-    private let shadowRadius = 0.75
-
-    private let shadowOffset = CGSize(width: 0, height: -0.25)
-
-    private var shadowLayer: CALayer?
-
     /// The segment's cached values.
     let caches = (
         segmentPath: Cache(NSBezierPath(), id: NSRect()),
-        shadowPath: Cache(CGMutablePath() as CGPath, id: NSRect()),
-        maskPath: Cache(CGMutablePath() as CGPath, id: NSRect())
+        shadowLayer: Cache(CALayer(), id: NSRect())
     )
 
     /// The segment's current and previous states.
@@ -100,27 +93,37 @@ extension ColorWellSegment {
             return .colorWellSegment(rect: bounds, side: self.side)
         }
 
-        caches.shadowPath.updateConstructor { [weak self] bounds in
+        caches.shadowLayer.updateConstructor { [weak self] bounds in
             guard let self else {
-                return CGMutablePath()
+                return CALayer()
             }
-            return .colorWellSegment(rect: bounds, side: self.side)
-        }
 
-        caches.maskPath.updateConstructor { [weak self] bounds in
-            guard let self else {
-                return CGMutablePath()
-            }
+            let shadowRadius = 0.75
+            let shadowOffset = CGSize(width: 0, height: -0.25)
+
+            let shadowPath = CGPath.colorWellSegment(rect: bounds, side: self.side)
             let maskPath = CGMutablePath()
             maskPath.addRect(
                 bounds.insetBy(
-                    dx: -(self.shadowRadius * 2) + self.shadowOffset.width,
-                    dy: -(self.shadowRadius * 2) + self.shadowOffset.height
+                    dx: -(shadowRadius * 2) + shadowOffset.width,
+                    dy: -(shadowRadius * 2) + shadowOffset.height
                 )
             )
-            maskPath.addPath(self.caches.shadowPath.cachedValue)
+            maskPath.addPath(shadowPath)
             maskPath.closeSubpath()
-            return maskPath
+
+            let maskLayer = CAShapeLayer()
+            maskLayer.path = maskPath
+            maskLayer.fillRule = .evenOdd
+
+            let shadowLayer = CALayer()
+            shadowLayer.shadowRadius = shadowRadius
+            shadowLayer.shadowOffset = shadowOffset
+            shadowLayer.shadowPath = shadowPath
+            shadowLayer.shadowOpacity = 0.5
+            shadowLayer.mask = maskLayer
+
+            return shadowLayer
         }
     }
 }
@@ -129,31 +132,16 @@ extension ColorWellSegment {
 extension ColorWellSegment {
     /// Updates the shadow layer for the specified rectangle.
     func updateShadowLayer(_ dirtyRect: NSRect) {
-        shadowLayer?.removeFromSuperlayer()
-        shadowLayer = nil
+        caches.shadowLayer.cachedValue.removeFromSuperlayer()
 
         guard let layer else {
             return
         }
 
-        caches.shadowPath.recache(id: dirtyRect)
-        caches.maskPath.recache(id: dirtyRect)
-
-        let maskLayer = CAShapeLayer()
-        maskLayer.path = caches.maskPath.cachedValue
-        maskLayer.fillRule = .evenOdd
-
-        let shadowLayer = CALayer()
-        shadowLayer.shadowRadius = shadowRadius
-        shadowLayer.shadowOffset = shadowOffset
-        shadowLayer.shadowPath = caches.shadowPath.cachedValue
-        shadowLayer.shadowOpacity = 0.5
-        shadowLayer.mask = maskLayer
-
         layer.masksToBounds = false
-        layer.addSublayer(shadowLayer)
 
-        self.shadowLayer = shadowLayer
+        caches.shadowLayer.recache(id: dirtyRect)
+        layer.addSublayer(caches.shadowLayer.cachedValue)
     }
 }
 
