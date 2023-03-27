@@ -1,0 +1,26 @@
+name: Diagnose Breaking Changes
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/breaking.yml'
+      - '**/*.swift'
+
+jobs:
+  diagnose:
+    runs-on: macos-latest
+    steps:
+    - name: Get Latest Release
+      id: latest_release
+      uses: pozetroninc/github-action-get-latest-release@v0.7.0
+      with:
+        repository: ${{ github.repository }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+        excludes: prerelease, draft
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Fetch Tags
+      run: git fetch --tags
+    - name: Diagnose
+      run: |
+        swift package diagnose-api-breaking-changes ${{ steps.latest_release.outputs.release }}
