@@ -1,0 +1,21 @@
+included:
+  - Sources
+
+disabled_rules:
+  - cyclomatic_complexity
+  - file_length
+  - function_body_length
+  - identifier_name
+  - large_tuple
+  - line_length
+  - todo
+
+opt_in_rules:
+  - empty_count
+  - force_unwrapping
+
+trailing_comma:
+  mandatory_comma: true
+
+type_name:
+  allowed_symbols: ["_"]

@@ -48,6 +48,7 @@ extension ColorWellToggleSegment {
         enum LocalCache {
             private static let defaultImage: NSImage = {
                 // Force unwrap is okay here, as the image is an AppKit builtin.
+                // swiftlint:disable:next force_unwrapping
                 let image = NSImage(named: NSImage.touchBarColorPickerFillName)!
                 return image.clippedToSquare()
             }()
