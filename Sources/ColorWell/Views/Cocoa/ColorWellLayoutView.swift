@@ -11,7 +11,7 @@ class ColorWellLayoutView: NSGridView {
     // MARK: Properties
 
     /// Constructors for the layout view's segments.
-    private var constructors: (
+    private let constructors: (
         borderedSwatchSegment: () -> ColorWellBorderedSwatchSegment?,
         singlePullDownSwatchSegment: () -> ColorWellSinglePullDownSwatchSegment?,
         partialPullDownSwatchSegment: () -> ColorWellPartialPullDownSwatchSegment?,
