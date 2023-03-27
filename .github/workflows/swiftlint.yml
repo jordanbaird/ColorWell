@@ -1,0 +1,18 @@
+name: SwiftLint
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    paths:
+      - '.github/workflows/swiftlint.yml'
+      - '.swiftlint.yml'
+      - '**/*.swift'
+
+jobs:
+  swiftlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run SwiftLint
+        uses: norio-nomura/action-swiftlint@3.2.1
