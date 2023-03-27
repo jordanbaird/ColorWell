@@ -210,7 +210,7 @@ extension ColorWellPullDownSwatchSegment {
             return false
         }
     }
-    
+
     override func updateTrackingAreas() {
         enum LocalCache {
             static let storage = Storage<NSTrackingArea>()
