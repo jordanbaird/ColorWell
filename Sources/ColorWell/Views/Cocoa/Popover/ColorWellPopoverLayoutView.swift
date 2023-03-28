@@ -41,6 +41,7 @@ class ColorWellPopoverLayoutView: NSGridView {
         setActivationButtonIfNeeded()
     }
 
+    @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

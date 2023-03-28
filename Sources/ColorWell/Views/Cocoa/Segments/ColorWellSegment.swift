@@ -255,7 +255,7 @@ extension ColorWellSegment {
 
         /// Resets the dragging information to its default values.
         mutating func reset() {
-            self = DraggingInformation(
+            self = Self(
                 threshold: defaults.threshold,
                 isDragging: defaults.isDragging,
                 offset: defaults.offset
