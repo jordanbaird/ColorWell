@@ -32,7 +32,7 @@ class ColorWellLayoutView: NSGridView {
     /// A layer that enables the color well to mimic the appearance of a
     /// native macOS UI element by drawing a small bezel around the edge
     /// of the layout view.
-    private var cachedBezelLayer: CAGradientLayer?
+    private let cachedBezelLayer = Cache(CALayer(), id: NSRect())
 
     /// The key-value observations retained by the layout view.
     private var observations = Set<NSKeyValueObservation>()
@@ -94,8 +94,37 @@ class ColorWellLayoutView: NSGridView {
         constructors.toggleSegment = { [weak colorWell] in
             ColorWellToggleSegment(colorWell: colorWell)
         }
+        cachedBezelLayer.updateConstructor { bounds in
+            let bezelLayer = CAGradientLayer()
+            bezelLayer.colors = [
+                CGColor.clear,
+                CGColor.clear,
+                CGColor.clear,
+                CGColor(gray: 1, alpha: 0.125),
+            ]
+            bezelLayer.needsDisplayOnBoundsChange = true
+            bezelLayer.frame = bounds
+
+            let lineWidth = ColorWell.lineWidth
+            let insetBounds = bounds.insetBy(dx: lineWidth / 2, dy: lineWidth / 2)
+            let bezelPath = CGPath.colorWellPath(rect: insetBounds)
+
+            let maskLayer = CAShapeLayer()
+            maskLayer.fillColor = .clear
+            maskLayer.strokeColor = .black
+            maskLayer.lineWidth = lineWidth
+            maskLayer.needsDisplayOnBoundsChange = true
+            maskLayer.frame = bounds
+            maskLayer.path = bezelPath
+
+            bezelLayer.mask = maskLayer
+            bezelLayer.zPosition = CGFloat(Float.greatestFiniteMagnitude)
+
+            return bezelLayer
+        }
 
         super.init(frame: .zero)
+
         wantsLayer = true
         columnSpacing = 0
         xPlacement = .fill
@@ -156,41 +185,15 @@ extension ColorWellLayoutView {
     }
 
     /// Updates the bezel layer for the given rectangle.
-    func updateBezelLayer() {
-        cachedBezelLayer?.removeFromSuperlayer()
-        cachedBezelLayer = nil
+    func updateBezelLayer(_ dirtyRect: NSRect) {
+        cachedBezelLayer.cachedValue.removeFromSuperlayer()
 
         guard let layer else {
             return
         }
 
-        let bezelLayer = CAGradientLayer()
-        bezelLayer.colors = [
-            CGColor.clear,
-            CGColor.clear,
-            CGColor.clear,
-            CGColor(gray: 1, alpha: 0.125),
-        ]
-        bezelLayer.needsDisplayOnBoundsChange = true
-        bezelLayer.frame = layer.bounds
-
-        let insetAmount = ColorWell.lineWidth / 2
-        let bezelFrame = bezelLayer.frame.insetBy(dx: insetAmount, dy: insetAmount)
-
-        let maskLayer = CAShapeLayer()
-        maskLayer.fillColor = .clear
-        maskLayer.strokeColor = .black
-        maskLayer.lineWidth = ColorWell.lineWidth
-        maskLayer.needsDisplayOnBoundsChange = true
-        maskLayer.frame = bezelLayer.frame
-        maskLayer.path = .colorWellPath(rect: bezelFrame)
-
-        bezelLayer.mask = maskLayer
-
-        layer.addSublayer(bezelLayer)
-        bezelLayer.zPosition += 1
-
-        cachedBezelLayer = bezelLayer
+        cachedBezelLayer.recache(id: dirtyRect)
+        layer.addSublayer(cachedBezelLayer.cachedValue)
     }
 }
 
@@ -198,6 +201,6 @@ extension ColorWellLayoutView {
 extension ColorWellLayoutView {
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
-        updateBezelLayer()
+        updateBezelLayer(dirtyRect)
     }
 }
