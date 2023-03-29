@@ -1,14 +1,22 @@
 name: SwiftLint
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/swiftlint.yml"
+      - ".swiftlint.yml"
+      - "**/*.swift"
   pull_request:
     paths:
-      - '.github/workflows/swiftlint.yml'
-      - '.swiftlint.yml'
-      - '**/*.swift'
+      - ".github/workflows/swiftlint.yml"
+      - ".swiftlint.yml"
+      - "**/*.swift"
 
 jobs:
   swiftlint:
+    if: !github.event.pull_request.merged
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

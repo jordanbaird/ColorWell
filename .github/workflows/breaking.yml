@@ -1,13 +1,20 @@
 name: Diagnose Breaking Changes
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/breaking.yml"
+      - "**/*.swift"
   pull_request:
     paths:
-      - '.github/workflows/breaking.yml'
-      - '**/*.swift'
+      - ".github/workflows/breaking.yml"
+      - "**/*.swift"
 
 jobs:
   diagnose:
+    if: !github.event.pull_request.merged
     runs-on: macos-latest
     steps:
     - name: Get Latest Release

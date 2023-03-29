@@ -1,13 +1,20 @@
-name: Continuous Integration
+name: Test
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+    paths:
+      - ".github/workflows/test.yml"
+      - "**/*.swift"
   pull_request:
-    branches: [ "main" ]
+    paths:
+      - ".github/workflows/test.yml"
+      - "**/*.swift"
 
 jobs:
   test:
+    if: !github.event.pull_request.merged
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v3
