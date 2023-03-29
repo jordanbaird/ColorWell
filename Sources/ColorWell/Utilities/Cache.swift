@@ -3,6 +3,8 @@
 // ColorWell
 //
 
+// MARK: - Cache
+
 /// A type that caches a value alongside an equatable identifier
 /// that can be used to determine whether the value has changed.
 class Cache<Value, ID: Equatable> {
@@ -37,5 +39,51 @@ class Cache<Value, ID: Equatable> {
         }
         self.id = id
         self.cachedValue = constructor(id)
+    }
+}
+
+// MARK: - Make Thunk
+
+/// Returns a closure that accepts a single equatable parameter
+/// from a closure that has no parameters.
+///
+/// This conversion is necessary to satisfy type checking rules.
+/// The returned closure discards its input and simply calls the
+/// zero-parameter closure.
+private func makeThunk<Value, ID: Equatable>(_ closure: @escaping () -> Value) -> (ID) -> Value {
+    let thunk: (ID) -> Value = { _ in
+        closure()
+    }
+    return thunk
+}
+
+// MARK: - OptionalCache
+
+/// A type that caches an optional value, and is able
+/// to be recached based on whether its value is `nil`.
+class OptionalCache<Value>: Cache<Value?, Bool> {
+    /// Creates a cache with the given value and constructor.
+    init(_ cachedValue: Value? = nil, constructor: (() -> Value?)? = nil) {
+        super.init(cachedValue, id: true, constructor: constructor.map(makeThunk))
+    }
+
+    /// Updates the constructor that is stored with this cache.
+    func updateConstructor(_ constructor: @escaping () -> Value?) {
+        updateConstructor(makeThunk(constructor))
+    }
+
+    /// Updates the the cached value using the cache's constructor.
+    func recache() {
+        recache(id: cachedValue == nil ? !id : id)
+    }
+
+    /// Sets the cached value to `nil`.
+    func clear() {
+        let cachedConstructor = constructor
+        updateConstructor { nil }
+        defer {
+            updateConstructor(cachedConstructor)
+        }
+        recache(id: !id)
     }
 }

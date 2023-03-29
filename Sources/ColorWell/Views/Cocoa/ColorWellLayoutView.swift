@@ -10,20 +10,12 @@ class ColorWellLayoutView: NSGridView {
 
     // MARK: Properties
 
-    /// Constructors for the layout view's segments.
-    private let constructors: (
-        borderedSwatchSegment: () -> ColorWellBorderedSwatchSegment?,
-        singlePullDownSwatchSegment: () -> ColorWellSinglePullDownSwatchSegment?,
-        partialPullDownSwatchSegment: () -> ColorWellPartialPullDownSwatchSegment?,
-        toggleSegment: () -> ColorWellToggleSegment?
-    )
-
     /// Backing storage for the layout view's segments.
-    private var cachedSegments: (
-        borderedSwatchSegment: ColorWellBorderedSwatchSegment?,
-        singlePullDownSwatchSegment: ColorWellSinglePullDownSwatchSegment?,
-        partialPullDownSwatchSegment: ColorWellPartialPullDownSwatchSegment?,
-        toggleSegment: ColorWellToggleSegment?
+    private let cachedSegments = (
+        borderedSwatchSegment: OptionalCache<ColorWellBorderedSwatchSegment>(),
+        singlePullDownSwatchSegment: OptionalCache<ColorWellSinglePullDownSwatchSegment>(),
+        partialPullDownSwatchSegment: OptionalCache<ColorWellPartialPullDownSwatchSegment>(),
+        toggleSegment: OptionalCache<ColorWellToggleSegment>()
     )
 
     /// The row that contains the layout view's segments.
@@ -41,57 +33,45 @@ class ColorWellLayoutView: NSGridView {
     /// current color selection, and that toggles the color panel
     /// when pressed.
     var borderedSwatchSegment: ColorWellBorderedSwatchSegment? {
-        if let segment = cachedSegments.borderedSwatchSegment {
-            return segment
-        }
-        cachedSegments.borderedSwatchSegment = constructors.borderedSwatchSegment()
-        return cachedSegments.borderedSwatchSegment
+        cachedSegments.borderedSwatchSegment.recache()
+        return cachedSegments.borderedSwatchSegment.cachedValue
     }
 
     /// A single-style segment that displays a color swatch with the
     /// color well's current color selection, and that triggers a pull
     /// down action when pressed.
     var singlePullDownSwatchSegment: ColorWellSinglePullDownSwatchSegment? {
-        if let segment = cachedSegments.singlePullDownSwatchSegment {
-            return segment
-        }
-        cachedSegments.singlePullDownSwatchSegment = constructors.singlePullDownSwatchSegment()
-        return cachedSegments.singlePullDownSwatchSegment
+        cachedSegments.singlePullDownSwatchSegment.recache()
+        return cachedSegments.singlePullDownSwatchSegment.cachedValue
     }
 
     /// A partial-style segment that displays a color swatch with the
     /// color well's current color selection, and that triggers a pull
     /// down action when pressed.
     var partialPullDownSwatchSegment: ColorWellPartialPullDownSwatchSegment? {
-        if let segment = cachedSegments.partialPullDownSwatchSegment {
-            return segment
-        }
-        cachedSegments.partialPullDownSwatchSegment = constructors.partialPullDownSwatchSegment()
-        return cachedSegments.partialPullDownSwatchSegment
+        cachedSegments.partialPullDownSwatchSegment.recache()
+        return cachedSegments.partialPullDownSwatchSegment.cachedValue
     }
 
     /// A segment that toggles the color panel when pressed.
     var toggleSegment: ColorWellToggleSegment? {
-        if let segment = cachedSegments.toggleSegment {
-            return segment
-        }
-        cachedSegments.toggleSegment = constructors.toggleSegment()
-        return cachedSegments.toggleSegment
+        cachedSegments.toggleSegment.recache()
+        return cachedSegments.toggleSegment.cachedValue
     }
 
     // MARK: Initializers
 
     init(colorWell: ColorWell) {
-        constructors.borderedSwatchSegment = { [weak colorWell] in
+        cachedSegments.borderedSwatchSegment.updateConstructor { [weak colorWell] in
             ColorWellBorderedSwatchSegment(colorWell: colorWell)
         }
-        constructors.singlePullDownSwatchSegment = { [weak colorWell] in
+        cachedSegments.singlePullDownSwatchSegment.updateConstructor { [weak colorWell] in
             ColorWellSinglePullDownSwatchSegment(colorWell: colorWell)
         }
-        constructors.partialPullDownSwatchSegment = { [weak colorWell] in
+        cachedSegments.partialPullDownSwatchSegment.updateConstructor { [weak colorWell] in
             ColorWellPartialPullDownSwatchSegment(colorWell: colorWell)
         }
-        constructors.toggleSegment = { [weak colorWell] in
+        cachedSegments.toggleSegment.updateConstructor { [weak colorWell] in
             ColorWellToggleSegment(colorWell: colorWell)
         }
         cachedBezelLayer.updateConstructor { bounds in
@@ -162,6 +142,8 @@ extension ColorWellLayoutView {
         }
         switch style {
         case .expanded:
+            cachedSegments.borderedSwatchSegment.clear()
+            cachedSegments.singlePullDownSwatchSegment.clear()
             guard
                 let partialPullDownSwatchSegment,
                 let toggleSegment
@@ -170,13 +152,17 @@ extension ColorWellLayoutView {
             }
             row = addRow(with: [partialPullDownSwatchSegment, toggleSegment])
         case .swatches:
-            cachedSegments.toggleSegment = nil
+            cachedSegments.borderedSwatchSegment.clear()
+            cachedSegments.partialPullDownSwatchSegment.clear()
+            cachedSegments.toggleSegment.clear()
             guard let singlePullDownSwatchSegment else {
                 return
             }
             row = addRow(with: [singlePullDownSwatchSegment])
         case .colorPanel:
-            cachedSegments.toggleSegment = nil
+            cachedSegments.singlePullDownSwatchSegment.clear()
+            cachedSegments.partialPullDownSwatchSegment.clear()
+            cachedSegments.toggleSegment.clear()
             guard let borderedSwatchSegment else {
                 return
             }
