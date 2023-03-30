@@ -62,45 +62,57 @@ class ColorWellLayoutView: NSGridView {
     // MARK: Initializers
 
     init(colorWell: ColorWell) {
-        cachedSegments.borderedSwatchSegment.updateConstructor { [weak colorWell] in
-            ColorWellBorderedSwatchSegment(colorWell: colorWell)
+        defer {
+            observations.insertObservation(
+                for: colorWell,
+                keyPath: \.style,
+                options: .initial
+            ) { [weak self] colorWell, _ in
+                self?.setRow(for: colorWell.style)
+            }
         }
-        cachedSegments.singlePullDownSwatchSegment.updateConstructor { [weak colorWell] in
-            ColorWellSinglePullDownSwatchSegment(colorWell: colorWell)
-        }
-        cachedSegments.partialPullDownSwatchSegment.updateConstructor { [weak colorWell] in
-            ColorWellPartialPullDownSwatchSegment(colorWell: colorWell)
-        }
-        cachedSegments.toggleSegment.updateConstructor { [weak colorWell] in
-            ColorWellToggleSegment(colorWell: colorWell)
-        }
-        cachedBezelLayer.updateConstructor { bounds in
-            let bezelLayer = CAGradientLayer()
-            bezelLayer.colors = [
-                CGColor.clear,
-                CGColor.clear,
-                CGColor.clear,
-                CGColor(gray: 1, alpha: 0.125),
-            ]
-            bezelLayer.needsDisplayOnBoundsChange = true
-            bezelLayer.frame = bounds
 
-            let lineWidth = ColorWell.lineWidth
-            let insetBounds = bounds.insetBy(dx: lineWidth / 2, dy: lineWidth / 2)
-            let bezelPath = CGPath.colorWellPath(rect: insetBounds)
+        defer {
+            cachedSegments.borderedSwatchSegment.updateConstructor { [weak colorWell] in
+                ColorWellBorderedSwatchSegment(colorWell: colorWell)
+            }
+            cachedSegments.singlePullDownSwatchSegment.updateConstructor { [weak colorWell] in
+                ColorWellSinglePullDownSwatchSegment(colorWell: colorWell)
+            }
+            cachedSegments.partialPullDownSwatchSegment.updateConstructor { [weak colorWell] in
+                ColorWellPartialPullDownSwatchSegment(colorWell: colorWell)
+            }
+            cachedSegments.toggleSegment.updateConstructor { [weak colorWell] in
+                ColorWellToggleSegment(colorWell: colorWell)
+            }
+            cachedBezelLayer.updateConstructor { bounds in
+                let bezelLayer = CAGradientLayer()
+                bezelLayer.colors = [
+                    CGColor.clear,
+                    CGColor.clear,
+                    CGColor.clear,
+                    CGColor(gray: 1, alpha: 0.125),
+                ]
+                bezelLayer.needsDisplayOnBoundsChange = true
+                bezelLayer.frame = bounds
 
-            let maskLayer = CAShapeLayer()
-            maskLayer.fillColor = .clear
-            maskLayer.strokeColor = .black
-            maskLayer.lineWidth = lineWidth
-            maskLayer.needsDisplayOnBoundsChange = true
-            maskLayer.frame = bounds
-            maskLayer.path = bezelPath
+                let lineWidth = ColorWell.lineWidth
+                let insetBounds = bounds.insetBy(dx: lineWidth / 2, dy: lineWidth / 2)
+                let bezelPath = CGPath.colorWellPath(rect: insetBounds)
 
-            bezelLayer.mask = maskLayer
-            bezelLayer.zPosition = CGFloat(Float.greatestFiniteMagnitude)
+                let maskLayer = CAShapeLayer()
+                maskLayer.fillColor = .clear
+                maskLayer.strokeColor = .black
+                maskLayer.lineWidth = lineWidth
+                maskLayer.needsDisplayOnBoundsChange = true
+                maskLayer.frame = bounds
+                maskLayer.path = bezelPath
 
-            return bezelLayer
+                bezelLayer.mask = maskLayer
+                bezelLayer.zPosition = CGFloat(Float.greatestFiniteMagnitude)
+
+                return bezelLayer
+            }
         }
 
         super.init(frame: .zero)
@@ -109,14 +121,6 @@ class ColorWellLayoutView: NSGridView {
         columnSpacing = 0
         xPlacement = .fill
         yPlacement = .fill
-
-        observations.insertObservation(
-            for: colorWell,
-            keyPath: \.style,
-            options: .initial
-        ) { [weak self] colorWell, _ in
-            self?.setRow(for: colorWell.style)
-        }
     }
 
     @available(*, unavailable)
@@ -173,11 +177,9 @@ extension ColorWellLayoutView {
     /// Updates the bezel layer for the given rectangle.
     func updateBezelLayer(_ dirtyRect: NSRect) {
         cachedBezelLayer.cachedValue.removeFromSuperlayer()
-
         guard let layer else {
             return
         }
-
         cachedBezelLayer.recache(id: dirtyRect)
         layer.addSublayer(cachedBezelLayer.cachedValue)
     }

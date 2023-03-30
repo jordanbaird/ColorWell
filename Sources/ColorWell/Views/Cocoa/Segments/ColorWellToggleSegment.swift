@@ -14,6 +14,7 @@ class ColorWellToggleSegment: ColorWellSegment {
 
     // MARK: Instance Properties
 
+    // FIXME: This should be an actual Cache object.
     private var cachedImageLayer: CALayer?
 
     override var side: Side { .right }
@@ -107,6 +108,7 @@ extension ColorWellToggleSegment {
             }
         }
 
+        // FIXME: This should be an actual Cache object (see above).
         cachedImageLayer?.removeFromSuperlayer()
         cachedImageLayer = nil
 

@@ -284,8 +284,8 @@ public class ColorWell: _ColorWellBaseView {
     /// - Parameter coder: The coder object that contains the color
     ///   well's configuration details.
     public required init?(coder: NSCoder) {
-        color = Self.defaultColor
-        style = Self.defaultStyle
+        self.color = Self.defaultColor
+        self.style = Self.defaultStyle
         super.init(coder: coder)
         performSharedSetup()
     }
@@ -571,9 +571,7 @@ extension ColorWell {
     }
 
     override var customAccessibilityChildren: [Any]? {
-        toggleSegment
-            .map(CollectionOfOne.init)
-            .map(Array.init)
+        toggleSegment.map { [$0] }
     }
 
     override var customAccessibilityEnabled: Bool {

@@ -19,7 +19,7 @@ class ColorWellSegment: NSView {
     )
 
     /// The segment's current and previous states.
-    var backingStates: (current: State, previous: State) = (.default, .default)
+    var backingStates = (current: State.default, previous: State.default)
 
     /// The segment's current state.
     var state: State {
