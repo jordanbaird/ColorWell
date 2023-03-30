@@ -3,87 +3,124 @@
 // ColorWell
 //
 
+// MARK: - CacheContext
+
+/// A private context used to store the value of a cache.
+private class CacheContext<Value, ID: Equatable, Constructor> {
+    /// The value stored by the context.
+    var cachedValue: Value
+
+    /// The identifier associated with the context.
+    var id: ID
+
+    /// The constructor function associated with the context.
+    var constructor: Constructor
+
+    /// Creates a context with the given value, identifier, and constructor.
+    init(cachedValue: Value, id: ID, constructor: Constructor) {
+        self.cachedValue = cachedValue
+        self.id = id
+        self.constructor = constructor
+    }
+}
+
 // MARK: - Cache
 
 /// A type that caches a value alongside an equatable identifier
 /// that can be used to determine whether the value has changed.
-class Cache<Value, ID: Equatable> {
-    /// The value held by the cache.
-    private(set) var cachedValue: Value
+struct Cache<Value, ID: Equatable> {
+    /// The cache's context.
+    private let context: Context
 
-    /// An equatable identifier that can be used to determine
-    /// whether the cache's value has changed.
-    private(set) var id: ID
-
-    /// The cache's constructor.
-    private(set) var constructor: (ID) -> Value
-
-    /// Creates a cache with the given value, identifier, and constructor.
-    init(_ cachedValue: Value, id: ID, constructor: ((ID) -> Value)? = nil) {
-        self.cachedValue = cachedValue
-        self.id = id
-        self.constructor = constructor ?? { _ in cachedValue }
+    /// The value stored by the cache.
+    var cachedValue: Value {
+        context.cachedValue
     }
 
-    /// Updates the constructor that is stored with this cache.
-    func updateConstructor(_ constructor: @escaping (ID) -> Value) {
-        self.constructor = constructor
+    /// Creates a cache with the given value and identifier.
+    init(_ cachedValue: Value, id: ID) {
+        context = Context(cachedValue, id: id)
     }
 
     /// Compares the cache's stored identifier with the specified
     /// identifier, and, if the two values are different, updates
     /// the cached value using the cache's constructor.
     func recache(id: ID) {
-        guard self.id != id else {
+        guard context.id != id else {
             return
         }
-        self.id = id
-        self.cachedValue = constructor(id)
+        context.id = id
+        context.cachedValue = context.constructor(id)
+    }
+
+    /// Updates the constructor that is stored with this cache.
+    func updateConstructor(_ constructor: @escaping (ID) -> Value) {
+        context.constructor = constructor
     }
 }
 
-// MARK: - Make Thunk
-
-/// Returns a closure that accepts a single equatable parameter
-/// from a closure that has no parameters.
-///
-/// This conversion is necessary to satisfy type checking rules.
-/// The returned closure discards its input and simply calls the
-/// zero-parameter closure.
-private func makeThunk<Value, ID: Equatable>(_ closure: @escaping () -> Value) -> (ID) -> Value {
-    let thunk: (ID) -> Value = { _ in
-        closure()
+// MARK: Cache Context
+extension Cache {
+    /// The context for the `Cache` type.
+    private class Context: CacheContext<Value, ID, (ID) -> Value> {
+        /// Creates a context with the given value and identifier.
+        init(_ cachedValue: Value, id: ID) {
+            super.init(
+                cachedValue: cachedValue,
+                id: id,
+                constructor: { _ in cachedValue }
+            )
+        }
     }
-    return thunk
 }
 
 // MARK: - OptionalCache
 
 /// A type that caches an optional value, and is able
 /// to be recached based on whether its value is `nil`.
-class OptionalCache<Value>: Cache<Value?, Bool> {
-    /// Creates a cache with the given value and constructor.
-    init(_ cachedValue: Value? = nil, constructor: (() -> Value?)? = nil) {
-        super.init(cachedValue, id: true, constructor: constructor.map(makeThunk))
+struct OptionalCache<Wrapped> {
+    /// The cache's context.
+    private let context: Context
+
+    /// The value stored by the cache.
+    var cachedValue: Wrapped? {
+        context.cachedValue
     }
 
-    /// Updates the constructor that is stored with this cache.
-    func updateConstructor(_ constructor: @escaping () -> Value?) {
-        updateConstructor(makeThunk(constructor))
+    /// Creates a cache with the given value.
+    init(_ cachedValue: Wrapped? = nil) {
+        context = Context(cachedValue)
     }
 
     /// Updates the the cached value using the cache's constructor.
     func recache() {
-        recache(id: cachedValue == nil ? !id : id)
+        if cachedValue == nil {
+            context.cachedValue = context.constructor()
+        }
     }
 
     /// Sets the cached value to `nil`.
     func clear() {
-        let cachedConstructor = constructor
-        updateConstructor { nil }
-        defer {
-            updateConstructor(cachedConstructor)
+        context.cachedValue = nil
+    }
+
+    /// Updates the constructor that is stored with this cache.
+    func updateConstructor(_ constructor: @escaping () -> Wrapped?) {
+        context.constructor = constructor
+    }
+}
+
+// MARK: OptionalCache Context
+extension OptionalCache {
+    /// The context for the `OptionalCache` type.
+    private class Context: CacheContext<Wrapped?, Bool, () -> Wrapped?> {
+        /// Creates a context with the given value.
+        init(_ cachedValue: Wrapped?) {
+            super.init(
+                cachedValue: cachedValue,
+                id: true,
+                constructor: { cachedValue }
+            )
         }
-        recache(id: !id)
     }
 }
