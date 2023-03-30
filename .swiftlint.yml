@@ -1,5 +1,6 @@
 included:
   - Sources
+  - Tests
 
 disabled_rules:
   - cyclomatic_complexity
@@ -57,18 +58,17 @@ file_header:
     //
 
 modifier_order:
-  preferred_modifier_order: [
-    acl,
-    setterACL,
-    override,
-    mutators,
-    lazy,
-    final,
-    required,
-    convenience,
-    typeMethods,
-    owned,
-  ]
+  preferred_modifier_order:
+    - acl
+    - setterACL
+    - override
+    - mutators
+    - lazy
+    - final
+    - required
+    - convenience
+    - typeMethods
+    - owned
 
 trailing_comma:
   mandatory_comma: true
