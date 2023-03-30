@@ -19,8 +19,10 @@ class ColorWellPopoverContainerView: NSView {
 
         // Center the layout view inside the container.
         layoutView.translatesAutoresizingMaskIntoConstraints = false
-        layoutView.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
-        layoutView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
+        NSLayoutConstraint.activate([
+            layoutView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            layoutView.centerYAnchor.constraint(equalTo: centerYAnchor),
+        ])
 
         // Padding should vary based on the style.
         let padding: CGFloat
@@ -31,8 +33,10 @@ class ColorWellPopoverContainerView: NSView {
             padding = 20
         }
         translatesAutoresizingMaskIntoConstraints = false
-        widthAnchor.constraint(equalTo: layoutView.widthAnchor, constant: padding).isActive = true
-        heightAnchor.constraint(equalTo: layoutView.heightAnchor, constant: padding).isActive = true
+        NSLayoutConstraint.activate([
+            widthAnchor.constraint(equalTo: layoutView.widthAnchor, constant: padding),
+            heightAnchor.constraint(equalTo: layoutView.heightAnchor, constant: padding),
+        ])
     }
 
     @available(*, unavailable)

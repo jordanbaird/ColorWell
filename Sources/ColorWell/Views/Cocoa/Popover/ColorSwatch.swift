@@ -80,13 +80,14 @@ class ColorSwatch: NSView {
         self.context = context
 
         let size = Self.size(forRowCount: context.rowCount)
-
         super.init(frame: NSRect(origin: .zero, size: size))
-
         wantsLayer = true
+
         translatesAutoresizingMaskIntoConstraints = false
-        widthAnchor.constraint(equalToConstant: size.width).isActive = true
-        heightAnchor.constraint(equalToConstant: size.height).isActive = true
+        NSLayoutConstraint.activate([
+            widthAnchor.constraint(equalToConstant: size.width),
+            heightAnchor.constraint(equalToConstant: size.height),
+        ])
     }
 
     @available(*, unavailable)
