@@ -76,8 +76,8 @@ extension Cache {
 
 // MARK: - OptionalCache
 
-/// A type that caches an optional value, and is able
-/// to be recached based on whether its value is `nil`.
+/// A type that caches an optional value, and is able to be
+/// recached based on whether its value is `nil`.
 struct OptionalCache<Wrapped> {
     /// The cache's context.
     private let context: Context
