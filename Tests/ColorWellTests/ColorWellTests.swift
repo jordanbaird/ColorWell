@@ -85,9 +85,29 @@ final class ColorWellTests: XCTestCase {
     }
 
     func testNSColorBlendedAndClamped() {
-        let color1 = NSColor.green.blended(withFraction: 0.5, of: .blue)
-        let color2 = NSColor.green.blendedAndClamped(withFraction: 0.5, of: .blue)
-        XCTAssertEqual(color1, color2)
+        func randomComponent() -> CGFloat {
+            .random(in: 0...1)
+        }
+
+        func randomColor() -> NSColor {
+            NSColor(
+                red: randomComponent(),
+                green: randomComponent(),
+                blue: randomComponent(),
+                alpha: randomComponent()
+            )
+        }
+
+        for _ in 0..<10_000 {
+            let color1 = randomColor()
+            let color2 = randomColor()
+            let fraction = randomComponent()
+
+            let blended1 = color1.blended(withFraction: fraction, of: color2)
+            let blended2 = color1.blendedAndClamped(withFraction: fraction, of: color2)
+
+            XCTAssertEqual(blended1, blended2)
+        }
     }
 
     func testNSEdgeInsets() {
