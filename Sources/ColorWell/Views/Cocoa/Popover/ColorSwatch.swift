@@ -56,7 +56,7 @@ class ColorSwatch: NSView {
     /// The color of the swatch, converted to a standardized format
     /// for display.
     private var displayColor: NSColor {
-        color.usingColorSpace(.sRGB) ?? color
+        color.usingColorSpace(.displayP3) ?? color
     }
 
     /// The computed border color of the swatch, created based on its color.

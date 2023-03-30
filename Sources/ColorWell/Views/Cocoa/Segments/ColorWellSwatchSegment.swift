@@ -25,7 +25,7 @@ class ColorWellSwatchSegment: ColorWellSegment {
     }
 
     override var displayColor: NSColor {
-        super.displayColor.usingColorSpace(.sRGB) ?? super.displayColor
+        super.displayColor.usingColorSpace(.displayP3) ?? super.displayColor
     }
 
     // MARK: Initializers
