@@ -5,6 +5,8 @@
 
 import Cocoa
 
+// MARK: - ColorWellToggleSegment
+
 /// A segment that toggles the color panel when pressed.
 class ColorWellToggleSegment: ColorWellSegment {
 
@@ -14,7 +16,7 @@ class ColorWellToggleSegment: ColorWellSegment {
 
     // MARK: Instance Properties
 
-    private var cachedImageLayer = Cache(CALayer(), id: _ImageLayerCacheID())
+    private let cachedImageLayer = Cache(CALayer(), id: ImageLayerCacheID())
 
     override var side: Side { .right }
 
@@ -101,7 +103,7 @@ class ColorWellToggleSegment: ColorWellSegment {
                 }
             }
 
-            let dimension = min(id.bounds.width, id.bounds.height) - 6
+            let dimension = min(id.dirtyRect.width, id.dirtyRect.height) - 6
             let imageLayer = CALayer()
 
             imageLayer.frame = NSRect(
@@ -109,7 +111,7 @@ class ColorWellToggleSegment: ColorWellSegment {
                 y: 0,
                 width: dimension,
                 height: dimension
-            ).centered(in: id.bounds)
+            ).centered(in: id.dirtyRect)
 
             if id.state == .highlight || !id.isEnabled {
                 switch DrawingStyle.current {
@@ -136,7 +138,7 @@ extension ColorWellToggleSegment {
         guard let layer else {
             return
         }
-        cachedImageLayer.recache(id: _ImageLayerCacheID(dirtyRect, self))
+        cachedImageLayer.recache(id: ImageLayerCacheID(dirtyRect, segment: self))
         layer.addSublayer(cachedImageLayer.cachedValue)
     }
 }
@@ -196,24 +198,24 @@ extension ColorWellToggleSegment {
     }
 }
 
+// MARK: - ColorWellToggleSegment ImageLayerCacheID
+
 extension ColorWellToggleSegment {
-    private struct _ImageLayerCacheID: Equatable {
-        let bounds: NSRect
+    private struct ImageLayerCacheID: Equatable {
+        let dirtyRect: NSRect
         let state: State
         let isEnabled: Bool
 
-        init(bounds: NSRect, state: State, isEnabled: Bool) {
-            self.bounds = bounds
-            self.state = state
-            self.isEnabled = isEnabled
-        }
-
-        init(_ bounds: NSRect, _ segment: ColorWellToggleSegment) {
-            self.init(bounds: bounds, state: segment.state, isEnabled: segment.isEnabled)
-        }
-
         init() {
-            self.init(bounds: .zero, state: .default, isEnabled: true)
+            self.dirtyRect = .zero
+            self.state = .default
+            self.isEnabled = true
+        }
+
+        init(_ dirtyRect: NSRect, segment: ColorWellToggleSegment) {
+            self.dirtyRect = dirtyRect
+            self.state = segment.state
+            self.isEnabled = segment.isEnabled
         }
     }
 }
