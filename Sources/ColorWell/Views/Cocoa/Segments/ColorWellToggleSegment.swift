@@ -49,24 +49,19 @@ class ColorWellToggleSegment: ColorWellSegment {
                     return image.clippedToSquare()
                 }()
 
-                static let defaultContents = {
-                    let scale = defaultImage.recommendedLayerContentsScale(0.0)
-                    return defaultImage.layerContents(forContentsScale: scale)
-                }()
-
-                static let enabledTintedForDarkAppearance = {
+                private static let enabledTintedForDarkAppearance: Any = {
                     let image = defaultImage.tinted(to: .white, amount: 0.33)
                     let scale = image.recommendedLayerContentsScale(0.0)
                     return image.layerContents(forContentsScale: scale)
                 }()
 
-                static let enabledTintedForLightAppearance = {
+                private static let enabledTintedForLightAppearance: Any = {
                     let image = defaultImage.tinted(to: .black, amount: 0.20)
                     let scale = image.recommendedLayerContentsScale(0.0)
                     return image.layerContents(forContentsScale: scale)
                 }()
 
-                static let disabledTintedForDarkAppearance = {
+                private static let disabledTintedForDarkAppearance: Any = {
                     let image = NSImage(size: defaultImage.size, flipped: false) { bounds in
                         defaultImage
                             .tinted(to: .gray, amount: 0.33)
@@ -77,7 +72,7 @@ class ColorWellToggleSegment: ColorWellSegment {
                     return image.layerContents(forContentsScale: scale)
                 }()
 
-                static let disabledTintedForLightAppearance = {
+                private static let disabledTintedForLightAppearance: Any = {
                     let image = NSImage(size: defaultImage.size, flipped: false) { bounds in
                         defaultImage
                             .tinted(to: .gray, amount: 0.20)
@@ -86,6 +81,11 @@ class ColorWellToggleSegment: ColorWellSegment {
                     }
                     let scale = image.recommendedLayerContentsScale(0.0)
                     return image.layerContents(forContentsScale: scale)
+                }()
+
+                static let defaultContents: Any = {
+                    let scale = defaultImage.recommendedLayerContentsScale(0.0)
+                    return defaultImage.layerContents(forContentsScale: scale)
                 }()
 
                 static func tintedForDarkAppearance(_ isEnabled: Bool) -> Any {
