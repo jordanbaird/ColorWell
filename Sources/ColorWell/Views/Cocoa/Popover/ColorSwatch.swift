@@ -17,14 +17,14 @@ class ColorSwatch: NSView {
     /// A context that manages the elements of the swatch's popover.
     private weak var context: ColorWellPopoverContext?
 
-    /// The swatch's color value.
-    let color: NSColor
-
     /// The standard width of a swatch's border.
     private let borderWidth: CGFloat = 2
 
     /// The standard corner radius for a swatch.
     private let cornerRadius: CGFloat = 1
+
+    /// The swatch's color value.
+    let color: NSColor
 
     /// A Boolean value that indicates whether the swatch is selected.
     ///

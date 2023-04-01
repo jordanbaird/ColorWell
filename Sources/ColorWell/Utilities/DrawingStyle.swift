@@ -13,9 +13,22 @@ enum DrawingStyle {
 
     /// A drawing style that indicates a light appearance.
     case light
-}
 
-extension DrawingStyle {
+    // MARK: Static Properties
+
+    /// The drawing style of the appearance that the system uses
+    /// for color and asset resolution, and that is active for
+    /// drawing, usually from locking focus on a view.
+    static var current: Self {
+        if #available(macOS 11.0, *) {
+            return Self(appearance: .currentDrawing())
+        } else {
+            return Self(appearance: .current)
+        }
+    }
+
+    // MARK: Initializers
+
     /// Creates a drawing style from the specified appearance.
     init(appearance: NSAppearance) {
         enum LocalCache {
@@ -40,17 +53,6 @@ extension DrawingStyle {
             self = .dark
         default:
             self = .light
-        }
-    }
-
-    /// The drawing style of the appearance that the system uses
-    /// for color and asset resolution, and that is active for
-    /// drawing, usually from locking focus on a view.
-    static var current: Self {
-        if #available(macOS 11.0, *) {
-            return Self(appearance: .currentDrawing())
-        } else {
-            return Self(appearance: .current)
         }
     }
 }

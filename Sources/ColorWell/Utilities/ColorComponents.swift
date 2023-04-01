@@ -16,10 +16,9 @@ enum ColorComponents {
     case indexed
     case lab
     case pattern
-}
 
-// MARK: Properties
-extension ColorComponents {
+    // MARK: Properties
+
     /// The name of the color space associated with this instance.
     var colorSpaceName: String {
         switch self {
@@ -85,10 +84,9 @@ extension ColorComponents {
             return String(describing: component)
         }
     }
-}
 
-// MARK: Initializers
-extension ColorComponents {
+    // MARK: Initializers
+
     /// Creates an instance from the specified color.
     init(color: NSColor) {
         switch color.type {
@@ -137,7 +135,7 @@ extension ColorComponents {
     }
 }
 
-// MARK: CustomStringConvertible
+// MARK: ColorComponents: CustomStringConvertible
 extension ColorComponents: CustomStringConvertible {
     var description: String {
         (CollectionOfOne(colorSpaceName) + extractedComponentStrings).joined(separator: " ")

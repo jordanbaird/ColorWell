@@ -6,6 +6,8 @@
 #if canImport(SwiftUI)
 import SwiftUI
 
+// MARK: - BridgedColorWell
+
 /// A custom color well subclass that makes minor changes
 /// to match SwiftUI's `ColorPicker`.
 class BridgedColorWell: ColorWell {
@@ -22,6 +24,8 @@ class BridgedColorWell: ColorWell {
         self.init(frame: Self.defaultFrame, color: color, style: style)
     }
 }
+
+// MARK: - ColorWellRepresentable
 
 /// An `NSViewRepresentable` wrapper around a `ColorWell`.
 @available(macOS 10.15, *)

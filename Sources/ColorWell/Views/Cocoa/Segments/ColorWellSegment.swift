@@ -83,7 +83,7 @@ class ColorWellSegment: NSView {
     func needsDisplayOnStateChange(_ state: State) -> Bool { false }
 }
 
-// MARK: Private Instance Methods
+// MARK: Instance Methods
 extension ColorWellSegment {
     private func updateCachedPathConstructors() {
         caches.segmentPath.updateConstructor { [weak self] bounds in
@@ -126,10 +126,7 @@ extension ColorWellSegment {
             return shadowLayer
         }
     }
-}
 
-// MARK: Internal Instance Methods
-extension ColorWellSegment {
     /// Updates the shadow layer for the specified rectangle.
     func updateShadowLayer(_ dirtyRect: NSRect) {
         caches.shadowLayer.cachedValue.removeFromSuperlayer()
@@ -193,8 +190,7 @@ extension ColorWellSegment {
     }
 }
 
-// MARK: - ColorWellSegment State
-
+// MARK: ColorWellSegment.State
 extension ColorWellSegment {
     /// A type that represents the state of a color well segment.
     @objc enum State: Int {
@@ -212,8 +208,7 @@ extension ColorWellSegment {
     }
 }
 
-// MARK: - ColorWellSegment DraggingInformation
-
+// MARK: ColorWellSegment.DraggingInformation
 extension ColorWellSegment {
     /// Dragging information associated with a color well segment.
     struct DraggingInformation {

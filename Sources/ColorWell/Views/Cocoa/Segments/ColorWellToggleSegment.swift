@@ -198,8 +198,7 @@ extension ColorWellToggleSegment {
     }
 }
 
-// MARK: - ColorWellToggleSegment ImageLayerCacheID
-
+// MARK: ColorWellToggleSegment.ImageLayerCacheID
 extension ColorWellToggleSegment {
     private struct ImageLayerCacheID: Equatable {
         let dirtyRect: NSRect

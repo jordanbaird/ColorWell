@@ -59,7 +59,7 @@ struct Cache<Value, ID: Equatable> {
     }
 }
 
-// MARK: Cache Context
+// MARK: Cache.Context
 extension Cache {
     /// The context for the `Cache` type.
     private class Context: CacheContext<Value, ID, (ID) -> Value> {
@@ -110,7 +110,7 @@ struct OptionalCache<Wrapped> {
     }
 }
 
-// MARK: OptionalCache Context
+// MARK: OptionalCache.Context
 extension OptionalCache {
     /// The context for the `OptionalCache` type.
     private class Context: CacheContext<Wrapped?, Bool, () -> Wrapped?> {

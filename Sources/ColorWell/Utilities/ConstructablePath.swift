@@ -23,12 +23,7 @@ enum Corner {
 
     /// All corners, ordered for use in color well path construction, starting
     /// at the top left and moving clockwise around the color well's border.
-    static let clockwiseOrder = [
-        topLeft,
-        topRight,
-        bottomRight,
-        bottomLeft,
-    ]
+    static let clockwiseOrder: [Self] = [.topLeft, .topRight, .bottomRight, .bottomLeft]
 
     /// Returns the point in the given rectangle that corresponds to this corner.
     func point(forRect rect: CGRect) -> CGPoint {
@@ -138,10 +133,7 @@ enum ConstructablePathComponent {
     /// print(c1 == c2) // Prints: true
     /// ```
     indirect case compound([Self])
-}
 
-// MARK: ConstructablePathComponent Helpers
-extension ConstructablePathComponent {
     /// Returns a compound component that constructs a right angle curve around
     /// the given corner of the provided rectangle, using the specified radius.
     static func rightAngleCurve(around corner: Corner, ofRect rect: CGRect, radius: CGFloat) -> Self {
@@ -204,7 +196,7 @@ protocol ConstructablePath where MutablePath.Constructed == Constructed {
     static func construct(with components: [ConstructablePathComponent]) -> Constructed
 }
 
-// MARK: ConstructablePath (Constructed == Self)
+// MARK: ConstructablePath where Constructed == Self
 extension ConstructablePath where Constructed == Self {
     var asConstructedType: Constructed { self }
 }

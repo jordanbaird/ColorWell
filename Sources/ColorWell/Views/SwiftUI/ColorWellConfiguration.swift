@@ -66,8 +66,7 @@ struct ColorWellConfiguration {
     }
 }
 
-// MARK: - ColorWellConfiguration Modifier
-
+// MARK: ColorWellConfiguration.Modifier
 @available(macOS 10.15, *)
 extension ColorWellConfiguration {
     /// A type that modifies a value in a `ColorWellConfiguration`.
@@ -87,8 +86,7 @@ extension ColorWellConfiguration {
     }
 }
 
-// MARK: - Modifier Constructors
-
+// MARK: Modifier Constructors
 @available(macOS 10.15, *)
 extension ColorWellConfiguration.Modifier {
     /// Sets the configuration's color to the given value.
