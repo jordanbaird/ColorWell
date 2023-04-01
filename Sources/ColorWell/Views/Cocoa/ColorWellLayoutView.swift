@@ -98,7 +98,7 @@ class ColorWellLayoutView: NSGridView {
 
                 let lineWidth = ColorWell.lineWidth
                 let insetBounds = bounds.insetBy(dx: lineWidth / 2, dy: lineWidth / 2)
-                let bezelPath = CGPath.colorWellPath(rect: insetBounds)
+                let bezelPath = CGPath.fullColorWellPath(rect: insetBounds)
 
                 let maskLayer = CAShapeLayer()
                 maskLayer.fillColor = .clear

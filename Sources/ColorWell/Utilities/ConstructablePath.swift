@@ -23,11 +23,13 @@ enum Corner {
 
     /// All corners, ordered for use in color well path construction, starting
     /// at the top left and moving clockwise around the color well's border.
-    static let clockwiseOrder: [Self] = [.topLeft, .topRight, .bottomRight, .bottomLeft]
-}
+    static let clockwiseOrder = [
+        topLeft,
+        topRight,
+        bottomRight,
+        bottomLeft,
+    ]
 
-// MARK: Corner Helpers
-extension Corner {
     /// Returns the point in the given rectangle that corresponds to this corner.
     func point(forRect rect: CGRect) -> CGPoint {
         switch self {
@@ -62,6 +64,7 @@ enum Side {
     /// A side that contains no points.
     case null
 
+    /// The corners that, when connected by a path, make up this side.
     var corners: [Corner] {
         switch self {
         case .top:
@@ -221,9 +224,9 @@ extension ConstructablePath {
     ///
     /// - Parameters:
     ///   - rect: The rectangle to draw the path in.
-    ///   - corners: The corners that should be drawn with sharp right
-    ///     angles. Corners not provided here will be rounded.
-    static func colorWellPath(rect: CGRect, squaredCorners corners: [Corner] = []) -> Constructed {
+    ///   - corners: The corners that should be drawn with sharp right angles.
+    ///     Corners not provided here will be rounded.
+    static func colorWellPath(rect: CGRect, squaredCorners corners: [Corner]) -> Constructed {
         var components: [ConstructablePathComponent] = Corner.clockwiseOrder.map { corner in
             if corners.contains(corner) {
                 return .line(to: corner.point(forRect: rect))
@@ -234,16 +237,23 @@ extension ConstructablePath {
         return construct(with: components)
     }
 
-    /// Produces a color well segment path for the specified side of
-    /// a rectangle.
+    /// Produces a partial path for the specified side of a color well.
     ///
     /// - Parameters:
     ///   - rect: The rectangle to draw the path in.
-    ///   - side: The side of `rect` that the path should be drawn in. This parameter
-    ///     provides information about which corners should be rounded and which corners
-    ///     should be drawn with sharp right angles.
-    static func colorWellSegment(rect: CGRect, side: Side?) -> Constructed {
-        colorWellPath(rect: rect, squaredCorners: side?.opposite.corners ?? [])
+    ///   - side: The side of `rect` that the path should be drawn in. This
+    ///     parameter provides information about which corners should be rounded
+    ///     and which corners should be drawn with sharp right angles.
+    static func partialColorWellPath(rect: CGRect, side: Side) -> Constructed {
+        colorWellPath(rect: rect, squaredCorners: side.opposite.corners)
+    }
+
+    /// Produces a full path for a color well, that is, a path with
+    /// none of its corners squared.
+    ///
+    /// - Parameter rect: The rectangle to draw the path in.
+    static func fullColorWellPath(rect: CGRect) -> Constructed {
+        colorWellPath(rect: rect, squaredCorners: [])
     }
 }
 

@@ -48,7 +48,7 @@ class ColorWellPullDownSwatchSegment: ColorWellSwatchSegment {
                 return NSBezierPath()
             }
             let lineWidth = ColorWell.lineWidth
-            let path = NSBezierPath.colorWellSegment(
+            let path = NSBezierPath.partialColorWellPath(
                 rect: bounds.insetBy(
                     dx: lineWidth / 4,
                     dy: lineWidth / 2

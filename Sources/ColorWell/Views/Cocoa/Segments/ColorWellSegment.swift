@@ -90,7 +90,7 @@ extension ColorWellSegment {
             guard let self else {
                 return NSBezierPath()
             }
-            return .colorWellSegment(rect: bounds, side: self.side)
+            return .partialColorWellPath(rect: bounds, side: self.side)
         }
 
         caches.shadowLayer.updateConstructor { [weak self] bounds in
@@ -101,7 +101,7 @@ extension ColorWellSegment {
             let shadowRadius = 0.75
             let shadowOffset = CGSize(width: 0, height: -0.25)
 
-            let shadowPath = CGPath.colorWellSegment(rect: bounds, side: self.side)
+            let shadowPath = CGPath.partialColorWellPath(rect: bounds, side: self.side)
             let maskPath = CGMutablePath()
             maskPath.addRect(
                 bounds.insetBy(
