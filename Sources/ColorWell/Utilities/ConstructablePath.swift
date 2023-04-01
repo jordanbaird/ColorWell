@@ -28,20 +28,6 @@ enum Corner {
 
 // MARK: Corner Helpers
 extension Corner {
-    /// The corner on the opposite end of the rectangle.
-    var opposite: Self {
-        switch self {
-        case .topLeft:
-            return .bottomRight
-        case .topRight:
-            return .bottomLeft
-        case .bottomLeft:
-            return .topRight
-        case .bottomRight:
-            return .topLeft
-        }
-    }
-
     /// Returns the point in the given rectangle that corresponds to this corner.
     func point(forRect rect: CGRect) -> CGPoint {
         switch self {
@@ -60,39 +46,51 @@ extension Corner {
 // MARK: - Side
 
 /// A type that represents a side of a rectangle.
-struct Side {
-    /// The corners that, when connected by a path, make up this side.
-    let corners: [Corner]
-
-    /// Creates a side with the given corners.
-    private init(_ corners: [Corner]) {
-        self.corners = corners
-    }
-}
-
-// MARK: Side Static Members
-extension Side {
+enum Side {
     /// The top side of a rectangle.
-    static let top = Self([.topLeft, .topRight])
+    case top
 
     /// The bottom side of a rectangle.
-    static let bottom = Self([.bottomLeft, .bottomRight])
+    case bottom
 
     /// The left side of a rectangle.
-    static let left = Self([.topLeft, .bottomLeft])
+    case left
 
     /// The right side of a rectangle.
-    static let right = Self([.topRight, .bottomRight])
+    case right
 
     /// A side that contains no points.
-    static let null = Self([])
-}
+    case null
 
-// MARK: Side Helpers
-extension Side {
+    var corners: [Corner] {
+        switch self {
+        case .top:
+            return [.topLeft, .topRight]
+        case .bottom:
+            return [.bottomLeft, .bottomRight]
+        case .left:
+            return [.topLeft, .bottomLeft]
+        case .right:
+            return [.topRight, .bottomRight]
+        case .null:
+            return []
+        }
+    }
+
     /// The side on the opposite end of the rectangle.
     var opposite: Self {
-        Self(corners.map { $0.opposite })
+        switch self {
+        case .top:
+            return .bottom
+        case .bottom:
+            return .top
+        case .left:
+            return .right
+        case .right:
+            return .left
+        case .null:
+            return .null
+        }
     }
 }
 
