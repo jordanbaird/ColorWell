@@ -49,6 +49,7 @@ public struct ColorWellView<Label: View>: View {
 // MARK: ColorWellView (Label: View)
 @available(macOS 10.15, *)
 extension ColorWellView {
+    // TODO: Deprecate
     /// Creates a color well that uses the provided view as its label,
     /// and executes the given action when its color changes.
     ///
@@ -74,6 +75,7 @@ extension ColorWellView {
         )
     }
 
+    // TODO: Deprecate
     /// Creates a color well with an initial color value, with the provided
     /// view being used as the color well's label.
     ///
@@ -100,6 +102,7 @@ extension ColorWellView {
         )
     }
 
+    // TODO: Deprecate
     /// Creates a color well with an initial color value, with the provided
     /// view being used as the color well's label.
     ///
@@ -125,6 +128,7 @@ extension ColorWellView {
         )
     }
 
+    // TODO: Deprecate
     /// Creates a color well with an initial color value, with the provided view
     /// being used as the color well's label, and the provided action being executed
     /// when the color well's color changes.
@@ -155,6 +159,7 @@ extension ColorWellView {
         )
     }
 
+    // TODO: Deprecate
     /// Creates a color well with an initial color value, with the provided view
     /// being used as the color well's label, and the provided action being executed
     /// when the color well's color changes.
@@ -194,6 +199,7 @@ extension ColorWellView {
 // MARK: ColorWellView (Label == Never)
 @available(macOS 10.15, *)
 extension ColorWellView where Label == Never {
+    // TODO: Deprecate
     /// Creates a color well with an initial color value.
     ///
     /// - Parameters:
@@ -216,6 +222,7 @@ extension ColorWellView where Label == Never {
         )
     }
 
+    // TODO: Deprecate
     /// Creates a color well with an initial color value.
     ///
     /// - Parameters:
@@ -237,6 +244,7 @@ extension ColorWellView where Label == Never {
         )
     }
 
+    // TODO: Deprecate
     /// Creates a color well with an initial color value, that executes the
     /// given action when its color changes.
     ///
@@ -263,6 +271,7 @@ extension ColorWellView where Label == Never {
         )
     }
 
+    // TODO: Deprecate
     /// Creates a color well with an initial color value, that executes the
     /// given action when its color changes.
     ///
@@ -301,6 +310,7 @@ extension ColorWellView where Label == Text {
 
     // MARK: Generate Label From StringProtocol
 
+    // TODO: Deprecate
     /// Creates a color well with an initial color value, that generates
     /// its label from a string.
     ///
@@ -327,6 +337,7 @@ extension ColorWellView where Label == Text {
         )
     }
 
+    // TODO: Deprecate
     /// Creates a color well with an initial color value, that generates
     /// its label from a string.
     ///
@@ -352,6 +363,7 @@ extension ColorWellView where Label == Text {
         )
     }
 
+    // TODO: Deprecate
     /// Creates a color well that generates its label from a string, and
     /// performs the given action when its color changes.
     ///
@@ -377,6 +389,7 @@ extension ColorWellView where Label == Text {
         )
     }
 
+    // TODO: Deprecate
     /// Creates a color well with an initial color value that generates
     /// its label from a string, and performs the given action when its
     /// color changes.
@@ -407,6 +420,7 @@ extension ColorWellView where Label == Text {
         )
     }
 
+    // TODO: Deprecate
     /// Creates a color well with an initial color value that generates
     /// its label from a string, and performs the given action when its
     /// color changes.
@@ -444,6 +458,7 @@ extension ColorWellView where Label == Text {
 
     // MARK: Generate Label From LocalizedStringKey
 
+    // TODO: Deprecate
     /// Creates a color well with an initial color value, that generates
     /// its label from a localized string key.
     ///
@@ -470,6 +485,7 @@ extension ColorWellView where Label == Text {
         )
     }
 
+    // TODO: Deprecate
     /// Creates a color well with an initial color value, that generates
     /// its label from a localized string key.
     ///
@@ -495,6 +511,7 @@ extension ColorWellView where Label == Text {
         )
     }
 
+    // TODO: Deprecate
     /// Creates a color well that generates its label from a localized
     /// string key, and performs the given action when its color changes.
     ///
@@ -520,6 +537,7 @@ extension ColorWellView where Label == Text {
         )
     }
 
+    // TODO: Deprecate
     /// Creates a color well with an initial color value that generates
     /// its label from a localized string key, and performs the given action
     /// when its color changes.
@@ -550,6 +568,7 @@ extension ColorWellView where Label == Text {
         )
     }
 
+    // TODO: Deprecate
     /// Creates a color well with an initial color value that generates
     /// its label from a localized string key, and performs the given action
     /// when its color changes.
@@ -580,6 +599,191 @@ extension ColorWellView where Label == Text {
                     .cgColor(cgColor),
                     .supportsOpacity(supportsOpacity),
                     .action(action),
+                ]
+            )
+        )
+    }
+}
+
+// MARK: - Initializers With Bindings
+
+// MARK: ColorWellView (Label: View)
+@available(macOS 10.15, *)
+extension ColorWellView {
+    /// Creates a color well with a binding to a color value, with the
+    /// provided view being used as the color well's label.
+    ///
+    /// - Parameters:
+    ///   - color: A binding to the color well's color.
+    ///   - supportsOpacity: A Boolean value that indicates whether
+    ///     the color well allows adjusting the selected color's opacity;
+    ///     the default is true.
+    ///   - label: A view that describes the purpose of the color well.
+    @available(macOS 11.0, *)
+    public init(color: Binding<Color>, supportsOpacity: Bool = true, @ViewBuilder label: () -> Label) {
+        self.init(
+            configuration: ColorWellConfiguration(
+                modifiers: [
+                    .colorBinding(color),
+                    .supportsOpacity(supportsOpacity),
+                    .label(label),
+                ]
+            )
+        )
+    }
+
+    /// Creates a color well with a binding to a color value, with the
+    /// provided view being used as the color well's label.
+    ///
+    /// - Parameters:
+    ///   - cgColor: A binding to the color well's color.
+    ///   - supportsOpacity: A Boolean value that indicates whether
+    ///     the color well allows adjusting the selected color's opacity;
+    ///     the default is true.
+    ///   - label: A view that describes the purpose of the color well.
+    public init(cgColor: Binding<CGColor>, supportsOpacity: Bool = true, @ViewBuilder label: () -> Label) {
+        self.init(
+            configuration: ColorWellConfiguration(
+                modifiers: [
+                    .cgColorBinding(cgColor),
+                    .supportsOpacity(supportsOpacity),
+                    .label(label),
+                ]
+            )
+        )
+    }
+}
+
+// MARK: ColorWellView (Label == Never)
+@available(macOS 10.15, *)
+extension ColorWellView where Label == Never {
+    /// Creates a color well with a binding to a color value.
+    ///
+    /// - Parameters:
+    ///   - color: A binding to the color well's color.
+    ///   - supportsOpacity: A Boolean value that indicates whether
+    ///     the color well allows adjusting the selected color's opacity;
+    ///     the default is true.
+    @available(macOS 11.0, *)
+    public init(color: Binding<Color>, supportsOpacity: Bool = true) {
+        self.init(
+            configuration: ColorWellConfiguration(
+                modifiers: [
+                    .colorBinding(color),
+                    .supportsOpacity(supportsOpacity),
+                ]
+            )
+        )
+    }
+
+    /// Creates a color well with a binding to a color value.
+    ///
+    /// - Parameters:
+    ///   - cgColor: A binding to the color well's color.
+    ///   - supportsOpacity: A Boolean value that indicates whether
+    ///     the color well allows adjusting the selected color's opacity;
+    ///     the default is true.
+    public init(cgColor: Binding<CGColor>, supportsOpacity: Bool = true) {
+        self.init(
+            configuration: ColorWellConfiguration(
+                modifiers: [
+                    .cgColorBinding(cgColor),
+                    .supportsOpacity(supportsOpacity),
+                ]
+            )
+        )
+    }
+}
+
+// MARK: ColorWellView (Label == Text)
+@available(macOS 10.15, *)
+extension ColorWellView where Label == Text {
+
+    // MARK: Generate Label From StringProtocol
+
+    /// Creates a color well with a binding to a color value, that generates
+    /// its label from a string.
+    ///
+    /// - Parameters:
+    ///   - title: A string that describes the purpose of the color well.
+    ///   - color: A binding to the color well's color.
+    ///   - supportsOpacity: A Boolean value that indicates whether
+    ///     the color well allows adjusting the selected color's opacity;
+    ///     the default is true.
+    @available(macOS 11.0, *)
+    public init<S: StringProtocol>(_ title: S, color: Binding<Color>, supportsOpacity: Bool = true) {
+        self.init(
+            configuration: ColorWellConfiguration(
+                modifiers: [
+                    .title(title),
+                    .colorBinding(color),
+                    .supportsOpacity(supportsOpacity),
+                ]
+            )
+        )
+    }
+
+    /// Creates a color well with a binding to a color value, that generates
+    /// its label from a string.
+    ///
+    /// - Parameters:
+    ///   - title: A string that describes the purpose of the color well.
+    ///   - cgColor: A binding to the color well's color.
+    ///   - supportsOpacity: A Boolean value that indicates whether
+    ///     the color well allows adjusting the selected color's opacity;
+    ///     the default is true.
+    public init<S: StringProtocol>(_ title: S, cgColor: Binding<CGColor>, supportsOpacity: Bool = true) {
+        self.init(
+            configuration: ColorWellConfiguration(
+                modifiers: [
+                    .title(title),
+                    .cgColorBinding(cgColor),
+                    .supportsOpacity(supportsOpacity),
+                ]
+            )
+        )
+    }
+
+    // MARK: Generate Label From LocalizedStringKey
+
+    /// Creates a color well with a binding to a color value, that generates
+    /// its label from a localized string key.
+    ///
+    /// - Parameters:
+    ///   - titleKey: The key for the localized title of the color well.
+    ///   - color: A binding to the color well's color.
+    ///   - supportsOpacity: A Boolean value that indicates whether
+    ///     the color well allows adjusting the selected color's opacity;
+    ///     the default is true.
+    @available(macOS 11.0, *)
+    public init(_ titleKey: LocalizedStringKey, color: Binding<Color>, supportsOpacity: Bool = true) {
+        self.init(
+            configuration: ColorWellConfiguration(
+                modifiers: [
+                    .titleKey(titleKey),
+                    .colorBinding(color),
+                    .supportsOpacity(supportsOpacity),
+                ]
+            )
+        )
+    }
+
+    /// Creates a color well with a binding to a color value, that generates
+    /// its label from a localized string key.
+    ///
+    /// - Parameters:
+    ///   - titleKey: The key for the localized title of the color well.
+    ///   - cgColor: A binding to the color well's color.
+    ///   - supportsOpacity: A Boolean value that indicates whether
+    ///     the color well allows adjusting the selected color's opacity;
+    ///     the default is true.
+    public init(_ titleKey: LocalizedStringKey, cgColor: Binding<CGColor>, supportsOpacity: Bool = true) {
+        self.init(
+            configuration: ColorWellConfiguration(
+                modifiers: [
+                    .titleKey(titleKey),
+                    .cgColorBinding(cgColor),
+                    .supportsOpacity(supportsOpacity),
                 ]
             )
         )
