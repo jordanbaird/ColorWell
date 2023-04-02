@@ -5,8 +5,14 @@
 
 import Cocoa
 
-/// Constants that represent the drawing styles used
-/// to render a view's appearance.
+/// Constants that represent the drawing styles used by the
+/// system to render colors and assets.
+///
+/// These values serve mainly to indicate whether a value of
+/// the more complex `NSAppearance` type represents a light
+/// or dark appearance. The drawing style that corresponds to
+/// the currently active appearance can be retrieved through
+/// the `DrawingStyle.current` static property.
 enum DrawingStyle {
     /// A drawing style that indicates a dark appearance.
     case dark
@@ -16,20 +22,20 @@ enum DrawingStyle {
 
     // MARK: Static Properties
 
-    /// The drawing style of the appearance that the system uses
-    /// for color and asset resolution, and that is active for
-    /// drawing, usually from locking focus on a view.
+    /// The drawing style of the current appearance.
     static var current: Self {
-        if #available(macOS 11.0, *) {
-            return Self(appearance: .currentDrawing())
-        } else {
-            return Self(appearance: .current)
-        }
+        let currentAppearance: NSAppearance = {
+            guard #available(macOS 11.0, *) else {
+                return .current
+            }
+            return .currentDrawing()
+        }()
+        return currentAppearance.drawingStyle
     }
 
     // MARK: Initializers
 
-    /// Creates a drawing style from the specified appearance.
+    /// Creates a drawing style that corresponds to the specified appearance.
     init(appearance: NSAppearance) {
         enum LocalCache {
             static let systemDarkNames: Set<NSAppearance.Name> = {

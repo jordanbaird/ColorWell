@@ -61,6 +61,15 @@ extension Comparable {
     }
 }
 
+// MARK: - NSAppearance
+
+extension NSAppearance {
+    /// The drawing style that corresponds to this appearance.
+    var drawingStyle: DrawingStyle {
+        DrawingStyle(appearance: self)
+    }
+}
+
 // MARK: - NSColor
 
 extension NSColor {
@@ -300,7 +309,7 @@ extension NSColor {
             let unarchiver = try? NSKeyedUnarchiver(forReadingFrom: colorData),
             let copy = NSColor(coder: unarchiver)
         else {
-            // Fall back to the original color if copying fails
+            // Fall back to the original color if copying fails.
             return self
         }
 
