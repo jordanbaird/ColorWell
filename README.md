@@ -55,7 +55,7 @@ struct ContentView: View {
         }
     }
 
-    func updateFontColor(_ color: Color) {
+    private func updateFontColor(_ color: Color) {
         fontColor = color
     }
 }

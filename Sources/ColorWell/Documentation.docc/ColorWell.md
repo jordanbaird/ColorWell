@@ -12,24 +12,26 @@ ColorWell is designed to mimic the appearance and behavior of the new color well
 
 ## SwiftUI
 
-Create a ``ColorWellView`` and add it to your view hierarchy. There are a wide range of initializers to choose from, allowing you to set the color well's color, label, and action.
+Create a ``ColorWellView`` and add it to your view hierarchy. There are a wide range of initializers, as well as several modifiers to choose from, allowing you to set the color well's color, label, and action.
 
 ```swift
+import SwiftUI
+import ColorWell
+
 struct ContentView: View {
     @Binding var fontColor: Color
 
     var body: some View {
         VStack {
-            ColorWellView(color: fontColor) { newColor in
-                fontColor = newColor
-            }
+            ColorWellView("Font Color", color: fontColor, action: updateFontColor)
+                .colorWellStyle(.expanded)
 
-            // ...
-            // ...
-            // ...
-
-            CustomTextEditor(fontColor: $fontColor)
+            MyCustomTextEditor(fontColor: $fontColor)
         }
+    }
+
+    private func updateFontColor(_ color: Color) {
+        fontColor = color
     }
 }
 ```
@@ -39,13 +41,36 @@ struct ContentView: View {
 Create a ``ColorWell/ColorWell`` using one of the available initializers. Observe color changes using the ``ColorWell/ColorWell/onColorChange(perform:)`` method.
 
 ```swift
-let fontColor = NSColor.black
+import Cocoa
+import ColorWell
 
-let textEditor = CustomNSTextEditor(fontColor: fontColor)
-let colorWell = ColorWell(color: fontColor)
+class ContentViewController: NSViewController {
+    let colorWell: ColorWell
+    let textEditor: MyCustomNSTextEditor
 
-colorWell.onColorChange { newColor in
-    textEditor.fontColor = newColor
+    init(fontColor: NSColor) {
+        self.colorWell = ColorWell(color: fontColor)
+        self.textEditor = MyCustomNSTextEditor(fontColor: fontColor)
+
+        super.init(nibName: "ContentView", bundle: Bundle(for: Self.self))
+
+        // Set the style
+        colorWell.style = .expanded
+
+        // Add a change handler
+        colorWell.onColorChange { newColor in
+            self.textEditor.fontColor = newColor
+        }
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        view.addSubview(colorWell)
+        view.addSubview(textEditor)
+
+        // Layout the views, perform setup work, etc.
+    }
 }
 ```
 
