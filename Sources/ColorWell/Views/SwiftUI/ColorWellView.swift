@@ -46,7 +46,7 @@ public struct ColorWellView<Label: View>: View {
     }
 }
 
-// MARK: ColorWellView (Label: View)
+// MARK: ColorWellView where Label: View
 @available(macOS 10.15, *)
 extension ColorWellView {
     // TODO: Deprecate
@@ -196,7 +196,7 @@ extension ColorWellView {
     }
 }
 
-// MARK: ColorWellView (Label == Never)
+// MARK: ColorWellView where Label == Never
 @available(macOS 10.15, *)
 extension ColorWellView where Label == Never {
     // TODO: Deprecate
@@ -304,7 +304,7 @@ extension ColorWellView where Label == Never {
     }
 }
 
-// MARK: ColorWellView (Label == Text)
+// MARK: ColorWellView where Label == Text
 @available(macOS 10.15, *)
 extension ColorWellView where Label == Text {
 
@@ -607,7 +607,7 @@ extension ColorWellView where Label == Text {
 
 // MARK: - Initializers With Bindings
 
-// MARK: ColorWellView (Label: View)
+// MARK: ColorWellView where Label: View
 @available(macOS 10.15, *)
 extension ColorWellView {
     /// Creates a color well with a binding to a color value, with the
@@ -654,7 +654,7 @@ extension ColorWellView {
     }
 }
 
-// MARK: ColorWellView (Label == Never)
+// MARK: ColorWellView where Label == Never
 @available(macOS 10.15, *)
 extension ColorWellView where Label == Never {
     /// Creates a color well with a binding to a color value.
@@ -695,7 +695,7 @@ extension ColorWellView where Label == Never {
     }
 }
 
-// MARK: ColorWellView (Label == Text)
+// MARK: ColorWellView where Label == Text
 @available(macOS 10.15, *)
 extension ColorWellView where Label == Text {
 
