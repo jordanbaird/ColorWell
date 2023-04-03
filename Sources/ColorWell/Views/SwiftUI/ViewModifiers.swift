@@ -8,18 +8,6 @@ import SwiftUI
 
 @available(macOS 10.15, *)
 extension View {
-    /// Adds an action to color wells within this view.
-    ///
-    /// - Parameter action: An action to perform when a color well's
-    ///   color changes. The closure receives the new color as an input.
-    public func onColorChange(perform action: @escaping (Color) -> Void) -> some View {
-        transformEnvironment(\.changeHandlers) { changeHandlers in
-            changeHandlers.append { color in
-                action(Color(color))
-            }
-        }
-    }
-
     /// Sets the style for color wells within this view.
     public func colorWellStyle<S: ColorWellStyle>(_ style: S) -> some View {
         transformEnvironment(\.colorWellStyleConfiguration) { configuration in
