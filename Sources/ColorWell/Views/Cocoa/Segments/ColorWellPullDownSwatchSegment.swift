@@ -160,10 +160,18 @@ extension ColorWellPullDownSwatchSegment {
 // MARK: Perform Action
 extension ColorWellPullDownSwatchSegment {
     override class func performAction(for segment: ColorWellSegment) -> Bool {
+        guard let colorWell = segment.colorWell else {
+            return false
+        }
+
+        if let popoverContext = colorWell.popoverContext {
+            popoverContext.popover.close()
+            return true
+        }
+
         guard
             !NSEvent.modifierFlags.contains(.shift),
-            canPullDown(for: segment),
-            let colorWell = segment.colorWell
+            canPullDown(for: segment)
         else {
             return ColorWellToggleSegment.performAction(for: segment)
         }
