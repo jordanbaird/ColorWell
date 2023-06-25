@@ -38,11 +38,9 @@ public struct ColorWellView<Label: View>: View {
     /// Creates a color well view using the specified configuration.
     init(configuration: ColorWellConfiguration) {
         label = configuration.label
-        representable = {
-            ColorWellRepresentable(configuration: configuration)
-                .fixedSize()
-                .erased()
-        }()
+        representable = ColorWellRepresentable(configuration: configuration)
+            .fixedSize()
+            .erased()
     }
 }
 
