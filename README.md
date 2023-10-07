@@ -1,3 +1,7 @@
+## Notice
+
+Due to a number of design problems and increasing repository bloat, this package has been deprecated and replaced, and this repository will be archived. Please use its successor [ColorWellKit](https://github.com/jordanbaird/ColorWellKit) instead.
+
 # ColorWell
 
 [![Continuous Integration][ci-badge]](https://github.com/jordanbaird/ColorWell/actions/workflows/test.yml)
